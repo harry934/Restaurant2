@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCnC Admin Dashboard</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .sidebar { height: 100vh; background: #333; color: white; position: fixed; width: 250px; padding: 20px; }
+        .sidebar a { color: #ccc; display: block; padding: 10px; text-decoration: none; }
+        .sidebar a:hover, .sidebar a.active { color: white; background: #e7252d; border-radius: 4px; }
+        .main-content { margin-left: 250px; padding: 30px; }
+        .card-stat { border-left: 5px solid #e7252d; }
+        .badge-new { background: #007bff; color: white; }
+        .badge-preparing { background: #ffc107; color: black; }
+        .badge-out { background: #17a2b8; color: white; }
+        .badge-completed { background: #28a745; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h4>PCnC Admin</h4>
+        <hr style="border-color: #555;">
+        <a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-list"></i> Orders</a>
+        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h2 class="mb-4">Dashboard Overview</h2>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm card-stat">
+                    <div class="card-body">
+                        <h5 class="text-muted">Total Orders Today</h5>
+                        <h2 id="totalOrders">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-left-primary">
+                    <div class="card-body">
+                        <h5 class="text-muted">Revenue Today</h5>
+                        <h2 id="revenueToday">KES 0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="text-muted">Pending Payment</h5>
+                        <h2 id="pendingPayment" class="text-danger">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="text-muted">Active Orders</h5>
+                        <h2 id="activeOrders" class="text-primary">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Orders</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="loadOrders()">Refresh</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Date/Time</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                            <!-- Orders populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/jquery-1.11.3.min.js"></script>
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        if (!localStorage.getItem('adminToken')) {
+            window.location.href = 'index.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/admin/orders');
+                const orders = await res.json();
+                renderOrders(orders);
+                updateStats(orders);
+            } catch (e) {
+                console.error('Failed to load orders', e);
+            }
+        }
+
+        function updateStats(orders) {
+            // Simple logic assuming all orders are "today" for now, or filter by date
+            // In a real app we'd filter `new Date(o.date)`
+            const today = new Date().toISOString().split('T')[0];
+            const todaysOrders = orders.filter(o => o.date.startsWith(today));
+            
+            document.getElementById('totalOrders').innerText = todaysOrders.length;
+            
+            const revenue = todaysOrders.reduce((sum, o) => sum + (o.paymentStatus === 'Successful' ? parseInt(o.totalAmount) : 0), 0);
+            document.getElementById('revenueToday').innerText = 'KES ' + revenue.toLocaleString();
+
+            const pending = orders.filter(o => o.paymentStatus === 'Pending').length;
+            document.getElementById('pendingPayment').innerText = pending;
+
+            const active = orders.filter(o => o.status !== 'Completed').length;
+            document.getElementById('activeOrders').innerText = active;
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('ordersTable');
+            tbody.innerHTML = '';
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4">No orders found</td></tr>';
+                return;
+            }
+
+            orders.forEach(order => {
+                const itemsStr = order.items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+                const badgeClass = {
+                    'New': 'badge-new',
+                    'Preparing': 'badge-preparing',
+                    'Out for Delivery': 'badge-out',
+                    'Completed': 'badge-completed'
+                }[order.status] || 'badge-secondary';
+
+                const payClass = order.paymentStatus === 'Successful' ? 'text-success' : 'text-danger';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>
+                        <div>${order.customerName}</div>
+                        <small class="text-muted">${order.phoneNumber}</small><br>
+                        <small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${order.location}</small>
+                    </td>
+                    <td>${itemsStr}</td>
+                    <td>KES ${order.totalAmount}</td>
+                    <td>${new Date(order.date).toLocaleString()}</td>
+                    <td class="${payClass} font-weight-bold">${order.paymentStatus}</td>
+                    <td><span class="badge ${badgeClass} p-2">${order.status}</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-info" onclick="updateStatus('${order.id}', 'Preparing')">Prep</button>
+                            <button class="btn btn-sm btn-primary" onclick="updateStatus('${order.id}', 'Out for Delivery')">Ship</button>
+                            <button class="btn btn-sm btn-success" onclick="updateStatus('${order.id}', 'Completed')">Done</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function updateStatus(orderId, status) {
+            try {
+                const res = await fetch('/api/admin/order/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, status })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadOrders();
+                } else {
+                    alert('Error updating order');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Poll every 10 seconds for new orders
+        setInterval(loadOrders, 10000);
+        
+        // Initial load
+        loadOrders();
+    </script>
+</body>
+</html>

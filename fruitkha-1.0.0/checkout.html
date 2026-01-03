@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Responsive Bootstrap4 Shop Template, Created by Imran Hossain from https://imransdesign.com/">
+
+	<!-- title -->
+	<title>PCnC - Checkout</title>
+
+	<!-- favicon -->
+	<link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
+	<!-- google font -->
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap" rel="stylesheet">
+	<!-- fontawesome -->
+	<link rel="stylesheet" href="assets/css/all.min.css">
+	<!-- bootstrap -->
+	<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+	<!-- owl carousel -->
+	<link rel="stylesheet" href="assets/css/owl.carousel.css">
+	<!-- magnific popup -->
+	<link rel="stylesheet" href="assets/css/magnific-popup.css">
+	<!-- animate css -->
+	<link rel="stylesheet" href="assets/css/animate.css">
+	<!-- mean menu css -->
+	<link rel="stylesheet" href="assets/css/meanmenu.min.css">
+	<!-- main style -->
+	<link rel="stylesheet" href="assets/css/main.css">
+	<!-- responsive -->
+	<link rel="stylesheet" href="assets/css/responsive.css">
+
+</head>
+<body>
+	
+	<!--PreLoader-->
+    <div class="loader">
+        <div class="loader-inner">
+            <div class="circle"></div>
+        </div>
+    </div>
+    <!--PreLoader Ends-->
+	
+	<!-- header -->
+	<div class="top-header-area" id="sticker">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12 col-sm-12 text-center">
+					<div class="main-menu-wrap">
+						<!-- logo -->
+						<div class="site-logo">
+							<a href="index.html">
+								<img src="/fruitkha-1.0.0/assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
+							</a>
+						</div>
+						<!-- logo -->
+
+						<!-- menu start -->
+						<nav class="main-menu">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="shop.html">Menu</a></li>
+								<li><a href="about.html">About</a></li>
+								
+								<li class="current-list-item"><a href="checkout.html">Checkout</a></li>
+								<li>
+									<div class="header-icons">
+										<a class="shopping-cart" href="cart.html"><i class="fas fa-shopping-cart"></i></a>
+									</div>
+								</li>
+							</ul>
+						<div class="mobile-menu"></div>
+						<!-- menu end -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end header -->
+	
+	<!-- breadcrumb-section -->
+	<div class="breadcrumb-section breadcrumb-bg">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8 offset-lg-2 text-center">
+					<div class="breadcrumb-text">
+						<p>Fresh & Tasty</p>
+						<h1>Checkout</h1>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end breadcrumb section -->
+
+	<!-- check out section -->
+	<div class="checkout-section mt-80 mb-150" style="background-color: #fcfcfc;">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-lg-8">
+					
+					<!-- Step 1 -->
+					<div class="checkout-card mb-4" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03);">
+						<div style="background: #fdfdfd; padding: 20px 30px; border-bottom: 2px solid #e7252d; display: flex; align-items: center;">
+							<div style="background: #e7252d; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px;">1</div>
+							<h5 style="margin: 0; font-weight: 800; color: #1a1a1a; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Details</h5>
+						</div>
+						<div style="padding: 30px;">
+							<form id="checkout-form">
+								<div class="row">
+									<div class="col-md-6 mb-3">
+										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Full Name</label>
+										<input type="text" id="name" placeholder="Who is receiving?" required style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333;">
+									</div>
+									<div class="col-md-6 mb-3">
+										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Mobile Number</label>
+										<input type="tel" id="phone" placeholder="07XXXXXXXX" required style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333;">
+									</div>
+									<div class="col-md-12 mb-3">
+										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Exact Delivery Location</label>
+										<input type="text" id="address" placeholder="e.g. USIU Hostel, Gate A, Room 12" required style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333;">
+										<p style="color: #e7252d; font-size: 0.8rem; font-weight: 700; margin-top: 8px; margin-bottom: 0;">* Currently delivering only within the USIU Road area.</p>
+									</div>
+									<div class="col-md-12 mt-3">
+										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Special Instructions (Optional)</label>
+										<textarea id="order-notes" placeholder="e.g. Extra chili, no onions, or specific delivery directions..." style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333; height: 80px; resize: none;"></textarea>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+
+					<!-- Step 2 -->
+					<div class="checkout-card mb-4" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03);">
+						<div style="background: #fdfdfd; padding: 20px 30px; border-bottom: 2px solid #e7252d; display: flex; align-items: center; justify-content: space-between;">
+							<div style="display: flex; align-items: center;">
+								<div style="background: #e7252d; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px;">2</div>
+								<h5 style="margin: 0; font-weight: 800; color: #1a1a1a; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Choose Payment</h5>
+							</div>
+							<div style="background: #fff5f5; border: 1px solid #ffdada; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center;">
+								<i class="fas fa-shipping-fast" style="color: #e7252d; margin-right: 8px; font-size: 0.9rem;"></i>
+								<span style="font-size: 0.8rem; font-weight: 700; color: #e7252d; white-space: nowrap;">Delivering in 35-50 Min</span>
+							</div>
+						</div>
+						<div style="padding: 30px;">
+							<div class="row">
+								<div class="col-md-6 mb-3">
+									<label class="pm-card" style="display: block; border: 2px solid #f0f0f0; border-radius: 10px; padding: 20px; cursor: pointer; transition: 0.2s;" id="label-stk" onclick="document.querySelectorAll('.pm-card').forEach(c=>c.style.borderColor='#f0f0f0'); this.style.borderColor='#e7252d';">
+										<input type="radio" name="payment_method" value="stk" checked style="margin-right: 10px; accent-color: #e7252d;">
+										<span style="font-weight: 800; color: #1a1a1a;">M-Pesa STK Push</span><br>
+										<small style="color: #666;">Pay via phone prompt</small>
+									</label>
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="pm-card" style="display: block; border: 2px solid #f0f0f0; border-radius: 10px; padding: 20px; cursor: pointer; transition: 0.2s;" id="label-till" onclick="document.querySelectorAll('.pm-card').forEach(c=>c.style.borderColor='#f0f0f0'); this.style.borderColor='#e7252d';">
+										<input type="radio" name="payment_method" value="till" style="margin-right: 10px; accent-color: #e7252d;">
+										<span style="font-weight: 800; color: #1a1a1a;">Pay via Till Number</span><br>
+										<small style="color: #666;">Till: 6994591</small>
+									</label>
+								</div>
+							</div>
+							<div id="till-instructions" style="display: none; background: #fff8f8; border: 1px solid #ffcccc; padding: 20px; border-radius: 10px; margin-top: 10px;">
+								<strong style="color: #e7252d; display: block; margin-bottom: 8px;">M-Pesa Till Payment Steps:</strong>
+								<ul style="margin: 0; padding-left: 18px; color: #444; font-size: 0.9rem; line-height: 1.6;">
+									<li>Select <strong>Lipa na M-Pesa</strong> > <strong>Buy Goods & Services</strong></li>
+									<li>Enter Till Number: <strong>6994591</strong></li>
+									<li>Enter the total amount shown below and your PIN.</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+
+					<!-- Step 3 -->
+					<div class="checkout-card" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+						<div style="background: #1a1a1a; padding: 20px 30px; display: flex; align-items: center;">
+							<div style="background: #fff; color: #1a1a1a; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px;">3</div>
+							<h5 style="margin: 0; font-weight: 800; color: #fff; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Order Summary</h5>
+						</div>
+						<div style="padding: 30px;">
+							<table style="width: 100%; margin-bottom: 25px;">
+								<tbody id="cart-table-body">
+									<!-- Items populated by JS -->
+								</tbody>
+							</table>
+							<div style="border-top: 2px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+								<span style="font-weight: 800; font-size: 1.2rem; color: #333;">Total Amount</span>
+								<span id="cart-total" style="font-weight: 900; font-size: 1.8rem; color: #e7252d;">KES 0</span>
+							</div>
+							
+							<div class="row mt-5 mb-4 text-center">
+								<div class="col-4">
+									<i class="fas fa-shield-alt" style="color: #116940; font-size: 1.2rem; display: block; margin-bottom: 5px;"></i>
+									<span style="font-size: 0.7rem; font-weight: 700; color: #777; text-transform: uppercase;">Secure Payment</span>
+								</div>
+								<div class="col-4">
+									<i class="fas fa-fire" style="color: #e7252d; font-size: 1.2rem; display: block; margin-bottom: 5px;"></i>
+									<span style="font-size: 0.7rem; font-weight: 700; color: #777; text-transform: uppercase;">Served Hot</span>
+								</div>
+								<div class="col-4">
+									<i class="fas fa-check-circle" style="color: #116940; font-size: 1.2rem; display: block; margin-bottom: 5px;"></i>
+									<span style="font-size: 0.7rem; font-weight: 700; color: #777; text-transform: uppercase;">Fresh Ingredients</span>
+								</div>
+							</div>
+
+							<div style="margin-top: 20px; text-align: center;">
+								<p id="stk-notice" style="font-size: 0.85rem; color: #116940; margin-bottom: 15px; font-weight: 700; background: #e7f3ef; display: inline-block; padding: 5px 15px; border-radius: 20px;">
+									<i class="fas fa-info-circle mr-1"></i> M-Pesa prompt will be sent to your phone.
+								</p>
+								<button onclick="submitOrder()" id="placeOrderBtn" class="boxed-btn" style="width: 100%; padding: 20px; background: #e7252d; border: none; font-weight: 800; font-size: 1.2rem; border-radius: 12px; transition: 0.3s; box-shadow: 0 8px 20px rgba(231, 37, 45, 0.25);">Complete and Place Order</button>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end check out section -->
+
+
+		<!-- footer -->
+	<div class="footer-area">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-3 col-md-6">
+					<div class="footer-box about-widget">
+						<h2 class="widget-title">About us</h2>
+						<p>Pizza Chick n Crust is your home for pizza cuisines and chicken-based fast food. Located on USIU Road, we serve the best flavors in town.</p>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6">
+					<div class="footer-box get-in-touch">
+						<h2 class="widget-title">Get in Touch</h2>
+						<ul>
+							<li>Ndichu Container, Room No. 7, USIU Road</li>
+							<li>0725 484595</li>
+							<li>Till Number: 6994591</li>
+							<li>@pizzachickncrust</li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6">
+					<div class="footer-box pages">
+						<h2 class="widget-title">Pages</h2>
+						<ul>
+							<li><a href="index.html">Home</a></li>
+							<li><a href="about.html">About</a></li>
+							<li><a href="contact.html">Contact</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end footer -->
+	
+	<!-- copyright -->
+	<div class="copyright">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-6 col-md-12">
+					<p>Copyrights &copy; 2026 - PCnC,  All Rights Reserved.</p>
+				</div>
+				<div class="col-lg-6 text-right col-md-12">
+					<div class="social-icons">
+						<ul>
+							<li><a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+							<li><a href="https://www.tiktok.com/@pizzachickncrust" target="_blank"><i class="fab fa-tiktok"></i></a></li>
+							<li><a href="https://www.instagram.com/pizzachickncrust" target="_blank"><i class="fab fa-instagram"></i></a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end copyright -->
+	
+	<!-- jquery -->
+	<script src="assets/js/jquery-1.11.3.min.js"></script>
+	<!-- bootstrap -->
+	<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+	<!-- count down -->
+	<script src="assets/js/jquery.countdown.js"></script>
+	<!-- isotope -->
+	<script src="assets/js/jquery.isotope-3.0.6.min.js"></script>
+	<!-- waypoints -->
+	<script src="assets/js/waypoints.js"></script>
+	<!-- owl carousel -->
+	<script src="assets/js/owl.carousel.min.js"></script>
+	<!-- magnific popup -->
+	<script src="assets/js/jquery.magnific-popup.min.js"></script>
+	<!-- mean menu -->
+	<script src="assets/js/jquery.meanmenu.min.js"></script>
+	<!-- sticker js -->
+	<script src="assets/js/sticker.js"></script>
+	<!-- main js -->
+	<script src="assets/js/main.js"></script>
+    <script src="assets/js/pcnc.js"></script>
+
+</body>
+</html>
