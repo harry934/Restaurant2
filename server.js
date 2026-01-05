@@ -5,119 +5,148 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const ExcelJS = require("exceljs");
+const mongoose = require("mongoose");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// MongoDB Connection
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/restaurant";
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB Connection Error:", err));
+
+// Schemas
+const OrderSchema = new mongoose.Schema({
+  id: String,
+  customerName: String,
+  phoneNumber: String,
+  location: String,
+  notes: String,
+  items: Array,
+  totalAmount: Number,
+  status: { type: String, default: "New" },
+  paymentStatus: { type: String, default: "Pending" },
+  date: { type: Date, default: Date.now },
+  rating: Number,
+  feedback: String,
+  estimatedTime: String,
+  assignedRiderId: String,
+});
+
+const MenuSchema = new mongoose.Schema({
+  id: Number,
+  name: String,
+  price: Number,
+  category: String,
+  image: String,
+  tag: String,
+  isAvailable: { type: Boolean, default: true },
+});
+
+const SettingsSchema = new mongoose.Schema(
+  {
+    supportPhone: { type: String, default: "0112601334" },
+    homeTitle: String,
+    homeSubtext: String,
+    aboutText: String,
+    promoCodes: { type: Array, default: [] },
+    team: { type: Array, default: [] },
+    riders: { type: Array, default: [] },
+    menuCategories: { type: Array, default: [] },
+    dealOfWeek: Object,
+    homeAbout: Object,
+    whatsappNumber: String,
+  },
+  { strict: false }
+);
+
+const OrderLogSchema = new mongoose.Schema({
+  order: Object,
+  logDate: { type: Date, default: Date.now },
+});
+
+const Order = mongoose.model("Order", OrderSchema);
+const Menu = mongoose.model("Menu", MenuSchema);
+const Settings = mongoose.model("Settings", SettingsSchema);
+const OrderLog = mongoose.model("OrderLog", OrderLogSchema);
+
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, 'uploads');
+    const dir = path.join(__dirname, "uploads");
     if (!fs.existsSync(dir)) fs.mkdirSync(dir);
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true })); // For form data
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve Static Files
-app.use(express.static(path.join(__dirname, 'fruitkha-1.0.0')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, "fruitkha-1.0.0")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Data Storage
+// Data Storage (Legacy for migration/fallback)
 const ORDERS_FILE = path.join(__dirname, "orders.json");
-const LOGS_FILE = path.join(__dirname, "order_logs.json");
-
-// Helper to read orders
-const getOrders = () => {
-  if (!fs.existsSync(ORDERS_FILE)) return [];
-  try {
-    const data = fs.readFileSync(ORDERS_FILE);
-    return JSON.parse(data);
-  } catch (e) {
-    return [];
-  }
-};
-
 const MENU_FILE = path.join(__dirname, "menu.json");
 const SETTINGS_FILE = path.join(__dirname, "settings.json");
 
-const getMenu = () => {
-  if (!fs.existsSync(MENU_FILE)) return [];
-  try {
-    const data = fs.readFileSync(MENU_FILE);
-    const parsed = JSON.parse(data);
-    return parsed.map(item => ({
-      isAvailable: item.isAvailable !== undefined ? item.isAvailable : true,
-      ...item
-    }));
-  } catch (e) {
-    return [];
-  }
+// --- MongoDB Helpers ---
+
+const getOrders = async () => {
+  return await Order.find().sort({ date: -1 });
 };
 
-const getSettings = () => {
-  if (!fs.existsSync(SETTINGS_FILE)) return { supportPhone: "0725 484595" };
-  try {
-    const data = fs.readFileSync(SETTINGS_FILE);
-    return JSON.parse(data);
-  } catch (e) {
-    return { supportPhone: "0725 484595" };
-  }
+const getMenu = async () => {
+  return await Menu.find();
 };
 
-// Helper to save orders
-const saveOrder = (order) => {
-  const orders = getOrders();
-  orders.push(order);
-  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
-  
-  // Also save to permanent logs
-  let logs = [];
-  if (fs.existsSync(LOGS_FILE)) {
-    try {
-      logs = JSON.parse(fs.readFileSync(LOGS_FILE));
-    } catch(e) {}
+const getSettings = async () => {
+  let settings = await Settings.findOne();
+  if (!settings) {
+    settings = new Settings({ supportPhone: "0112601334" });
+    await settings.save();
   }
-  logs.push({ ...order, logDate: new Date().toISOString() });
-  fs.writeFileSync(LOGS_FILE, JSON.stringify(logs, null, 2));
+  return settings;
 };
 
-// Update order helper
-const updateOrder = (orderId, updates) => {
-  let orders = getOrders();
-  const index = orders.findIndex((o) => o.id === orderId);
-  if (index !== -1) {
-    orders[index] = { ...orders[index], ...updates };
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
-    return orders[index];
-  }
-  return null;
+const saveOrder = async (orderData) => {
+  const newOrder = new Order(orderData);
+  await newOrder.save();
+
+  const log = new OrderLog({ order: orderData });
+  await log.save();
+  return newOrder;
+};
+
+const updateOrder = async (orderId, updates) => {
+  return await Order.findOneAndUpdate({ id: orderId }, updates, { new: true });
 };
 
 // --- API ROUTES ---
 
 // 1. Menu Items
-app.get("/api/menu", (req, res) => {
-  res.json(getMenu());
+app.get("/api/menu", async (req, res) => {
+  res.json(await getMenu());
 });
 
 // 2. Promo Code & Loyalty Validation
-app.post("/api/validate-promo", (req, res) => {
+app.post("/api/validate-promo", async (req, res) => {
   const { code, phone } = req.body;
-  const settings = getSettings();
+  const settings = await getSettings();
   const promos = settings.promoCodes || [];
   
-  // Check Loyalty first if phone is provided
   if (phone) {
-    const orders = readOrders();
+    const orders = await getOrders();
     const successfulcount = orders.filter(o => o.phoneNumber === phone && o.paymentStatus === 'Successful').length;
     if (successfulcount >= 5) {
       return res.json({ success: true, discountPercent: 15, message: "Loyalty Discount Applied (15% Off)!" });
@@ -133,14 +162,10 @@ app.post("/api/validate-promo", (req, res) => {
 });
 
 // 3. Rate Order
-app.post("/api/order/rate", (req, res) => {
+app.post("/api/order/rate", async (req, res) => {
   const { id, rating, feedback } = req.body;
-  const orders = readOrders();
-  const index = orders.findIndex(o => o.id === id);
-  if (index !== -1) {
-    orders[index].rating = rating;
-    orders[index].feedback = feedback;
-    saveOrders(orders);
+  const updated = await Order.findOneAndUpdate({ id }, { rating, feedback }, { new: true });
+  if (updated) {
     res.json({ success: true });
   } else {
     res.status(404).json({ success: false });
@@ -148,47 +173,42 @@ app.post("/api/order/rate", (req, res) => {
 });
 
 // Admin Menu Management (with file upload)
-app.post("/api/admin/menu/add", upload.single('imageFile'), (req, res) => {
-  const menu = getMenu();
+app.post("/api/admin/menu/add", upload.single('imageFile'), async (req, res) => {
+  const menu = await getMenu();
   const { name, price, category, tag } = req.body;
   
-  let imagePath = req.body.image || 'assets/img/products/product-img-1.png'; // fallback if no file
+  let imagePath = req.body.image || 'assets/img/products/product-img-1.png';
   if (req.file) {
     imagePath = 'uploads/' + req.file.filename;
   }
 
-  const newItem = {
+  const newItem = new Menu({
     id: menu.length > 0 ? Math.max(...menu.map(m => m.id)) + 1 : 1,
     name,
     price: parseInt(price),
     category,
     image: imagePath,
     tag
-  };
+  });
 
-  menu.push(newItem);
-  fs.writeFileSync(MENU_FILE, JSON.stringify(menu, null, 2));
+  await newItem.save();
   res.json({ success: true, item: newItem });
 });
 
 // Admin Menu Management - Update
-app.post("/api/admin/menu/update", upload.single('imageFile'), (req, res) => {
-  const menu = getMenu();
+app.post("/api/admin/menu/update", upload.single('imageFile'), async (req, res) => {
   const { id, name, price, category, tag } = req.body;
-  const index = menu.findIndex(m => m.id == id);
   
-  if (index !== -1) {
-    const updated = {
-      ...menu[index],
-      name,
-      price: parseFloat(price),
-      category,
-      tag: tag || ''
-    };
-    if (req.file) updated.image = 'uploads/' + req.file.filename;
-    
-    menu[index] = updated;
-    fs.writeFileSync(MENU_FILE, JSON.stringify(menu, null, 2));
+  const updates = {
+    name,
+    price: parseFloat(price),
+    category,
+    tag: tag || ''
+  };
+  if (req.file) updates.image = 'uploads/' + req.file.filename;
+  
+  const updated = await Menu.findOneAndUpdate({ id: parseInt(id) }, updates, { new: true });
+  if (updated) {
     res.json({ success: true, item: updated });
   } else {
     res.status(404).json({ success: false, message: "Item not found" });
@@ -196,37 +216,32 @@ app.post("/api/admin/menu/update", upload.single('imageFile'), (req, res) => {
 });
 
 // Admin Menu Management - Toggle Availability
-app.post("/api/admin/menu/toggle-availability", (req, res) => {
-  const menu = getMenu();
+app.post("/api/admin/menu/toggle-availability", async (req, res) => {
   const { id } = req.body;
-  const index = menu.findIndex(m => m.id == id);
+  const item = await Menu.findOne({ id: parseInt(id) });
   
-  if (index !== -1) {
-    menu[index].isAvailable = !menu[index].isAvailable;
-    fs.writeFileSync(MENU_FILE, JSON.stringify(menu, null, 2));
-    res.json({ success: true, isAvailable: menu[index].isAvailable });
+  if (item) {
+    item.isAvailable = !item.isAvailable;
+    await item.save();
+    res.json({ success: true, isAvailable: item.isAvailable });
   } else {
     res.status(404).json({ success: false, message: "Item not found" });
   }
 });
 
-app.post("/api/admin/menu/delete", (req, res) => {
+app.post("/api/admin/menu/delete", async (req, res) => {
   const { id } = req.body;
-  let menu = getMenu();
-  menu = menu.filter(m => m.id != id);
-  fs.writeFileSync(MENU_FILE, JSON.stringify(menu, null, 2));
+  await Menu.deleteOne({ id: parseInt(id) });
   res.json({ success: true });
 });
 
 // Settings API
-app.get("/api/settings", (req, res) => {
-  res.json(getSettings());
+app.get("/api/settings", async (req, res) => {
+  res.json(await getSettings());
 });
 
-app.post("/api/admin/settings/update", (req, res) => {
-  const current = getSettings();
-  const updated = { ...current, ...req.body };
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2));
+app.post("/api/admin/settings/update", async (req, res) => {
+  const updated = await Settings.findOneAndUpdate({}, req.body, { new: true, upsert: true });
   res.json({ success: true, settings: updated });
 });
 
@@ -239,63 +254,56 @@ app.post("/api/admin/settings/upload", upload.single('mediaFile'), (req, res) =>
   }
 });
 
-
 // Team Management
-app.post("/api/admin/team/add", upload.single('teamImg'), (req, res) => {
-  const current = getSettings();
-  const team = current.team || [];
-  const { name, role, phone, facebook, twitter, instagram, linkedin } = req.body;
-  
+app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
+  const { name, role, phone, facebook, twitter, instagram, linkedin } =
+    req.body;
+
   const newMember = {
     id: Date.now(),
     name,
     role,
-    image: req.file ? 'uploads/' + req.file.filename : 'assets/img/team/team-1.jpg',
-    phone: phone || '',
-    facebook: facebook || '',
-    twitter: twitter || '',
-    instagram: instagram || '',
-    linkedin: linkedin || ''
+    image: req.file
+      ? "uploads/" + req.file.filename
+      : "assets/img/team/team-1.jpg",
+    phone: phone || "",
+    facebook: facebook || "",
+    twitter: twitter || "",
+    instagram: instagram || "",
+    linkedin: linkedin || "",
   };
 
-  team.push(newMember);
-  current.team = team;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $push: { team: newMember } });
   res.json({ success: true, member: newMember });
 });
 
-app.post("/api/admin/team/delete", (req, res) => {
+app.post("/api/admin/team/delete", async (req, res) => {
   const { id } = req.body;
-  const current = getSettings();
-  let team = current.team || [];
-  team = team.filter(m => m.id != id);
-  current.team = team;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $pull: { team: { id: parseInt(id) } } });
   res.json({ success: true });
 });
 
-app.post("/api/admin/team/update", upload.single('teamImg'), (req, res) => {
-  const current = getSettings();
-  let team = current.team || [];
-  const { id, name, role, phone, facebook, twitter, instagram, linkedin } = req.body;
-  
-  const index = team.findIndex(m => m.id == id);
+app.post("/api/admin/team/update", upload.single("teamImg"), async (req, res) => {
+  const { id, name, role, phone, facebook, twitter, instagram, linkedin } =
+    req.body;
+  const current = await getSettings();
+  const team = current.team || [];
+  const index = team.findIndex((m) => m.id == id);
+
   if (index !== -1) {
     const updatedMember = {
       ...team[index],
       name,
       role,
-      phone: phone || team[index].phone || '',
-      facebook: facebook || team[index].facebook || '',
-      twitter: twitter || team[index].twitter || '',
-      instagram: instagram || team[index].instagram || '',
-      linkedin: linkedin || team[index].linkedin || ''
+      phone: phone || team[index].phone || "",
+      facebook: facebook || team[index].facebook || "",
+      twitter: twitter || team[index].twitter || "",
+      instagram: instagram || team[index].instagram || "",
+      linkedin: linkedin || team[index].linkedin || "",
     };
-    if (req.file) updatedMember.image = 'uploads/' + req.file.filename;
-    
-    team[index] = updatedMember;
-    current.team = team;
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+    if (req.file) updatedMember.image = "uploads/" + req.file.filename;
+
+    await Settings.findOneAndUpdate({ "team.id": parseInt(id) }, { $set: { "team.$": updatedMember } });
     res.json({ success: true, member: updatedMember });
   } else {
     res.status(404).json({ success: false, message: "Member not found" });
@@ -303,53 +311,45 @@ app.post("/api/admin/team/update", upload.single('teamImg'), (req, res) => {
 });
 
 // Rider Management
-app.post("/api/admin/riders/add", upload.single('riderImg'), (req, res) => {
-  const current = getSettings();
-  const riders = current.riders || [];
+app.post("/api/admin/riders/add", upload.single("riderImg"), async (req, res) => {
   const { name, phone, vehicle } = req.body;
-  
+
   const newRider = {
     id: Date.now().toString(),
     name,
     phone,
-    vehicle: vehicle || '',
-    image: req.file ? 'uploads/' + req.file.filename : 'assets/img/team/team-1.jpg'
+    vehicle: vehicle || "",
+    image: req.file
+      ? "uploads/" + req.file.filename
+      : "assets/img/team/team-1.jpg",
   };
 
-  riders.push(newRider);
-  current.riders = riders;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $push: { riders: newRider } });
   res.json({ success: true, rider: newRider });
 });
 
-app.post("/api/admin/riders/delete", (req, res) => {
+app.post("/api/admin/riders/delete", async (req, res) => {
   const { id } = req.body;
-  const current = getSettings();
-  let riders = current.riders || [];
-  riders = riders.filter(r => r.id != id);
-  current.riders = riders;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $pull: { riders: { id: id.toString() } } });
   res.json({ success: true });
 });
 
-app.post("/api/admin/riders/update", upload.single('riderImg'), (req, res) => {
-  const current = getSettings();
-  let riders = current.riders || [];
+app.post("/api/admin/riders/update", upload.single("riderImg"), async (req, res) => {
   const { id, name, phone, vehicle } = req.body;
-  
-  const index = riders.findIndex(r => r.id == id);
+  const current = await getSettings();
+  const riders = current.riders || [];
+  const index = riders.findIndex((r) => r.id == id);
+
   if (index !== -1) {
     const updatedRider = {
       ...riders[index],
       name,
       phone,
-      vehicle: vehicle || riders[index].vehicle || ''
+      vehicle: vehicle || riders[index].vehicle || "",
     };
-    if (req.file) updatedRider.image = 'uploads/' + req.file.filename;
-    
-    riders[index] = updatedRider;
-    current.riders = riders;
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+    if (req.file) updatedRider.image = "uploads/" + req.file.filename;
+
+    await Settings.findOneAndUpdate({ "riders.id": id.toString() }, { $set: { "riders.$": updatedRider } });
     res.json({ success: true, rider: updatedRider });
   } else {
     res.status(404).json({ success: false, message: "Rider not found" });
@@ -357,104 +357,54 @@ app.post("/api/admin/riders/update", upload.single('riderImg'), (req, res) => {
 });
 
 // Category Management
-app.post("/api/admin/category/add", (req, res) => {
-  const current = getSettings();
-  const categories = current.menuCategories || [];
+app.post("/api/admin/category/add", async (req, res) => {
   const { catId, catName } = req.body;
-  
-  categories.push({ id: catId, name: catName });
-  current.menuCategories = categories;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $push: { menuCategories: { id: catId, name: catName } } });
   res.json({ success: true, category: { id: catId, name: catName } });
 });
 
-app.post("/api/admin/category/delete", (req, res) => {
+app.post("/api/admin/category/delete", async (req, res) => {
   const { id } = req.body;
-  const current = getSettings();
-  let categories = current.menuCategories || [];
-  categories = categories.filter(c => c.id !== id);
-  current.menuCategories = categories;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $pull: { menuCategories: { id: id } } });
   res.json({ success: true });
 });
 
-app.post("/api/admin/category/update", (req, res) => {
-  const current = getSettings();
-  let categories = current.menuCategories || [];
+app.post("/api/admin/category/update", async (req, res) => {
   const { oldId, catId, catName } = req.body;
-
-  const index = categories.findIndex(c => c.id === oldId);
-  if (index !== -1) {
-    categories[index] = { id: catId, name: catName };
-    current.menuCategories = categories;
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
-    res.json({ success: true, category: categories[index] });
-  } else {
-    res.status(404).json({ success: false, message: "Category not found" });
-  }
+  await Settings.findOneAndUpdate({ "menuCategories.id": oldId }, { $set: { "menuCategories.$": { id: catId, name: catName } } });
+  res.json({ success: true });
 });
 
 // Promo Management
-app.post("/api/admin/promo/add", (req, res) => {
-  const current = getSettings();
-  const promos = current.promoCodes || [];
+app.post("/api/admin/promo/add", async (req, res) => {
   const { code, discount } = req.body;
-  
-  promos.push({ code: code.toUpperCase(), discount: parseInt(discount) });
-  current.promoCodes = promos;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $push: { promoCodes: { code: code.toUpperCase(), discount: parseInt(discount) } } });
   res.json({ success: true });
 });
 
-app.post("/api/admin/promo/delete", (req, res) => {
+app.post("/api/admin/promo/delete", async (req, res) => {
   const { code } = req.body;
-  const current = getSettings();
-  let promos = current.promoCodes || [];
-  promos = promos.filter(p => p.code !== code);
-  current.promoCodes = promos;
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(current, null, 2));
+  await Settings.findOneAndUpdate({}, { $pull: { promoCodes: { code: code } } });
   res.json({ success: true });
 });
 
-// --- BACKUPS ---
-const BACKUP_DIR = path.join(__dirname, 'backups');
-if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR);
-
-function performBackup() {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupPath = path.join(BACKUP_DIR, `backup-${timestamp}`);
-  if (!fs.existsSync(backupPath)) fs.mkdirSync(backupPath);
-  
-  [ORDERS_FILE, MENU_FILE, SETTINGS_FILE].forEach(file => {
-    if (fs.existsSync(file)) {
-      fs.copyFileSync(file, path.join(backupPath, path.basename(file)));
-    }
-  });
-  console.log(`Backup completed: ${backupPath}`);
-}
-
-app.post("/api/admin/backup", (req, res) => {
-  try {
-    performBackup();
-    res.json({ success: true, message: "Manual backup completed successfully" });
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
-  }
-});
-
-// Run daily backup (every 24 hours)
-setInterval(performBackup, 24 * 60 * 60 * 1000);
+// --- BACKUPS (Legacy or Cloud) ---
+// We skip local file backups as MongoDB Atlas handles persistence.
 
 // Export Orders to CSV
-app.get("/api/admin/export", (req, res) => {
+app.get("/api/admin/export-csv", async (req, res) => {
   try {
-    const orders = readOrders();
+    const orders = await getOrders();
     // Headers
-    let csv = "Order ID,Date,Customer,Phone,Items,Total Amount,Payment,Status\n";
-    
+    let csv =
+      "Order ID,Date,Customer,Phone,Items,Total Amount,Payment,Status\n";
+
     // Rows
-    orders.forEach(o => {
-      const itemsStr = o.items.map(i => `${i.quantity}x ${i.name}`).join(" | ").replace(/,/g, ""); 
+    orders.forEach((o) => {
+      const itemsStr = o.items
+        .map((i) => `${i.quantity}x ${i.name}`)
+        .join(" | ")
+        .replace(/,/g, "");
       const row = [
         o.id,
         new Date(o.date).toLocaleString().replace(/,/g, ""),
@@ -463,7 +413,7 @@ app.get("/api/admin/export", (req, res) => {
         itemsStr,
         o.totalAmount,
         o.paymentStatus,
-        o.status
+        o.status,
       ].join(",");
       csv += row + "\n";
     });
@@ -480,9 +430,12 @@ app.get("/api/admin/export", (req, res) => {
 const getMpesaToken = async (key, secret) => {
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
   try {
-    const response = await fetch("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
-      headers: { Authorization: `Basic ${auth}` }
-    });
+    const response = await fetch(
+      "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
+      {
+        headers: { Authorization: `Basic ${auth}` },
+      }
+    );
     const data = await response.json();
     return data.access_token;
   } catch (err) {
@@ -493,15 +446,26 @@ const getMpesaToken = async (key, secret) => {
 
 // 2. Place Order & Payment (Real M-Pesa STK Push)
 app.post("/api/order", async (req, res) => {
-  const { customerName, phoneNumber, location, notes, items, totalAmount, paymentMethod, credentials } = req.body;
+  const {
+    customerName,
+    phoneNumber,
+    location,
+    notes,
+    items,
+    totalAmount,
+    paymentMethod,
+    credentials,
+  } = req.body;
 
   // Validate
   if (!customerName || !phoneNumber || !items || items.length === 0) {
-    return res.status(400).json({ success: false, message: "Missing required fields" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing required fields" });
   }
 
   const orderId = "ORD-" + Date.now();
-  const newOrder = {
+  const newOrderData = {
     id: orderId,
     customerName,
     phoneNumber,
@@ -514,19 +478,33 @@ app.post("/api/order", async (req, res) => {
     date: new Date().toISOString(),
   };
 
-  saveOrder(newOrder);
+  await saveOrder(newOrderData);
 
   if (paymentMethod === "stk") {
     // Trigger STK Push
-    const token = await getMpesaToken(credentials.consumerKey, credentials.consumerSecret);
+    const token = await getMpesaToken(
+      credentials.consumerKey,
+      credentials.consumerSecret
+    );
     if (!token) {
-      return res.status(500).json({ success: false, message: "Failed to authenticate with M-Pesa" });
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to authenticate with M-Pesa",
+        });
     }
 
-    const timestamp = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
-    const passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"; // Standard Sandbox Passkey
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[-:T.Z]/g, "")
+      .slice(0, 14);
+    const passkey =
+      "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"; // Standard Sandbox Passkey
     const shortcode = "174379"; // Standard Sandbox Shortcode
-    const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString("base64");
+    const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString(
+      "base64"
+    );
 
     // Clean phone number (remove + or leading 0)
     let cleanPhone = phoneNumber.replace(/\+/g, "");
@@ -544,19 +522,22 @@ app.post("/api/order", async (req, res) => {
       PhoneNumber: cleanPhone,
       CallBackURL: `https://your-domain.com/api/callback`, // Needs to be public
       AccountReference: "PCnC Restaurant",
-      TransactionDesc: `Pay for Order ${orderId}`
+      TransactionDesc: `Pay for Order ${orderId}`,
     };
 
     try {
-      const stkRes = await fetch("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", { 
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(stkBody)
-      });
-      
+      const stkRes = await fetch(
+        "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(stkBody),
+        }
+      );
+
       const stkData = await stkRes.json();
       console.log(`[M-PESA] Response:`, stkData);
 
@@ -564,14 +545,21 @@ app.post("/api/order", async (req, res) => {
         return res.json({
           success: true,
           message: "STK Push Sent. Please enter your PIN on your phone.",
-          orderId
+          orderId,
         });
       } else {
-        return res.status(400).json({ success: false, message: stkData.errorMessage || "STK Push failed" });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: stkData.errorMessage || "STK Push failed",
+          });
       }
     } catch (err) {
       console.error("STK Push Error:", err);
-      return res.status(500).json({ success: false, message: "M-Pesa service unavailable" });
+      return res
+        .status(500)
+        .json({ success: false, message: "M-Pesa service unavailable" });
     }
   }
 
@@ -584,15 +572,16 @@ app.post("/api/order", async (req, res) => {
 });
 
 // 2b. Track Order Status (Public)
-app.get("/api/order/:id", (req, res) => {
-  const orders = getOrders();
-  const order = orders.find(o => o.id === req.params.id);
+app.get("/api/order/:id", async (req, res) => {
+  const order = await Order.findOne({ id: req.params.id });
   if (order) {
     // Get rider details if assigned
     let riderInfo = null;
     if (order.assignedRiderId) {
-      const settings = getSettings();
-      riderInfo = (settings.riders || []).find(r => r.id === order.assignedRiderId);
+      const settings = await getSettings();
+      riderInfo = (settings.riders || []).find(
+        (r) => r.id === order.assignedRiderId
+      );
     }
 
     // Return only necessary public info
@@ -606,8 +595,8 @@ app.get("/api/order/:id", (req, res) => {
         items: order.items,
         totalAmount: order.totalAmount,
         estimatedTime: order.estimatedTime,
-        assignedRider: riderInfo
-      }
+        assignedRider: riderInfo,
+      },
     });
   } else {
     res.status(404).json({ success: false, message: "Order not found" });
@@ -618,9 +607,9 @@ app.get("/api/order/:id", (req, res) => {
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "pcnc-secret-token-123";
 
 const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+  const authHeader = req.headers["authorization"];
   const queryToken = req.query.token;
-  
+
   if (authHeader === `Bearer ${ADMIN_TOKEN}` || queryToken === ADMIN_TOKEN) {
     next();
   } else {
@@ -629,18 +618,18 @@ const authMiddleware = (req, res, next) => {
 };
 
 // 3. Admin: Get Orders
-app.get("/api/admin/orders", authMiddleware, (req, res) => {
-  const orders = getOrders();
+app.get("/api/admin/orders", authMiddleware, async (req, res) => {
+  const orders = await getOrders();
   // Sort by newest
   orders.sort((a, b) => new Date(b.date) - new Date(a.date));
   res.json(orders);
 });
 
 // 4. Admin: Update Order Status or Payment
-app.post("/api/admin/order/update", (req, res) => {
+app.post("/api/admin/order/update", async (req, res) => {
   const { orderId, ...rest } = req.body;
-  
-  const updated = updateOrder(orderId, rest);
+
+  const updated = await updateOrder(orderId, rest);
   if (updated) {
     res.json({ success: true, order: updated });
   } else {
@@ -649,28 +638,22 @@ app.post("/api/admin/order/update", (req, res) => {
 });
 
 // Admin: Delete Order
-app.post("/api/admin/order/delete", (req, res) => {
+app.post("/api/admin/order/delete", async (req, res) => {
   const { orderId } = req.body;
   console.log(`[ADMIN] Request to delete order: ${orderId}`);
-  let orders = getOrders();
-  const initialLength = orders.length;
-  orders = orders.filter(o => o.id !== orderId);
-  
-  if (orders.length === initialLength) {
+  const result = await Order.deleteOne({ id: orderId });
+  if (result.deletedCount > 0) {
+    console.log(`[ADMIN] Order ${orderId} deleted successfully`);
+    res.json({ success: true });
+  } else {
     console.warn(`[ADMIN] Order ${orderId} not found for deletion`);
-    return res.status(404).json({ success: false, message: "Order not found" });
+    res.status(404).json({ success: false, message: "Order not found" });
   }
-
-  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
-  console.log(`[ADMIN] Order ${orderId} deleted successfully`);
-  res.json({ success: true });
 });
 
 // 5. Admin: Export Daily Report (Excel)
 app.get("/api/admin/export", async (req, res) => {
-  if (!fs.existsSync(LOGS_FILE)) return res.status(400).send("No records found");
-  
-  const logs = JSON.parse(fs.readFileSync(LOGS_FILE));
+  const logs = await OrderLog.find().sort({ logDate: -1 });
   
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Daily Report");
@@ -686,7 +669,8 @@ app.get("/api/admin/export", async (req, res) => {
     { header: "Order Date", key: "date", width: 25 }
   ];
   
-  logs.forEach(order => {
+  logs.forEach(log => {
+    const order = log.order;
     worksheet.addRow({
       id: order.id,
       customerName: order.customerName,
@@ -701,7 +685,6 @@ app.get("/api/admin/export", async (req, res) => {
   
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   res.setHeader("Content-Disposition", "attachment; filename=Daily_Report.xlsx");
-  
   await workbook.xlsx.write(res);
   res.end();
 });
@@ -713,9 +696,9 @@ app.post("/api/admin/login", (req, res) => {
   const securePass = process.env.ADMIN_PASS || "admin123";
 
   if (username === secureUser && password === securePass) {
-    res.json({ 
-      success: true, 
-      token: ADMIN_TOKEN 
+    res.json({
+      success: true,
+      token: ADMIN_TOKEN,
     });
   } else {
     res.status(401).json({ success: false, message: "Invalid credentials" });
