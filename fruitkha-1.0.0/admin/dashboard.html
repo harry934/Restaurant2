@@ -3,93 +3,734 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCnC Admin Dashboard</title>
+    <title>Dashboard | PCnC Command Center</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
-        .sidebar { height: 100vh; background: #333; color: white; position: fixed; width: 250px; padding: 20px; }
-        .sidebar a { color: #ccc; display: block; padding: 10px; text-decoration: none; }
-        .sidebar a:hover, .sidebar a.active { color: white; background: #e7252d; border-radius: 4px; }
-        .main-content { margin-left: 250px; padding: 30px; }
-        .card-stat { border-left: 5px solid #e7252d; }
-        .badge-new { background: #007bff; color: white; }
-        .badge-preparing { background: #ffc107; color: black; }
-        .badge-out { background: #17a2b8; color: white; }
-        .badge-completed { background: #28a745; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; color: #333; }
+        
+        .sidebar { 
+            height: 100vh; 
+            background: #1a1a1a; 
+            color: #fff; 
+            position: fixed; 
+            width: 260px; 
+            padding: 25px; 
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+        .sidebar h4 { font-weight: 800; font-size: 1.2rem; margin-bottom: 30px; color: #fff; letter-spacing: 1px; }
+        .sidebar h4 span { color: #e7252d; }
+        .sidebar a { 
+            color: #999; 
+            display: flex; 
+            align-items: center; 
+            padding: 14px 18px; 
+            text-decoration: none; 
+            border-radius: 12px; 
+            margin-bottom: 8px;
+            font-weight: 600;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .sidebar a i { margin-right: 15px; font-size: 1.1rem; }
+        .sidebar a:hover, .sidebar a.active { color: white; background: rgba(231, 37, 45, 0.15); color: #e7252d; }
+        .sidebar a.logout { margin-top: auto; color: #f44336; }
+
+        .main-content { margin-left: 260px; padding: 40px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        .stat-card { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        
+        .order-card { background: #fff; border-radius: 24px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.04); overflow: hidden; margin-top: 20px; }
+        .table thead th { background: #fafafa; border: none; padding: 18px; font-size: 0.7rem; text-transform: uppercase; color: #888; font-weight: 800; }
+        .table td { padding: 18px; border-top: 1px solid #f8f8f8; vertical-align: middle; }
+
+        .status-badge { padding: 6px 12px; border-radius: 50px; font-weight: 800; font-size: 0.65rem; text-transform: uppercase; }
+        .bg-new { background: rgba(0, 123, 255, 0.1); color: #007bff; }
+        .bg-preparing { background: rgba(255, 193, 7, 0.15); color: #b88b00; }
+        .bg-shipping { background: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+        .bg-completed { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+
+        .btn-action { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: none; transition: 0.2s; margin-right: 5px; cursor: pointer; }
+        .btn-edit { background: #6c757d11; color: #6c757d; }
+        .btn-delete { background: #dc354511; color: #dc3545; }
+        .btn-prep { background: #ffc10722; color: #b88b00; }
+        .btn-ship { background: #17a2b822; color: #17a2b8; }
+        .btn-done { background: #28a74522; color: #28a745; }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        
+        /* Distinctive row coloring based on status */
+        tr.row-new { background-color: rgba(0, 123, 255, 0.04) !important; border-left: 4px solid #007bff; }
+        tr.row-preparing { background-color: rgba(255, 193, 7, 0.04) !important; border-left: 4px solid #ffc107; }
+        tr.row-shipping { background-color: rgba(23, 162, 184, 0.04) !important; border-left: 4px solid #17a2b8; }
+        tr.row-completed { background-color: rgba(40, 167, 69, 0.03) !important; border-left: 4px solid #28a745; opacity: 0.8; }
+        
+        tr.row-completed .customer-info div { color: #888; }
+        tr.row-completed .btn-prep, tr.row-completed .btn-ship, tr.row-completed .btn-done { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h4>PCnC Admin</h4>
-        <hr style="border-color: #555;">
-        <a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="#"><i class="fas fa-list"></i> Orders</a>
-        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="sidebar d-flex flex-column">
+        <h4>PCNC <span>HQ</span></h4>
+        <nav id="sidebarNav">
+            <a onclick="switchView('dashboard')" class="active" data-view="dashboard"><i class="fas fa-home"></i> Command Center</a>
+            <a onclick="switchView('active')" data-view="active"><i class="fas fa-clock"></i> Active Orders</a>
+            <a onclick="switchView('analytics')" data-view="analytics"><i class="fas fa-chart-bar"></i> Sales Analytics</a>
+            <a onclick="switchView('history')" data-view="history"><i class="fas fa-history"></i> Order History</a>
+            <a onclick="switchView('menu')" data-view="menu"><i class="fas fa-utensils"></i> Menu Items</a>
+            <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
+            <a onclick="logout()" class="logout"><i class="fas fa-power-off"></i> System Logout</a>
+        </nav>
     </div>
 
     <div class="main-content">
-        <h2 class="mb-4">Dashboard Overview</h2>
-        
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card shadow-sm card-stat">
-                    <div class="card-body">
-                        <h5 class="text-muted">Total Orders Today</h5>
-                        <h2 id="totalOrders">0</h2>
+        <!-- Dashboard / Orders View -->
+        <div id="orders-section" class="view-section active">
+            <div class="header-top">
+                <div>
+                    <h2 id="viewTitle">Live Operations</h2>
+                    <p class="text-muted small mb-0" id="viewSubtitle">Real-time order tracking & kitchen management</p>
+                </div>
+                <div class="d-flex">
+                    <button class="btn btn-outline-success mr-2 shadow-sm" style="border-radius: 12px;" onclick="downloadReport()">
+                        <i class="fas fa-file-excel mr-2"></i> Daily Report
+                    </button>
+                    <button class="btn btn-dark shadow-sm" style="border-radius: 12px;" onclick="handleRefresh()">
+                        <i class="fas fa-sync-alt mr-2"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div class="row mb-5" id="statsRow">
+                <!-- Stats populated via JS -->
+            </div>
+
+
+            <div class="card order-card">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ref Code</th>
+                                <th>Customer & Location</th>
+                                <th>Order Details</th>
+                                <th>Total</th>
+                                <th>Time</th>
+                                <th>Payment</th>
+                                <th>Processing</th>
+                                <th class="text-center">Kitchen Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics View -->
+        <div id="analytics-section" class="view-section">
+            <div class="header-top">
+                <div>
+                    <h2>Performance Analytics</h2>
+                    <p class="text-muted small mb-0">Track revenue trends and business growth</p>
+                </div>
+                <div>
+                    <button class="btn btn-dark shadow-sm" style="border-radius: 12px;" onclick="handleRefresh()">
+                        <i class="fas fa-sync-alt mr-2"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="row mb-5" id="analyticsRow">
+                <div class="col-12">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-4"><i class="fas fa-chart-line mr-2 text-danger"></i>7-Day Sales Performance</h5>
+                        <div style="height: 400px;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card shadow-sm border-left-primary">
-                    <div class="card-body">
-                        <h5 class="text-muted">Revenue Today</h5>
-                        <h2 id="revenueToday">KES 0</h2>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-3">Top Selling Categories</h5>
+                        <div style="height: 250px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="text-muted">Pending Payment</h5>
-                        <h2 id="pendingPayment" class="text-danger">0</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="text-muted">Active Orders</h5>
-                        <h2 id="activeOrders" class="text-primary">0</h2>
+                 <div class="col-md-6">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-3">Customer Growth (New vs Returning)</h5>
+                        <div style="height: 250px;">
+                            <canvas id="customerChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Orders</h5>
-                <button class="btn btn-sm btn-outline-secondary" onclick="loadOrders()">Refresh</button>
+        <!-- Menu Management View -->
+        <div id="menu-section" class="view-section">
+            <div class="header-top align-items-end">
+                <div>
+                    <h2>Menu Management</h2>
+                    <p class="text-muted small mb-0">Add or remove items from the live menu</p>
+                    <div class="mt-3">
+                        <div class="input-group" style="width: 300px;">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0" style="border-radius: 12px 0 0 12px;"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input type="text" id="menuSearch" class="form-control border-left-0" placeholder="Search menu..." style="border-radius: 0 12px 12px 0;" onkeyup="loadMenu()">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary shadow-sm" style="border-radius: 12px;" onclick="$('#addMenuModal').modal('show')">
+                    <i class="fas fa-plus mr-2"></i> Add Item
+                </button>
             </div>
-            <div class="card-body p-0">
+
+            <div class="card order-card">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="thead-light">
+                    <table class="table mb-0">
+                        <thead>
                             <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Items</th>
-                                <th>Amount</th>
-                                <th>Date/Time</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Available</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="ordersTable">
-                            <!-- Orders populated here -->
-                        </tbody>
+                        <tbody id="menuTableBody"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Settings View -->
+        <div id="settings-section" class="view-section">
+            <div class="header-top mb-4">
+                <div>
+                    <h2 class="font-weight-bold">Command Center Settings</h2>
+                    <p class="text-muted small mb-0">Manage website content, logistics, and support channels</p>
+                </div>
+            </div>
+
+            <!-- Settings Navigation Buttons -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex flex-wrap gap-2" style="gap: 10px;">
+                        <button class="btn btn-dark active px-4 py-2 settings-nav-btn" onclick="showSettingsTab('core', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-globe mr-2"></i> Website Core</button>
+                        <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('logistics', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-motorcycle mr-2"></i> Logistics & Riders</button>
+                        <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('marketing', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-ad mr-2"></i> Marketing & Deals</button>
+                        <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('team', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-users mr-2"></i> Internal Team</button>
+                        <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('categories', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-tags mr-2"></i> Menu Flavors</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- CORE WEBSITE INFO -->
+                <div class="col-lg-12 settings-tab-content" id="tab-core">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-4"><i class="fas fa-info-circle text-primary mr-2"></i> Core Website Info & Hero</h5>
+                        <form id="settingsForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="small font-weight-bold d-flex justify-content-between align-items-center">
+                                            <span>Primary Support Phone Numbers</span>
+                                            <button type="button" class="btn btn-sm btn-primary" onclick="addPhoneField()"><i class="fas fa-plus"></i></button>
+                                        </label>
+                                        <div id="phoneFields"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="small font-weight-bold d-flex justify-content-between align-items-center">
+                                            <span>Support Emails</span>
+                                            <button type="button" class="btn btn-sm btn-primary" onclick="addEmailField()"><i class="fas fa-plus"></i></button>
+                                        </label>
+                                        <div id="emailFields"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="font-weight-bold small text-uppercase text-danger mb-3">Homepage Hero Section</h6>
+                                    <div class="form-group"><label class="small font-weight-bold">Main Title</label><input type="text" name="homeTitle" class="form-control" placeholder="e.g. Delicious Food Delivered"></div>
+                                    <div class="form-group"><label class="small font-weight-bold">Subtitle</label><input type="text" name="homeSubtext" class="form-control" placeholder="e.g. Freshly made with love"></div>
+                                    <div class="form-group"><label class="small font-weight-bold">About Main Description</label><textarea name="aboutText" class="form-control" rows="3"></textarea></div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-dark px-5 py-3" style="border-radius: 12px; font-weight: 800;">SAVE CORE CHANGES</button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="font-weight-bold mb-1">System Reliability</h6>
+                                <p class="small text-muted mb-0">Create a secure snapshot of your orders, menu, and system settings.</p>
+                            </div>
+                            <button class="btn btn-outline-info" onclick="triggerBackup()" style="border-radius: 10px; font-weight: 700;">
+                                <i class="fas fa-database mr-2"></i> Create Manual Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOGISTICS & RIDERS -->
+                <div class="col-lg-12 settings-tab-content d-none" id="tab-logistics">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card order-card p-4 border-0 shadow-sm h-100" style="border-radius: 20px;">
+                                <h5 class="font-weight-bold mb-3">Global Contact</h5>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold">Global WhatsApp Support</label>
+                                    <input type="text" id="globalWhatsappInput" class="form-control" placeholder="07...">
+                                    <small class="text-muted">Used as fallback if no rider is assigned.</small>
+                                </div>
+                                <button class="btn btn-dark btn-block mt-2" onclick="saveGlobalWhatsapp()" style="border-radius: 10px;">SAVE CONTACT</button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="font-weight-bold mb-0">Active Dispatch Team</h5>
+                                    <button class="btn btn-sm btn-success px-3" onclick="$('#addRiderModal').modal('show')"><i class="fas fa-plus mr-1"></i> Register New Rider</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-borderless table-hover">
+                                        <thead class="text-muted small text-uppercase">
+                                            <tr>
+                                                <th>Photo</th>
+                                                <th>Name / Phone</th>
+                                                <th class="text-right">Manage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="riderTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MARKETING & PROMOS -->
+                <div class="col-lg-12 settings-tab-content d-none" id="tab-marketing">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card order-card p-4 h-100 border-0 shadow-sm" style="border-radius: 20px;">
+                                <h5 class="font-weight-bold mb-4">Deal of the Week</h5>
+                                <form id="dealForm">
+                                    <div class="form-group"><label class="small font-weight-bold">Section Title</label><input type="text" name="title" class="form-control"></div>
+                                    <div class="form-group"><label class="small font-weight-bold">Headline</label><input type="text" name="subtitle" class="form-control"></div>
+                                    <div class="form-group"><label class="small font-weight-bold">Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                                    <div class="form-group">
+                                        <label class="small font-weight-bold">Image URL or Path</label>
+                                        <input type="text" name="image" class="form-control mb-2" placeholder="assets/img/...">
+                                        <input type="file" id="dealImageInput" class="form-control-file">
+                                    </div>
+                                    <button type="submit" class="btn btn-danger btn-block py-3 mt-2" style="border-radius: 12px; font-weight: 700;">UPDATE PROMOTION</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="font-weight-bold mb-0">Promo Codes</h5>
+                                    <button class="btn btn-sm btn-primary" onclick="$('#addPromoModal').modal('show')" style="border-radius: 8px;"><i class="fas fa-plus mr-1"></i> Add Code</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Discount</th>
+                                                <th class="text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="promoTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEAM LIST -->
+                <div class="col-lg-12 settings-tab-content d-none" id="tab-team">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="font-weight-bold mb-0">Our Dedicated Team</h5>
+                            <button class="btn btn-sm btn-primary" onclick="$('#addTeamModal').modal('show')"><i class="fas fa-user-plus mr-1"></i> Add Member</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="text-muted small text-uppercase">
+                                    <tr>
+                                        <th>Photo</th>
+                                        <th>Name / Role</th>
+                                        <th class="text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teamTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CATEGORIES -->
+                <div class="col-lg-12 settings-tab-content d-none" id="tab-categories">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="font-weight-bold mb-0">Menu Categories</h5>
+                            <button class="btn btn-sm btn-primary" onclick="$('#addCategoryModal').modal('show')"><i class="fas fa-plus mr-1"></i> Create Category</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="text-muted small text-uppercase">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Display Name</th>
+                                        <th class="text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div class="modal fade" id="editOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Modify Order Record</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="editOrderForm">
+                        <input type="hidden" name="orderId">
+                        <div class="form-group"><label>Customer Name</label><input type="text" name="customerName" class="form-control"></div>
+                        <div class="form-group"><label>Phone Number</label><input type="text" name="phoneNumber" class="form-control"></div>
+                        <div class="form-group"><label>Location / Address</label><input type="text" name="location" class="form-control"></div>
+                        <div class="form-group"><label>Total Amount (KES)</label><input type="number" name="totalAmount" class="form-control"></div>
+                        <div class="form-group">
+                            <label>Payment Status</label>
+                            <select name="paymentStatus" class="form-control">
+                                <option value="Pending">Pending</option>
+                                <option value="Successful">Successful</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-dark btn-block py-3 mt-3" style="border-radius: 12px; font-weight: 800;">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Add Menu Category</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="addCategoryForm">
+                        <div class="form-group"><label>Category ID</label><input type="text" name="catId" class="form-control" required placeholder="e.g. desserts"></div>
+                        <div class="form-group"><label>Display Name</label><input type="text" name="catName" class="form-control" required placeholder="e.g. Sweet Desserts"></div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Add Category</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Team Modal -->
+    <div class="modal fade" id="addTeamModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Add Team Member</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="addTeamForm" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Full Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control" required></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Role / Position <span class="text-danger">*</span></label><input type="text" name="role" class="form-control" required placeholder="e.g. Executive Chef"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Profile Photo <span class="text-danger">*</span></label>
+                            <div class="custom-file">
+                                <input type="file" name="teamImg" class="custom-file-input" id="teamImg" accept="image/*" required>
+                                <label class="custom-file-label" for="teamImg">Choose photo</label>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h6 class="font-weight-bold text-muted mb-3"><i class="fas fa-info-circle mr-2"></i>Optional Details</h6>
+                        
+                        <div class="form-group">
+                            <label>Phone Number <small class="text-muted">(Optional)</small></label>
+                            <input type="text" name="phone" class="form-control" placeholder="e.g. +254 712 345 678">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="fab fa-facebook text-primary"></i> Facebook <small class="text-muted">(Optional)</small></label>
+                                    <input type="url" name="facebook" class="form-control" placeholder="https://facebook.com/username">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="fab fa-twitter text-info"></i> Twitter <small class="text-muted">(Optional)</small></label>
+                                    <input type="url" name="twitter" class="form-control" placeholder="https://twitter.com/username">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="fab fa-instagram text-danger"></i> Instagram <small class="text-muted">(Optional)</small></label>
+                                    <input type="url" name="instagram" class="form-control" placeholder="https://instagram.com/username">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label><i class="fab fa-linkedin text-primary"></i> LinkedIn <small class="text-muted">(Optional)</small></label>
+                                    <input type="url" name="linkedin" class="form-control" placeholder="https://linkedin.com/in/username">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Upload & Add Member</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Add Rider Modal -->
+    <div class="modal fade" id="addRiderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Add Dispatch Rider</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="addRiderForm" enctype="multipart/form-data">
+                        <div class="form-group"><label>Full Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control" required></div>
+                        <div class="form-group"><label>Phone Number <span class="text-danger">*</span></label><input type="text" name="phone" class="form-control" required placeholder="07... or 254..."></div>
+                        <div class="form-group"><label>Vehicle Plate / ID <small class="text-muted">(Optional)</small></label><input type="text" name="vehicle" class="form-control" placeholder="e.g. KMDX 123G"></div>
+                        <div class="form-group">
+                            <label>Profile Photo <span class="text-danger">*</span></label>
+                            <div class="custom-file">
+                                <input type="file" name="riderImg" class="custom-file-input" id="riderImg" accept="image/*" required>
+                                <label class="custom-file-label" for="riderImg">Choose photo</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Register Rider</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="addMenuModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Add Menu Item</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="addMenuForm" enctype="multipart/form-data">
+                        <div class="form-group"><label>Product Name</label><input type="text" name="name" class="form-control" required placeholder="e.g. Hawaiian Pizza"></div>
+                        <div class="form-group"><label>Price (KES)</label><input type="number" name="price" class="form-control" required placeholder="1000"></div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select name="category" class="form-control" id="addMenuCategoryDropdown">
+                                <option value="pizza">Pizza</option>
+                                <option value="burgers">Burgers</option>
+                                <option value="snacks">Snacks</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Photo</label>
+                            <div class="custom-file">
+                                <input type="file" name="imageFile" class="custom-file-input" id="menuImage" accept="image/*">
+                                <label class="custom-file-label" for="menuImage">Choose file</label>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Tag (Optional)</label><input type="text" name="tag" class="form-control" placeholder="e.g. Bestseller"></div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Upload & Add to Menu</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Edit Menu Category</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="editCategoryForm">
+                        <input type="hidden" name="oldId">
+                        <div class="form-group"><label>Category ID</label><input type="text" name="catId" class="form-control" required></div>
+                        <div class="form-group"><label>Display Name</label><input type="text" name="catName" class="form-control" required></div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Team Member Modal -->
+    <div class="modal fade" id="editTeamModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Edit Team Member</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="editTeamForm" enctype="multipart/form-data">
+                        <input type="hidden" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Full Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control" required></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Role / Position <span class="text-danger">*</span></label><input type="text" name="role" class="form-control" required></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>New Profile Photo <small class="text-muted">(Leave blank to keep current)</small></label>
+                            <div class="custom-file">
+                                <input type="file" name="teamImg" class="custom-file-input" id="editTeamImg" accept="image/*">
+                                <label class="custom-file-label" for="editTeamImg">Choose photo</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6"><div class="form-group"><label>Facebook</label><input type="url" name="facebook" class="form-control"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label>Twitter</label><input type="url" name="twitter" class="form-control"></div></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6"><div class="form-group"><label>Instagram</label><input type="url" name="instagram" class="form-control"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label>LinkedIn</label><input type="url" name="linkedin" class="form-control"></div></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Rider Modal -->
+    <div class="modal fade" id="editRiderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Edit Dispatch Rider</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="editRiderForm" enctype="multipart/form-data">
+                        <input type="hidden" name="id">
+                        <div class="form-group"><label>Full Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control" required></div>
+                        <div class="form-group"><label>Phone Number <span class="text-danger">*</span></label><input type="text" name="phone" class="form-control" required></div>
+                        <div class="form-group"><label>Vehicle Plate / ID</label><input type="text" name="vehicle" class="form-control"></div>
+                        <div class="form-group">
+                            <label>New Profile Photo <small class="text-muted">(Leave blank to keep current)</small></label>
+                            <div class="custom-file">
+                                <input type="file" name="riderImg" class="custom-file-input" id="editRiderImg" accept="image/*">
+                                <label class="custom-file-label" for="editRiderImg">Choose photo</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Menu Modal -->
+    <div class="modal fade" id="editMenuModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Edit Menu Item</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="editMenuForm" enctype="multipart/form-data">
+                        <input type="hidden" name="id">
+                        <div class="form-group"><label>Product Name</label><input type="text" name="name" class="form-control" required></div>
+                        <div class="form-group"><label>Price (KES)</label><input type="number" name="price" class="form-control" required></div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select name="category" class="form-control" id="editMenuCategoryDropdown"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Update Photo <small class="text-muted">(Optional)</small></label>
+                            <div class="custom-file">
+                                <input type="file" name="imageFile" class="custom-file-input" id="editMenuImage" accept="image/*">
+                                <label class="custom-file-label" for="editMenuImage">Choose file</label>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Tag (Optional)</label><input type="text" name="tag" class="form-control"></div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addPromoModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Add Promo Code</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="addPromoForm">
+                        <div class="form-group"><label>Promo Code</label><input type="text" name="code" class="form-control" placeholder="e.g. WELCOME10" required></div>
+                        <div class="form-group"><label>Discount (%)</label><input type="number" name="discount" class="form-control" placeholder="10" required></div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Create Code</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -98,112 +739,1155 @@
     <script src="../assets/js/jquery-1.11.3.min.js"></script>
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script>
-        if (!localStorage.getItem('adminToken')) {
-            window.location.href = 'index.html';
+        let allOrders = [];
+        let allRiders = [];
+        let currentView = 'dashboard';
+        let lastKnownOrderId = null;
+        let salesChartInstance = null;
+        let categoryChartInstance = null;
+        let customerChartInstance = null;
+
+        function switchView(view) {
+            currentView = view;
+            $('.view-section').removeClass('active');
+            $('#sidebarNav a').removeClass('active');
+            $(`a[data-view="${view}"]`).addClass('active');
+
+            if (view === 'menu') {
+                $('#menu-section').addClass('active');
+                loadMenu();
+            } else if (view === 'analytics') {
+                $('#analytics-section').addClass('active');
+                loadData();
+            } else if (view === 'settings') {
+                $('#settings-section').addClass('active');
+                loadSettings();
+            } else {
+                $('#orders-section').addClass('active');
+                
+                // Update header text based on view
+                if (view === 'active') {
+                    $('#viewTitle').text('Active Kitchen Pipeline');
+                    $('#viewSubtitle').text('Managing fresh incoming orders');
+                } else if (view === 'history') {
+                    $('#viewTitle').text('Archived Order Records');
+                    $('#viewSubtitle').text('Reviewing completed deliveries and sales');
+                } else {
+                    $('#viewTitle').text('Live Operations');
+                    $('#viewSubtitle').text('Real-time order tracking & kitchen management');
+                }
+                
+                loadData();
+            }
         }
 
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'index.html';
+        function showSettingsTab(tabId, btn) {
+            $('.settings-tab-content').addClass('d-none');
+            $(`#tab-${tabId}`).removeClass('d-none');
+            $('.settings-nav-btn').removeClass('btn-dark active').addClass('btn-outline-dark');
+            $(btn).removeClass('btn-outline-dark').addClass('btn-dark active');
         }
 
-        async function loadOrders() {
+        async function saveGlobalWhatsapp() {
+            const num = $('#globalWhatsappInput').val();
             try {
-                const res = await fetch('/api/admin/orders');
-                const orders = await res.json();
-                renderOrders(orders);
-                updateStats(orders);
-            } catch (e) {
-                console.error('Failed to load orders', e);
+                const res = await fetch('/api/admin/settings/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ whatsappNumber: num })
+                });
+                if (res.ok) {
+                    showNotification('Updated', 'Global WhatsApp contact saved', 'success');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function showNotification(title, msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'primary' : 'danger'} shadow-lg`;
+            toast.style.cssText = `position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; border-radius: 12px; border-left: 5px solid ${type === 'success' ? '#28a745' : '#dc3545'};`;
+            toast.innerHTML = `<strong>${title}</strong><br><small>${msg}</small>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function handleRefresh() {
+            showNotification('Refreshing...', 'Fetching latest data from kitchen', 'success');
+            loadData();
+        }
+
+        async function loadData() {
+            try {
+                // Fetch both orders and settings to keep rider list fresh for dropdowns
+                const [ordersRes, settingsRes] = await Promise.all([
+                    fetch('/api/admin/orders'),
+                    fetch('/api/settings')
+                ]);
+                
+                allOrders = await ordersRes.json();
+                const settings = await settingsRes.json();
+                allRiders = settings.riders || [];
+
+                // Real-time sound notification
+                if (allOrders.length > 0 && lastKnownOrderId && allOrders[0].id !== lastKnownOrderId) {
+                    new Audio('https://assets.mixkit.co/active_storage/sfx/2857/2857-preview.mp3').play();
+                }
+                lastKnownOrderId = allOrders.length > 0 ? allOrders[0].id : null;
+
+                renderStats();
+                renderCharts();
+                renderOrders();
+                renderRiders();
+            } catch (e) { console.error(e); }
+        }
+
+        function renderRiders() {
+            const riderTbody = $('#riderTableBody').empty();
+            if (allRiders.length > 0) {
+                allRiders.forEach(r => {
+                    riderTbody.append(`
+                        <tr>
+                            <td><img src="../${r.image}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;"></td>
+                            <td>
+                                <div class="font-weight-bold">${r.name}</div>
+                                <div class="small text-muted">${r.phone}</div>
+                                ${r.vehicle ? `<div class="small text-danger font-weight-bold"><i class="fas fa-motorcycle mr-1"></i>${r.vehicle}</div>` : ''}
+                            </td>
+                            <td class="text-right">
+                                <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditRider('${r.id}')" style="border-radius: 8px;"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteRider('${r.id}')" style="border-radius: 8px;"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            } else {
+                riderTbody.append('<tr><td colspan="3" class="text-center text-muted p-4">No dispatch riders registered yet</td></tr>');
             }
         }
 
-        function updateStats(orders) {
-            // Simple logic assuming all orders are "today" for now, or filter by date
-            // In a real app we'd filter `new Date(o.date)`
+        function renderStats() {
             const today = new Date().toISOString().split('T')[0];
-            const todaysOrders = orders.filter(o => o.date.startsWith(today));
-            
-            document.getElementById('totalOrders').innerText = todaysOrders.length;
-            
-            const revenue = todaysOrders.reduce((sum, o) => sum + (o.paymentStatus === 'Successful' ? parseInt(o.totalAmount) : 0), 0);
-            document.getElementById('revenueToday').innerText = 'KES ' + revenue.toLocaleString();
+            const daily = allOrders.filter(o => o.date.startsWith(today));
+            const revenue = daily.reduce((sum, o) => sum + (o.paymentStatus === 'Successful' ? parseInt(o.totalAmount) : 0), 0);
+            const active = allOrders.filter(o => o.status !== 'Completed').length;
+            const unpaid = allOrders.filter(o => o.paymentStatus !== 'Successful').length;
 
-            const pending = orders.filter(o => o.paymentStatus === 'Pending').length;
-            document.getElementById('pendingPayment').innerText = pending;
-
-            const active = orders.filter(o => o.status !== 'Completed').length;
-            document.getElementById('activeOrders').innerText = active;
+            $('#statsRow').html(`
+                <div class="col-md-3"><div class="stat-card"><h5>Today's Orders</h5><h2>${daily.length}</h2></div></div>
+                <div class="col-md-3"><div class="stat-card"><h5>Today's Sales</h5><h2>KES ${revenue.toLocaleString()}</h2></div></div>
+                <div class="col-md-3"><div class="stat-card"><h5>Unpaid Orders</h5><h2>${unpaid}</h2></div></div>
+                <div class="col-md-3"><div class="stat-card"><h5>Active In Kitchen</h5><h2>${active}</h2></div></div>
+            `);
         }
 
-        function renderOrders(orders) {
-            const tbody = document.getElementById('ordersTable');
-            tbody.innerHTML = '';
-            
-            if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4">No orders found</td></tr>';
-                return;
+        function renderCharts() {
+            if (currentView !== 'analytics') return;
+
+            const ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+
+            // Generate last 7 days labels
+            const labels = [];
+            const data = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                labels.push(date.toLocaleDateString([], { weekday: 'short', day: 'numeric' }));
+                
+                const dayTotal = allOrders
+                    .filter(o => o.date.startsWith(dateStr) && o.paymentStatus === 'Successful')
+                    .reduce((sum, o) => sum + parseInt(o.totalAmount), 0);
+                data.push(dayTotal);
             }
 
-            orders.forEach(order => {
-                const itemsStr = order.items.map(i => `${i.quantity}x ${i.name}`).join(', ');
-                const badgeClass = {
-                    'New': 'badge-new',
-                    'Preparing': 'badge-preparing',
-                    'Out for Delivery': 'badge-out',
-                    'Completed': 'badge-completed'
-                }[order.status] || 'badge-secondary';
+            if (salesChartInstance) salesChartInstance.destroy();
 
-                const payClass = order.paymentStatus === 'Successful' ? 'text-success' : 'text-danger';
+            salesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue (KES)',
+                        data: data,
+                        borderColor: '#e7252d',
+                        backgroundColor: 'rgba(231, 37, 45, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#e7252d',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${order.id}</td>
-                    <td>
-                        <div>${order.customerName}</div>
-                        <small class="text-muted">${order.phoneNumber}</small><br>
-                        <small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${order.location}</small>
-                    </td>
-                    <td>${itemsStr}</td>
-                    <td>KES ${order.totalAmount}</td>
-                    <td>${new Date(order.date).toLocaleString()}</td>
-                    <td class="${payClass} font-weight-bold">${order.paymentStatus}</td>
-                    <td><span class="badge ${badgeClass} p-2">${order.status}</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-info" onclick="updateStatus('${order.id}', 'Preparing')">Prep</button>
-                            <button class="btn btn-sm btn-primary" onclick="updateStatus('${order.id}', 'Out for Delivery')">Ship</button>
-                            <button class="btn btn-sm btn-success" onclick="updateStatus('${order.id}', 'Completed')">Done</button>
-                        </div>
-                    </td>
+            // 2. Category Pie Chart
+            const catCtx = document.getElementById('categoryChart');
+            if (catCtx) {
+                const catCount = {};
+                allOrders.forEach(o => {
+                    o.items.forEach(i => {
+                        const cat = i.category || 'Other';
+                        catCount[cat] = (catCount[cat] || 0) + i.quantity;
+                    });
+                });
+                
+                if (categoryChartInstance) categoryChartInstance.destroy();
+                categoryChartInstance = new Chart(catCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(catCount).map(c => c.toUpperCase()),
+                        datasets: [{
+                            data: Object.values(catCount),
+                            backgroundColor: ['#e7252d', '#1a1a1a', '#ffc107', '#28a745', '#17a2b8', '#6610f2'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
+
+            // 3. Customer Growth
+            const custCtx = document.getElementById('customerChart');
+            if (custCtx) {
+                const custHistory = {};
+                allOrders.forEach(o => {
+                    if (!custHistory[o.phoneNumber]) custHistory[o.phoneNumber] = 0;
+                    custHistory[o.phoneNumber]++;
+                });
+
+                const returning = Object.values(custHistory).filter(c => c > 1).length;
+                const newCust = Object.values(custHistory).filter(c => c === 1).length;
+
+                if (customerChartInstance) customerChartInstance.destroy();
+                customerChartInstance = new Chart(custCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['New Customers', 'Returning Loyalists'],
+                        datasets: [{
+                            label: 'Customers',
+                            data: [newCust, returning],
+                            backgroundColor: ['#e7252d', '#116940'],
+                            borderRadius: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { display: false } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function renderOrders() {
+            let filtered = allOrders;
+            if (currentView === 'active') filtered = allOrders.filter(o => o.status !== 'Completed');
+            if (currentView === 'history') filtered = allOrders.filter(o => o.status === 'Completed');
+
+            const tbody = $('#ordersTable').empty();
+            filtered.forEach(o => {
+                const statusMap = { 'New': 'bg-new', 'Preparing': 'bg-preparing', 'Out for Delivery': 'bg-shipping', 'Completed': 'bg-completed' };
+                const items = o.items.map(i => `<strong>${i.quantity}</strong>x ${i.name}`).join('<br>');
+                const payStatus = o.paymentStatus === 'Successful' ? '<span class="text-success font-weight-bold">PAID</span>' : 
+                    `<button class="btn btn-sm btn-outline-success py-0" onclick="updateOrder('${o.id}', {paymentStatus:'Successful'})">Mark Paid</button>`;
+
+                let rowClass = '';
+                if (o.status === 'New') rowClass = 'row-new';
+                else if (o.status === 'Preparing') rowClass = 'row-preparing';
+                else if (o.status === 'Out for Delivery') rowClass = 'row-shipping';
+                else if (o.status === 'Completed') rowClass = 'row-completed';
+
+                const riderOptions = allRiders.map(r => `<option value="${r.id}" ${o.assignedRiderId === r.id ? 'selected' : ''}>${r.name}</option>`).join('');
+                const riderSelect = `
+                    <div class="mt-2">
+                        <label class="small font-weight-bold mb-0" style="font-size: 0.65rem; color: #888; text-transform: uppercase;">Assign Rider:</label>
+                        <select class="form-control form-control-sm py-0" onchange="updateOrder('${o.id}', {assignedRiderId: this.value})" style="font-size: 0.75rem; height: 28px; border-radius: 6px;">
+                            <option value="">-- No Rider --</option>
+                            ${riderOptions}
+                        </select>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+
+                tbody.append(`
+                    <tr class="${rowClass}">
+                        <td class="small font-weight-bold">#${o.id.slice(-6).toUpperCase()}</td>
+                        <td class="customer-info">
+                            <div class="font-weight-bold">${o.customerName}</div>
+                            <small class="d-block text-muted"><i class="fas fa-map-marker-alt mr-1"></i>${o.location}</small>
+                            <small class="d-block text-muted"><i class="fas fa-phone mr-1"></i>${o.phoneNumber}</small>
+                            ${riderSelect}
+                            ${o.notes ? `
+                                <div class="mt-2 p-2 rounded" style="background: #fff8e1; border-left: 3px solid #ffc107; font-size: 0.75rem;">
+                                    <strong class="text-warning text-uppercase" style="font-size: 0.65rem;">Special Instructions:</strong>
+                                    <div class="text-dark font-italic">${o.notes}</div>
+                                </div>
+                            ` : '<div class="mt-2 small text-muted font-italic" style="font-size: 0.7rem;">None</div>'}
+                        </td>
+                        <td class="small">${items}</td>
+                        <td class="font-weight-bold">KES ${o.totalAmount}</td>
+                        <td class="small text-muted">${new Date(o.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                        <td>${payStatus}</td>
+                        <td><span class="status-badge ${statusMap[o.status]}">${o.status}</span></td>
+                        <td>
+                            <div class="d-flex">
+                                <button title="Kitchen Prep" class="btn-action btn-prep" onclick="updateOrder('${o.id}', {status:'Preparing'})"><i class="fas fa-fire"></i></button>
+                                <button title="Send Delivery" class="btn-action btn-ship" onclick="updateOrder('${o.id}', {status:'Out for Delivery'})"><i class="fas fa-truck"></i></button>
+                                <button title="Done" class="btn-action btn-done" onclick="updateOrder('${o.id}', {status:'Completed'})"><i class="fas fa-check"></i></button>
+                                <button title="WhatsApp Alert" class="btn-action" onclick="sendWhatsApp('${o.id}')" style="background: #25d36622; color: #25d366;"><i class="fab fa-whatsapp"></i></button>
+                                <button title="Print Receipt" class="btn-action btn-edit" onclick="printReceipt('${o.id}')" style="background: #17a2b822; color: #17a2b8;"><i class="fas fa-print"></i></button>
+                                <button title="Edit Order" class="btn-action btn-edit" onclick="openEditOrder('${o.id}')"><i class="fas fa-edit"></i></button>
+                                <button title="Delete Record" class="btn-action btn-delete" onclick="deleteOrder('${o.id}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
             });
         }
 
-        async function updateStatus(orderId, status) {
+        async function updateOrder(orderId, updates) {
             try {
                 const res = await fetch('/api/admin/order/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderId, status })
+                    body: JSON.stringify({ orderId, ...updates })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    loadOrders();
+                    showNotification('Success', 'Order updated successfully', 'success');
+                    loadData();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function deleteOrder(orderId) {
+            if(!confirm('Delete this order permanently?')) return;
+            try {
+                const res = await fetch('/api/admin/order/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Deleted', 'Order has been removed', 'success');
+                    loadData();
                 } else {
-                    alert('Error updating order');
+                    alert('Error: ' + data.message);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function printReceipt(orderId) {
+            const o = allOrders.find(ord => ord.id === orderId);
+            if (!o) return;
+
+            const printWindow = window.open('', '_blank', 'width=400,height=600');
+            const itemsHtml = o.items.map(i => `
+                <tr>
+                    <td style="padding: 5px 0;">${i.name} x ${i.quantity}</td>
+                    <td style="text-align: right;">KES ${i.price * i.quantity}</td>
+                </tr>
+            `).join('');
+
+            const receiptHtml = `
+                <html>
+                <head>
+                    <title>Receipt #${o.id.slice(-6).toUpperCase()}</title>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; padding: 20px; color: #333; font-size: 12px; line-height: 1.2; }
+                        .header { text-align: center; margin-bottom: 20px; }
+                        .divider { border-top: 1px dashed #000; margin: 10px 0; }
+                        table { width: 100%; border-collapse: collapse; }
+                        .total { font-weight: bold; font-size: 14px; }
+                        .footer { text-align: center; margin-top: 30px; font-size: 10px; }
+                    </style>
+                </head>
+                <body onload="setTimeout(() => { window.print(); window.close(); }, 500);">
+                    <div class="header">
+                        <h2 style="margin:0;">PCnC PIZZA</h2>
+                        <p style="margin:5px 0;">Ndichu Container, Room 7<br>USIU Road, Nairobi</p>
+                    </div>
+                    <div>
+                        <strong>Order Ref:</strong> #${o.id.slice(-6).toUpperCase()}<br>
+                        <strong>Date:</strong> ${new Date(o.date).toLocaleString()}<br>
+                        <strong>Customer:</strong> ${o.customerName}<br>
+                        <strong>Phone:</strong> ${o.phoneNumber}
+                    </div>
+                    <div class="divider"></div>
+                    <table>${itemsHtml}</table>
+                    <div class="divider"></div>
+                    <div class="total">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>SUBTOTAL:</span>
+                            <span>KES ${(parseInt(o.totalAmount) + (parseInt(o.discountAmount) || 0)).toLocaleString()}</span>
+                        </div>
+                        ${o.discountAmount ? `
+                        <div style="display:flex; justify-content:space-between; color: #666; font-size: 11px;">
+                            <span>DISCOUNT (${o.promoCode || 'PROMO'}):</span>
+                            <span>-KES ${parseInt(o.discountAmount).toLocaleString()}</span>
+                        </div>
+                        ` : ''}
+                        <div style="display:flex; justify-content:space-between; font-size: 16px; margin-top: 10px;">
+                            <span>TOTAL:</span>
+                            <span>KES ${parseInt(o.totalAmount).toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="footer">
+                        <p>Thank you for choosing PCnC!<br>Visit us again soon.</p>
+                        <small>Ref: ${o.id}</small>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(receiptHtml);
+            printWindow.document.close();
+        }
+
+        function sendWhatsApp(orderId) {
+            const o = allOrders.find(ord => ord.id === orderId);
+            if (!o) return;
+
+            let msg = '';
+            const ref = o.id.slice(-6).toUpperCase();
+            if (o.status === 'New') msg = `Hi ${o.customerName}, PCnC has received your order #${ref}. We'll start preparing it shortly! 🍕`;
+            else if (o.status === 'Preparing') msg = `Hi ${o.customerName}, your PCnC order #${ref} is now being prepared! 🔥`;
+            else if (o.status === 'Out for Delivery') msg = `Hi ${o.customerName}, your PCnC order #${ref} is out for delivery! 🛵 Expect it soon.`;
+            else if (o.status === 'Completed') msg = `Hi ${o.customerName}, your order #${ref} has been delivered. Enjoy your meal! 🍕`;
+            else msg = `Hi ${o.customerName}, regarding your PCnC order #${ref}...`;
+
+            const phone = o.phoneNumber.replace(/^0/, '254');
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
+        function openEditOrder(orderId) {
+            const o = allOrders.find(ord => ord.id === orderId);
+            if (!o) return;
+            
+            const form = $('#editOrderForm')[0];
+            form.orderId.value = o.id;
+            form.customerName.value = o.customerName;
+            form.phoneNumber.value = o.phoneNumber;
+            form.location.value = o.location;
+            form.totalAmount.value = o.totalAmount;
+            form.paymentStatus.value = o.paymentStatus || 'Pending';
+            
+            $('#editOrderModal').modal('show');
+        }
+
+        $('#editOrderForm').submit(async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            await fetch('/api/admin/order/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            $('#editOrderModal').modal('hide');
+            loadData();
+        });
+
+        // Menu Management
+        let menuCache = [];
+        async function loadMenu() {
+            const res = await fetch('/api/menu');
+            menuCache = await res.json();
+            renderMenuTable();
+        }
+
+        function renderMenuTable() {
+            const searchTerm = ($('#menuSearch').val() || '').toLowerCase();
+            const tbody = $('#menuTableBody').empty();
+            
+            const filtered = menuCache.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) || 
+                item.category.toLowerCase().includes(searchTerm)
+            );
+
+            filtered.forEach(item => {
+                const checked = item.isAvailable !== false ? 'checked' : '';
+                tbody.append(`
+                    <tr>
+                        <td>${item.id}</td>
+                        <td><img src="../${item.image}" style="width: 40px; border-radius: 8px; height: 40px; object-fit: cover;"></td>
+                        <td>
+                            <div class="font-weight-bold">${item.name}</div>
+                            <small class="text-muted">${item.tag || ''}</small>
+                        </td>
+                        <td><span class="badge badge-light p-2">${item.category}</span></td>
+                        <td>KES ${item.price}</td>
+                        <td>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="avail-${item.id}" ${checked} onchange="toggleAvailability(${item.id})">
+                                <label class="custom-control-label" for="avail-${item.id}"></label>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="openEditMenu(${item.id})"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMenuItem(${item.id})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        async function toggleAvailability(id) {
+            try {
+                const res = await fetch('/api/admin/menu/toggle-availability', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Status Updated', 'Item availability changed', 'success');
                 }
             } catch (e) {
                 console.error(e);
+                loadMenu(); // Refresh on error
             }
         }
 
-        // Poll every 10 seconds for new orders
-        setInterval(loadOrders, 10000);
+        async function openEditMenu(id) {
+            const item = menuCache.find(m => m.id == id);
+            if (!item) return;
+
+            // Load categories into dropdown
+            const settingsRes = await fetch('/api/settings');
+            const settings = await settingsRes.json();
+            const dropdown = $('#editMenuCategoryDropdown').empty();
+            (settings.menuCategories || []).forEach(cat => {
+                dropdown.append(`<option value="${cat.id}">${cat.name}</option>`);
+            });
+
+            const form = $('#editMenuForm')[0];
+            form.id.value = item.id;
+            form.name.value = item.name;
+            form.price.value = item.price;
+            form.category.value = item.category;
+            form.tag.value = item.tag || '';
+            
+            $('#editMenuModal').modal('show');
+        }
+
+        $('#editMenuForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Saving...').prop('disabled', true);
+            
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/admin/menu/update', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    $('#editMenuModal').modal('hide');
+                    showNotification('Updated', 'Menu item saved', 'success');
+                    loadMenu();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Update failed');
+            } finally {
+                btn.text('Save Changes').prop('disabled', false);
+            }
+        });
+
+        $('#addMenuForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Uploading...').prop('disabled', true);
+            
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/admin/menu/add', {
+                    method: 'POST',
+                    body: formData // No headers needed for FormData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    $('#addMenuModal').modal('hide');
+                    e.target.reset();
+                    $('.custom-file-label').text('Choose file');
+                    loadMenu();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Upload failed');
+            } finally {
+                btn.text('Upload & Add to Menu').prop('disabled', false);
+            }
+        });
+
+        async function deleteMenuItem(id) {
+            if(!confirm('Delete this menu item?')) return;
+            try {
+                const res = await fetch('/api/admin/menu/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: String(id) })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Deleted', 'Menu item removed', 'success');
+                    loadMenu();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                
+                // Load Website Core Info
+                const form = $('#settingsForm')[0];
+                if (form) {
+                    const phoneFields = $('#phoneFields');
+                    phoneFields.empty();
+                    const phones = data.supportPhones || (data.supportPhone ? [data.supportPhone] : ['']);
+                    phones.forEach((phone) => {
+                        phoneFields.append(`
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="supportPhones[]" value="${phone}" placeholder="e.g. 0712345678">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                        `);
+                    });
+
+                    const emailFields = $('#emailFields');
+                    emailFields.empty();
+                    const emails = data.supportEmails || (data.supportEmail ? [data.supportEmail] : ['']);
+                    emails.forEach((email) => {
+                        emailFields.append(`
+                            <div class="input-group mb-2">
+                                <input type="email" class="form-control" name="supportEmails[]" value="${email}" placeholder="e.g. support@pcnc.com">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                        `);
+                    });
+
+                    if (form.homeTitle) form.homeTitle.value = data.homeTitle || '';
+                    if (form.homeSubtext) form.homeSubtext.value = data.homeSubtext || '';
+                    if (form.aboutText) form.aboutText.value = data.aboutText || '';
+                    $('#globalWhatsappInput').val(data.whatsappNumber || '');
+                }
+
+                // Load Deal of the Week
+                const df = $('#dealForm')[0];
+                if (df && data.dealOfWeek) {
+                    if (df.title) df.title.value = data.dealOfWeek.title || '';
+                    if (df.subtitle) df.subtitle.value = data.dealOfWeek.subtitle || '';
+                    if (df.description) df.description.value = data.dealOfWeek.description || '';
+                    if (df.image) df.image.value = data.dealOfWeek.image || '';
+                }
+
+                // Load Home About
+                const haf = $('#homeAboutForm')[0];
+                if (haf && data.homeAbout) {
+                    if (haf.title) haf.title.value = data.homeAbout.title || '';
+                    if (haf.heading) haf.heading.value = data.homeAbout.heading || '';
+                    if (haf.description) haf.description.value = data.homeAbout.description || '';
+                    if (haf.videoLink) haf.videoLink.value = data.homeAbout.videoLink || '';
+                    if (haf.isVideoLocal) haf.isVideoLocal.checked = data.homeAbout.isVideoLocal || false;
+                    if (haf.abtImage) haf.abtImage.value = data.homeAbout.abtImage || '';
+                }
+
+                // Load About Promo
+                const apf = $('#aboutPromoForm')[0];
+                if (apf && data.aboutPromo) {
+                    if (apf.line1) apf.line1.value = data.aboutPromo.line1 || '';
+                    if (apf.line2) apf.line2.value = data.aboutPromo.line2 || '';
+                }
+
+                // Load Promos
+                renderPromos(data.promoCodes || []);
+
+                // Load Riders
+                allRiders = data.riders || [];
+                renderRiders();
+
+                // Load Team
+                const tbody = $('#teamTableBody').empty();
+                if (data.team && data.team.length > 0) {
+                    data.team.forEach(m => {
+                        tbody.append(`
+                            <tr>
+                                <td><img src="../${m.image}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"></td>
+                                <td><div class="font-weight-bold">${m.name}</div><small class="text-muted">${m.role}</small></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditTeamMember(${m.id})"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTeamMember(${m.id})"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="3" class="text-center text-muted">No team members yet</td></tr>');
+                }
+
+                // Load Categories
+                const catBody = $('#categoryTableBody').empty();
+                const catDropdown = $('#addMenuCategoryDropdown');
+                if (data.menuCategories && data.menuCategories.length > 0) {
+                    if (catDropdown.length > 0) catDropdown.empty();
+                    data.menuCategories.forEach(cat => {
+                        catBody.append(`
+                            <tr>
+                                <td><code>${cat.id}</code></td>
+                                <td>${cat.name}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditCategory('${cat.id}')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory('${cat.id}')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `);
+                        if (catDropdown.length > 0) catDropdown.append(`<option value="${cat.id}">${cat.name}</option>`);
+                    });
+                } else {
+                    catBody.append('<tr><td colspan="3" class="text-center text-muted">No categories yet</td></tr>');
+                    if (catDropdown.length > 0) {
+                        catDropdown.empty();
+                        catDropdown.append('<option value="">No categories available</option>');
+                    }
+                }
+
+                if (allOrders.length > 0) renderOrders();
+            } catch (e) { console.error('Error loading settings:', e); }
+        }
         
-        // Initial load
-        loadOrders();
+        function addPhoneField() {
+            $('#phoneFields').append(`
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" name="supportPhones[]" placeholder="e.g. 0712345678">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            `);
+        }
+        
+        function addEmailField() {
+            $('#emailFields').append(`
+                <div class="input-group mb-2">
+                    <input type="email" class="form-control" name="supportEmails[]" placeholder="e.g. support@pcnc.com">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            `);
+        }
+
+        $('#addTeamForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Uploading...').prop('disabled', true);
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/admin/team/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    $('#addTeamModal').modal('hide');
+                    e.target.reset();
+                    loadSettings();
+                    showNotification('Team Updated', 'New member added successfully', 'success');
+                }
+            } catch (err) { console.error(err); }
+            finally { btn.text('Upload & Add Member').prop('disabled', false); }
+        });
+
+        async function deleteTeamMember(id) {
+            if (!confirm('Remove this team member?')) return;
+            try {
+                await fetch('/api/admin/team/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                loadSettings();
+                showNotification('Member Removed', 'Team list updated', 'success');
+            } catch (e) { console.error(e); }
+        }
+
+        function openEditTeamMember(id) {
+            fetch('/api/settings').then(res => res.json()).then(data => {
+                const m = data.team.find(member => member.id == id);
+                if (!m) return;
+                const form = $('#editTeamForm')[0];
+                form.id.value = m.id;
+                form.name.value = m.name;
+                form.role.value = m.role;
+                form.phone.value = m.phone || '';
+                form.facebook.value = m.facebook || '';
+                form.twitter.value = m.twitter || '';
+                form.instagram.value = m.instagram || '';
+                form.linkedin.value = m.linkedin || '';
+                $('#editTeamModal').modal('show');
+            });
+        }
+
+        $('#editTeamForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Saving...').prop('disabled', true);
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/admin/team/update', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    $('#editTeamModal').modal('hide');
+                    loadSettings();
+                    showNotification('Updated', 'Team member details saved', 'success');
+                }
+            } catch (err) { console.error(err); }
+            finally { btn.text('Save Changes').prop('disabled', false); }
+        });
+
+        $('#addRiderForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Registering...').prop('disabled', true);
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/admin/riders/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    $('#addRiderModal').modal('hide');
+                    e.target.reset();
+                    loadSettings();
+                    showNotification('Rider Added', 'Delivery team updated', 'success');
+                } else {
+                    const errData = await res.json();
+                    alert('Error: ' + (errData.message || 'Failed to register rider'));
+                }
+            } catch (err) { 
+                console.error(err); 
+                alert('Connection error. Please try again.');
+            } finally {
+                btn.text('Register Rider').prop('disabled', false);
+            }
+        });
+
+        async function deleteRider(id) {
+            if (!confirm('Remove this dispatch rider?')) return;
+            try {
+                await fetch('/api/admin/riders/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                loadSettings();
+                showNotification('Rider Removed', 'Delivery team updated', 'success');
+            } catch (e) { console.error(e); }
+        }
+
+        function openEditRider(id) {
+            const r = allRiders.find(rider => rider.id == id);
+            if (!r) return;
+            const form = $('#editRiderForm')[0];
+            form.id.value = r.id;
+            form.name.value = r.name;
+            form.phone.value = r.phone;
+            form.vehicle.value = r.vehicle || '';
+            $('#editRiderModal').modal('show');
+        }
+
+        $('#editRiderForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Saving...').prop('disabled', true);
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/admin/riders/update', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    $('#editRiderModal').modal('hide');
+                    loadSettings();
+                    showNotification('Updated', 'Rider details saved', 'success');
+                }
+            } catch (err) { console.error(err); }
+            finally { btn.text('Save Changes').prop('disabled', false); }
+        });
+
+        $('#addCategoryForm').submit(async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            try {
+                const res = await fetch('/api/admin/category/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    $('#addCategoryModal').modal('hide');
+                    e.target.reset();
+                    loadSettings();
+                    showNotification('Category Added', 'Menu flavors updated', 'success');
+                }
+            } catch (err) { console.error(err); }
+        });
+
+        async function deleteCategory(id) {
+            if (!confirm('Delete this category? Menu items with this category will still exist.')) return;
+            try {
+                await fetch('/api/admin/category/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                loadSettings();
+                showNotification('Category Deleted', 'Menu flavors updated', 'success');
+            } catch (e) { console.error(e); }
+        }
+
+        function openEditCategory(id) {
+            fetch('/api/settings').then(res => res.json()).then(data => {
+                const cat = data.menuCategories.find(c => c.id === id);
+                if (!cat) return;
+                const form = $('#editCategoryForm')[0];
+                form.oldId.value = cat.id;
+                form.catId.value = cat.id;
+                form.catName.value = cat.name;
+                $('#editCategoryModal').modal('show');
+            });
+        }
+
+        $('#editCategoryForm').submit(async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            try {
+                const res = await fetch('/api/admin/category/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    $('#editCategoryModal').modal('hide');
+                    loadSettings();
+                    showNotification('Updated', 'Category details saved', 'success');
+                }
+            } catch (err) { console.error(err); }
+        });
+
+        async function downloadReport() {
+            // Check first order time for 24h rule
+            if (allOrders.length === 0) { alert('No orders found to export'); return; }
+            window.open('/api/admin/export', '_blank');
+        }
+
+        $('#settingsForm').submit(async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            // Extract arrays for phones and emails
+            const supportPhones = formData.getAll('supportPhones[]').filter(p => p.trim() !== '');
+            const supportEmails = formData.getAll('supportEmails[]').filter(e => e.trim() !== '');
+            
+            const data = {
+                supportPhones,
+                supportEmails,
+                homeTitle: formData.get('homeTitle'),
+                homeSubtext: formData.get('homeSubtext'),
+                aboutText: formData.get('aboutText')
+            };
+            
+            const res = await fetch('/api/admin/settings/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const resData = await res.json();
+            if (resData.success) {
+                showNotification('Updated', 'System settings saved', 'success');
+            }
+        });
+
+        $('#dealForm').submit(async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const dealData = Object.fromEntries(formData);
+            
+            // Handle Image Upload if selected
+            const fileInput = $('#dealImageInput')[0].files[0];
+            if (fileInput) {
+                const uploadData = new FormData();
+                uploadData.append('mediaFile', fileInput);
+                const uploadRes = await fetch('/api/admin/settings/upload', {
+                    method: 'POST',
+                    body: uploadData
+                });
+                const uploadResult = await uploadRes.json();
+                if (uploadResult.success) dealData.image = uploadResult.filePath;
+            }
+
+            const res = await fetch('/api/admin/settings/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dealOfWeek: dealData })
+            });
+            if (res.ok) showNotification('Updated', 'Deal of the week saved', 'success');
+        });
+
+        $('#homeAboutForm').submit(async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const aboutData = Object.fromEntries(formData);
+            aboutData.isVideoLocal = formData.get('isVideoLocal') === 'on';
+
+            // Handle Image Upload if selected
+            const fileInput = $('#homeAboutImageInput')[0].files[0];
+            if (fileInput) {
+                const uploadData = new FormData();
+                uploadData.append('mediaFile', fileInput);
+                const uploadRes = await fetch('/api/admin/settings/upload', {
+                    method: 'POST',
+                    body: uploadData
+                });
+                const uploadResult = await uploadRes.json();
+                if (uploadResult.success) aboutData.abtImage = uploadResult.filePath;
+            }
+
+            const res = await fetch('/api/admin/settings/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ homeAbout: aboutData })
+            });
+            if (res.ok) showNotification('Updated', 'Home About section saved', 'success');
+        });
+
+        $('#videoUpload').change(async function() {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const uploadData = new FormData();
+            uploadData.append('mediaFile', file);
+            
+            showNotification('Uploading...', 'Please wait for the video to upload', 'info');
+            
+            const res = await fetch('/api/admin/settings/upload', {
+                method: 'POST',
+                body: uploadData
+            });
+            const data = await res.json();
+            if (data.success) {
+                $('[name="videoLink"]').val(data.filePath);
+                $('#isVideoLocal').prop('checked', true);
+                showNotification('Success', 'Video uploaded successfully', 'success');
+            }
+        });
+
+        $('#aboutPromoForm').submit(async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const promoData = Object.fromEntries(formData);
+
+            const res = await fetch('/api/admin/settings/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ aboutPromo: promoData })
+            });
+            if (res.ok) showNotification('Updated', 'About Promo section saved', 'success');
+        });
+
+        function renderPromos(promos) {
+            const tbody = $('#promoTableBody').empty();
+            if (promos.length === 0) {
+                tbody.append('<tr><td colspan="3" class="text-center text-muted">No codes yet</td></tr>');
+                return;
+            }
+            promos.forEach(p => {
+                tbody.append(`
+                    <tr>
+                        <td><strong class="text-danger">${p.code}</strong></td>
+                        <td>${p.discount}% Off</td>
+                        <td class="text-right">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePromo('${p.code}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        $('#addPromoForm').submit(async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            const res = await fetch('/api/admin/promo/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                $('#addPromoModal').modal('hide');
+                e.target.reset();
+                loadSettings();
+                showNotification('Code Created', 'Promo code is now active', 'success');
+            }
+        });
+
+        async function deletePromo(code) {
+            if (!confirm('Delete this promo code?')) return;
+            const res = await fetch('/api/admin/promo/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            if (res.ok) {
+                loadSettings();
+                showNotification('Deleted', 'Promo code removed', 'success');
+            }
+        }
+
+        async function triggerBackup() {
+            showNotification('Backing up...', 'Creating system snapshot', 'info');
+            try {
+                const res = await fetch('/api/admin/backup', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Backup Success', 'Snapshot created in /backups folder', 'success');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+
+        setInterval(loadData, 10000);
+        loadData();
     </script>
 </body>
 </html>

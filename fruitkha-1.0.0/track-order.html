@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Track Your Order | PCnC</title>
+
+	<link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
+	<link href="https://fonts.googleapis.com/css?family=Poppins:400,700,800&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="assets/css/all.min.css">
+	<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        .tracking-container {
+            background: #fff;
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+            margin-top: -100px;
+            position: relative;
+            z-index: 10;
+        }
+        .status-timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 60px 0;
+            padding: 0 20px;
+        }
+        .status-timeline::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: #f0f0f0;
+            z-index: 1;
+        }
+        .status-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+        .step-icon {
+            width: 55px;
+            height: 55px;
+            background: #f8f9fa;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.2rem;
+            color: #ccc;
+            transition: 0.4s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .status-step.active .step-icon {
+            background: #e7252d;
+            color: #fff;
+            transform: scale(1.2);
+            box-shadow: 0 10px 25px rgba(231, 37, 45, 0.3);
+        }
+        .status-step.completed .step-icon {
+            background: #116940;
+            color: #fff;
+        }
+        .step-label {
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            transition: 0.3s;
+        }
+        .status-step.active .step-label {
+            color: #1a1a1a;
+        }
+        .status-step.completed .step-label {
+            color: #116940;
+        }
+        .pulse {
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 37, 45, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(231, 37, 45, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 37, 45, 0); }
+        }
+        .order-info-card {
+            background: #f9f9f9;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px dashed #ddd;
+        }
+        /* Multi-order styles */
+        .order-sidebar {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .order-sidebar h5 { padding: 0 25px 15px; font-weight: 800; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        .order-list-items { max-height: 500px; overflow-y: auto; }
+        .order-item-btn {
+            padding: 15px 25px;
+            display: block;
+            text-decoration: none;
+            color: #444;
+            transition: 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .order-item-btn:hover { background: #fafafa; color: #e7252d; text-decoration: none; }
+        .order-item-btn.active {
+            background: #fff1f2;
+            color: #e7252d;
+            border-left-color: #e7252d;
+            font-weight: 700;
+        }
+        .order-item-btn small { display: block; color: #888; font-weight: 400; margin-top: 3px; }
+        .payment-badge {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-paid { background: #d4edda; color: #155724; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+	
+	<!-- header -->
+	<div class="top-header-area" id="sticker">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12 col-sm-12 text-center">
+					<div class="main-menu-wrap">
+						<div class="site-logo">
+							<a href="index.html">
+								<img src="assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
+							</a>
+						</div>
+						<nav class="main-menu">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="about.html">About</a></li>
+								<li><a href="shop.html">Menu</a></li>
+								<li><a href="checkout.html">Checkout</a></li>
+								<li class="current-list-item"><a href="track-order.html">Track Order</a></li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="breadcrumb-section breadcrumb-bg">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8 offset-lg-2 text-center">
+					<div class="breadcrumb-text">
+						<p>Fresh & Hot Tracking</p>
+						<h1>Track Order</h1>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container mb-150">
+		<div class="row">
+            <!-- Sidebar with list of orders -->
+            <div class="col-lg-3">
+                <div class="order-sidebar">
+                    <h5>My Orders List</h5>
+                    <div class="order-list-items" id="myOrdersList">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Details -->
+			<div class="col-lg-9">
+				<div class="tracking-container">
+					<div class="text-center mb-5">
+						<h2 id="orderIdDisplay" style="font-weight: 900; color: #1a1a1a;">ORDER #------</h2>
+						<p class="text-muted"><span id="statusText" class="badge badge-danger px-3 py-2" style="border-radius: 50px; font-size: 0.8rem; letter-spacing: 1px;">Loading status...</span></p>
+					</div>
+
+					<div class="status-timeline">
+						<div class="status-step" id="step-new">
+							<div class="step-icon"><i class="fas fa-clipboard-list"></i></div>
+							<div class="step-label">Order Received</div>
+						</div>
+						<div class="status-step" id="step-preparing">
+							<div class="step-icon"><i class="fas fa-fire"></i></div>
+							<div class="step-label">Preparing</div>
+						</div>
+						<div class="status-step" id="step-shipping">
+							<div class="step-icon"><i class="fas fa-motorcycle"></i></div>
+							<div class="step-label">On the Way</div>
+						</div>
+						<div class="status-step" id="step-completed">
+							<div class="step-icon"><i class="fas fa-check-double"></i></div>
+							<div class="step-label">Delivered</div>
+						</div>
+					</div>
+
+					<div class="row mt-5" id="orderInfoRow">
+						<div class="col-md-6 mb-4">
+							<div class="order-info-card h-100">
+								<h5 style="font-weight: 800; margin-bottom: 20px;">Payment Status</h5>
+								<div id="paymentStatusBadge" class="payment-badge badge-pending">PENDING VERIFICATION</div>
+								<p class="small text-muted mt-3" id="paymentNote">Please wait for our admin to confirm your payment.</p>
+							</div>
+						</div>
+						<div class="col-md-6 mb-4">
+							<div class="order-info-card text-center h-100">
+								<h5 style="font-weight: 800; margin-bottom: 20px;">Contact Support</h5>
+								<div id="supportContactInfo">
+                                    <p class="mb-1"><i class="fab fa-whatsapp text-success mr-2"></i> <strong id="supportPhone">---</strong></p>
+                                    <p class="small text-muted" id="supportRider">Delivery Team</p>
+                                    <a href="#" id="callBtn" class="btn btn-sm btn-success mt-2" style="border-radius: 50px; font-weight: 700; padding: 5px 23px;">WHATSAPP US</a>
+                                </div>
+							</div>
+						</div>
+					</div>
+
+                    <!-- Thank You Message -->
+                    <div id="thankYouSection" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-heart text-danger mb-4" style="font-size: 4rem;"></i>
+                        <h2 style="font-weight: 900;">THANK YOU FOR ORDERING!</h2>
+                        <p class="text-muted">We hope you enjoyed your meal from PCnC Restaurant.</p>
+                        
+                        <div id="ratingArea" class="mt-5 p-4" style="background: #fdfdfd; border-radius: 20px; border: 1px solid #eee;">
+                            <h5 class="font-weight-bold mb-3">How was your meal?</h5>
+                            <div class="stars mb-3" style="font-size: 1.8rem; color: #ddd; cursor: pointer;">
+                                <i class="fas fa-star star-btn" data-val="1"></i>
+                                <i class="fas fa-star star-btn" data-val="2"></i>
+                                <i class="fas fa-star star-btn" data-val="3"></i>
+                                <i class="fas fa-star star-btn" data-val="4"></i>
+                                <i class="fas fa-star star-btn" data-val="5"></i>
+                            </div>
+                            <textarea id="feedbackText" class="form-control mb-3" placeholder="Any feedback for us?" style="border-radius: 12px; border: 1px solid #eee;"></textarea>
+                            <button id="submitRatingBtn" class="btn btn-dark px-4" style="border-radius: 10px; font-weight: 700;">Submit Feedback</button>
+                        </div>
+
+                        <a href="shop.html" class="btn btn-primary px-5 py-3 mt-4" style="border-radius: 15px; font-weight: 800;">ORDER AGAIN</a>
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- copyright -->
+	<div class="copyright">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-6 col-md-12">
+					<p>Copyrights &copy; 2026 - PCnC,  All Rights Reserved.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="assets/js/jquery-1.11.3.min.js"></script>
+	<script>
+		const urlParams = new URLSearchParams(window.location.search);
+		let orderId = urlParams.get('id');
+        let myOrderIds = JSON.parse(localStorage.getItem('pcnc_order_ids') || '[]');
+
+		// Fallback to localStorage if no ID in URL
+		if (!orderId) {
+			orderId = localStorage.getItem('pcnc_last_order_id');
+		}
+
+		if (!orderId && myOrderIds.length > 0) {
+            orderId = myOrderIds[0];
+        }
+
+        if (!orderId) {
+			window.location.href = 'shop.html';
+		} else {
+            if (!urlParams.has('id')) {
+                window.history.replaceState(null, '', `track-order.html?id=${orderId}`);
+            }
+        }
+
+        function renderOrderList() {
+            const container = $('#myOrdersList').empty();
+            if (myOrderIds.length === 0) {
+                container.append(`
+                    <div class="p-3 text-muted small">
+                        <p>No active orders.</p>
+                        <a href="shop.html" class="btn btn-sm btn-outline-dark btn-block">Order Now</a>
+                    </div>
+                `);
+                
+                // Show global thank you message if everything is done
+                $('#thankYouSection').fadeIn();
+                $('.status-timeline, h2#orderIdDisplay, p.text-muted, #orderInfoRow').hide();
+                return;
+            }
+            // Hide thank you if there are active orders
+            $('#thankYouSection').hide();
+            $('.status-timeline, h2#orderIdDisplay, p.text-muted, #orderInfoRow').show();
+            myOrderIds.forEach(id => {
+                const isActive = id === orderId;
+                const shortId = id.replace('ORD-', '').slice(0, 8);
+                container.append(`
+                    <a href="track-order.html?id=${id}" class="order-item-btn ${isActive ? 'active' : ''}">
+                        ORDER #${shortId}
+                        <small>Click to view status</small>
+                    </a>
+                `);
+            });
+        }
+
+        async function trackOrder() {
+            if (!orderId) return;
+            try {
+                // Add a cache-busting timestamp to prevent browser from caching stale responses
+                const res = await fetch(`/api/order/${orderId}?t=${Date.now()}`);
+                
+                if (res.status === 404) {
+                    removeFromLocalList(orderId);
+                    return;
+                }
+                
+                const data = await res.json();
+                if (data.success && data.order) {
+                    // Update UI with the fresh order data from server
+                    updateUI(data.order);
+                    
+                    // Also verify other orders in the background less frequently
+                    if (Math.random() > 0.8) verifyAllOrders();
+                } else {
+                    removeFromLocalList(orderId);
+                }
+            } catch (e) { 
+                console.error('Tracking error', e); 
+            }
+        }
+
+        function removeFromLocalList(id) {
+            let currentOrders = JSON.parse(localStorage.getItem('pcnc_order_ids') || '[]');
+            currentOrders = currentOrders.filter(oid => oid !== id);
+            localStorage.setItem('pcnc_order_ids', JSON.stringify(currentOrders));
+            
+            if (localStorage.getItem('pcnc_last_order_id') === id) {
+                localStorage.removeItem('pcnc_last_order_id');
+            }
+            
+            myOrderIds = currentOrders;
+            
+            if (id === orderId) {
+                if (myOrderIds.length > 0) {
+                    window.location.href = `track-order.html?id=${myOrderIds[0]}`;
+                } else {
+                    orderId = null;
+                    renderOrderList();
+                }
+            } else {
+                renderOrderList();
+            }
+        }
+
+        let supportInfoLoaded = false;
+        async function loadSupportInfo() {
+            if (supportInfoLoaded) return;
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                
+                const waDisplay = data.whatsappNumber || (data.supportPhones ? data.supportPhones[0] : '---');
+                document.getElementById('supportPhone').innerText = waDisplay;
+                document.getElementById('supportRider').innerText = data.riderName || 'PCnC Dispatch Team';
+                
+                // Format for WhatsApp: Remove spaces, add 254 if starts with 0
+                let waNum = waDisplay.replace(/\s/g, '');
+                if (waNum.startsWith('0')) waNum = '254' + waNum.substring(1);
+                
+                document.getElementById('callBtn').href = `https://wa.me/${waNum}`;
+                supportInfoLoaded = true;
+            } catch (e) { console.error(e); }
+        }
+
+        function formatWA(num) {
+            let clean = num.replace(/\s/g, '');
+            if (clean.startsWith('0')) clean = '254' + clean.substring(1);
+            return clean;
+        }
+
+		function updateUI(order) {
+            document.getElementById('orderIdDisplay').innerText = 'ORDER #' + order.id.replace('ORD-', '').toUpperCase();
+			document.getElementById('statusText').innerText = order.status;
+            
+            // Rider & Support Logic
+            const riderDiv = document.getElementById('supportContactInfo');
+            if (order.assignedRider && order.paymentStatus === 'Successful') {
+                riderDiv.innerHTML = `
+                    <div class="mb-3">
+                        <img src="/${order.assignedRider.image}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid #e7252d; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    </div>
+                    <p class="mb-1"><strong style="color: #e7252d;">${order.assignedRider.name}</strong></p>
+                    <p class="small text-muted mb-2">Your Dispatch Rider</p>
+                    <a href="https://wa.me/${formatWA(order.assignedRider.phone)}" class="btn btn-sm btn-success px-4" style="border-radius: 50px; font-weight: 700;">
+                        <i class="fab fa-whatsapp mr-1"></i> CONTACT RIDER
+                    </a>
+                `;
+            } else {
+                // Restore default support layout if it was replaced by a rider card
+                riderDiv.innerHTML = `
+                    <p class="mb-1"><i class="fab fa-whatsapp text-success mr-2"></i> <strong id="supportPhone">---</strong></p>
+                    <p class="small text-muted" id="supportRider">Delivery Team</p>
+                    <a href="#" id="callBtn" class="btn btn-sm btn-success mt-2" style="border-radius: 50px; font-weight: 700; padding: 5px 23px;">WHATSAPP US</a>
+                `;
+                supportInfoLoaded = false; 
+                loadSupportInfo();
+            }
+
+            // Payment Logic
+            const pBadge = document.getElementById('paymentStatusBadge');
+            const pNote = document.getElementById('paymentNote');
+            
+            if (order.paymentStatus === 'Successful') {
+                pBadge.innerText = 'PAYMENT CONFIRMED';
+                pBadge.className = 'payment-badge badge-paid';
+                pNote.innerText = 'Thank you! Your payment has been verified.';
+            } else {
+                pBadge.innerText = 'PENDING VERIFICATION';
+                pBadge.className = 'payment-badge badge-pending';
+                pNote.innerText = 'Rider details will be visible once payment is confirmed.';
+            }
+
+			// Timeline Logic
+			const steps = ['New', 'Preparing', 'Out for Delivery', 'Completed'];
+			const stepIds = ['step-new', 'step-preparing', 'step-shipping', 'step-completed'];
+			
+			const currentIdx = steps.indexOf(order.status);
+            
+            stepIds.forEach((id, idx) => {
+                const el = document.getElementById(id);
+                el.classList.remove('active', 'completed', 'pulse');
+                
+                if (idx < currentIdx) {
+                    el.classList.add('completed');
+                } else if (idx === currentIdx) {
+                    el.classList.add('active');
+                    if (order.status !== 'Completed') {
+                        el.querySelector('.step-icon').classList.add('pulse');
+                    }
+                }
+            });
+
+            // Cleanup: If order is completed, remove from local list to keep it fresh
+            if (order.status === 'Completed') {
+                removeFromLocalList(order.id);
+            }
+		}
+
+		// Initial check for all orders in sidebar
+        async function verifyAllOrders() {
+            const validOrders = [];
+            for (const id of myOrderIds) {
+                try {
+                    const res = await fetch(`/api/order/${id}`);
+                    if (res.ok) validOrders.push(id);
+                } catch (e) { validOrders.push(id); } // Keep if server error
+            }
+            if (validOrders.length !== myOrderIds.length) {
+                localStorage.setItem('pcnc_order_ids', JSON.stringify(validOrders));
+                myOrderIds = validOrders;
+                renderOrderList();
+            }
+        }
+
+		// Initialize
+        renderOrderList();
+        verifyAllOrders();
+        // Rating Logic
+        let currentRating = 0;
+        $(document).on('click', '.star-btn', function() {
+            currentRating = $(this).data('val');
+            $('.star-btn').css('color', '#ddd');
+            for(let i=0; i<currentRating; i++) {
+                $('.star-btn').eq(i).css('color', '#ffc107');
+            }
+        });
+
+        $('#submitRatingBtn').click(async function() {
+            const feedback = $('#feedbackText').val();
+            if (currentRating === 0) {
+                alert('Please select a star rating');
+                return;
+            }
+            $(this).prop('disabled', true).text('Submitting...');
+            const success = await rateOrder(orderId, currentRating, feedback);
+            if (success) {
+                $('#ratingArea').html('<div class="alert alert-success mt-3" style="border-radius:12px;">Thank you for your feedback! ❤️</div>');
+            }
+        });
+
+		setInterval(trackOrder, 5000);
+		trackOrder();
+        loadSupportInfo();
+    </script>
+    <script src="assets/js/pcnc.js?v=1.2"></script>
+</body>
+</html>

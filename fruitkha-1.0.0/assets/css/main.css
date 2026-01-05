@@ -1028,6 +1028,87 @@ a.bordered-btn:hover {
   color: #fff;
 }
 
+/* Notification System */
+.pcnc-notification-container {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.pcnc-toast {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 320px;
+    max-width: 450px;
+    border-left: 5px solid #e7252d;
+    animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
+}
+
+.pcnc-toast.success {
+    border-left-color: #116940;
+}
+
+.pcnc-toast.error {
+    border-left-color: #e7252d;
+}
+
+.pcnc-toast i {
+    font-size: 1.5rem;
+}
+
+.pcnc-toast.success i {
+    color: #116940;
+}
+
+.pcnc-toast.error i {
+    color: #e7252d;
+}
+
+.pcnc-toast-content {
+    flex-grow: 1;
+}
+
+.pcnc-toast-title {
+    display: block;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pcnc-toast-msg {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 2px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.pcnc-toast.fade-out {
+    transform: translateX(100%);
+    opacity: 0;
+}
 ul.sub-menu a {
   -webkit-transition: 0.3s;
   -o-transition: 0.3s;
@@ -1361,7 +1442,7 @@ a.mobile-show.search-bar-icon:hover {
 
 ----------------------------------------------------------------------------- */
 .hero-bg {
-  background-image: url(/fruitkha-1.0.0/assets/img/hero-bg.jpg);
+  background-image: url(../img/hero-bg.jpg);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1905,39 +1986,49 @@ span.comment-date {
 
 .cart-banner .image-column .price-box {
   position: absolute;
-  left: 15%;
-  top: -30px;
-  width: 110px;
-  height: 110px;
+  left: 10%;
+  top: -40px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  border: 1px solid #fff;
-  background-color: rgba(242, 129, 35, 0.75);
+  border: 4px solid #fff;
+  background-color: #e7252d;
+  box-shadow: 0 10px 25px rgba(231, 37, 45, 0.4);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.cart-banner .image-column .price-box:hover {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .cart-banner .image-column .price-box .inner-price {
-  position: relative;
-  width: 94px;
-  height: 94px;
-  margin: 0 auto;
-  margin-top: 8px;
   text-align: center;
-  border-radius: 50%;
-  background-color: #e7252d;
+  color: #fff;
+  line-height: 1.2;
 }
 
-.cart-banner .image-column .price-box .inner-price .price {
-  color: #051922;
-  padding-top: 27px;
-  position: relative;
-  display: inline-block;
-  line-height: 18px;
-  font-weight: 400;
+.cart-banner .image-column .price-box .inner-price .offer-text {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+  opacity: 0.9;
 }
 
-.cart-banner .image-column .price-box .inner-price .price strong {
-  color: #051922;
-  font-size: 24px;
+.cart-banner .image-column .price-box .inner-price .price-title {
+  display: block;
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
+
+/* Removed old redundant price styles */
 
 .cart-banner .content-column {
   position: relative;
@@ -2117,9 +2208,8 @@ a.video-play-btn {
 .shop-banner {
   position: relative;
   background-color: #f5f5f5;
-  background-image: url(/fruitkha-1.0.0/assets/img/tasty-pizza-near-ingredients.jpg);
+  background-image: url(../img/tasty-pizza-near-ingredients.jpg);
   background-size: cover;
-  padding: 110px 0px 115px;
   text-align: center;
 }
 
@@ -2157,7 +2247,6 @@ a.video-play-btn {
 ----------------------------------------------------------------------------- */
 .feature-bg {
   position: relative;
-  margin: 150px 0;
 }
 
 .feature-bg:after {

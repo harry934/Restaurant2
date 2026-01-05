@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "name": "Hawaaian Pizza",
+    "price": 1500,
+    "category": "pizza",
+    "image": "uploads/1767545398821-download (8).jpg",
+    "tag": "Top-up with cheese & soy sauce"
+  },
+  {
+    "id": 2,
+    "name": "Extra Cheese",
+    "price": 200,
+    "category": "additives",
+    "image": "assets/img/products/product-img-4.png",
+    "tag": "Extra Gooey"
+  }
+]

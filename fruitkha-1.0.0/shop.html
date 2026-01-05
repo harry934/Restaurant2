@@ -52,7 +52,7 @@
 						<div class="site-logo">
 							<a href="index.html">
 								
-								<img src="/fruitkha-1.0.0/assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
+								<img src="assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
 							
 							</a>
 						</div>
@@ -62,9 +62,10 @@
 						<nav class="main-menu">
 							<ul>
 								<li><a href="index.html">Home</a></li>
+								<li><a href="about.html">About</a></li>
 								<li class="current-list-item"><a href="shop.html">Menu</a></li>
-								
 								<li><a href="checkout.html">Checkout</a></li>
+								<li><a href="track-order.html">Track Order</a></li>
 								<li>
 									<div class="header-icons">
 										<a class="shopping-cart" href="cart.html"><i class="fas fa-shopping-cart"></i></a>
@@ -119,19 +120,47 @@
 	<div class="product-section mt-100 mb-150">
 		<div class="container">
 			
-			<!-- Category Filter -->
-			<div class="row">
+			<!-- Search & Filter -->
+			<div class="row mb-5">
+                <div class="col-md-6 offset-md-3">
+                    <div class="input-group" style="box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 50px; overflow: hidden; background: #fff; padding: 5px;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-0 pl-4"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                        <input type="text" id="shopSearch" class="form-control border-0" placeholder="Search for your favorite pizza..." style="box-shadow: none; font-weight: 600;" onkeyup="renderMenu(currentFilter)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-12">
                     <div class="product-filters text-center mb-80">
-                        <ul style="padding: 0; list-style: none; display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <ul id="categoryFilters" style="padding: 0; list-style: none; display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                             <li class="active filter-btn" data-filter="all" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; background: #e7252d; color: #fff; border: 2px solid #e7252d;">All Flavors</li>
-                            <li class="filter-btn" data-filter="pizza" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; color: #333; border: 2px solid #eee;">Classic Pizza</li>
-                            <li class="filter-btn" data-filter="burgers" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; color: #333; border: 2px solid #eee;">Burgers</li>
-                            <li class="filter-btn" data-filter="snacks" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; color: #333; border: 2px solid #eee;">Quick Snacks</li>
                         </ul>
                     </div>
                 </div>
             </div>
+
+            <script>
+                async function loadMenuCategories() {
+                    try {
+                        const res = await fetch('/api/settings');
+                        const data = await res.json();
+                        const container = document.getElementById('categoryFilters');
+                        
+                        if (data.menuCategories && data.menuCategories.length > 0) {
+                            // Keep "All Flavors" and add dynamic categories
+                            let html = '<li class="active filter-btn" data-filter="all" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; background: #e7252d; color: #fff; border: 2px solid #e7252d;">All Flavors</li>';
+                            data.menuCategories.forEach(cat => {
+                                html += `<li class="filter-btn" data-filter="${cat.id}" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; color: #333; border: 2px solid #eee;">${cat.name}</li>`;
+                            });
+                            container.innerHTML = html;
+                        }
+                    } catch(e) { console.error(e); }
+                }
+                loadMenuCategories();
+            </script>
 
 			<div class="row" id="menu-container">
 				<!-- Items rendered by JS with premium styling -->
@@ -156,10 +185,19 @@
 						<h2 class="widget-title">Get in Touch</h2>
 						<ul>
 							<li>Ndichu Container, Room No. 7, USIU Road</li>
-							<li>0725 484595</li>
+							<li>0112601334</li>
 							<li>Till Number: 6994591</li>
 							<li>@pizzachickncrust</li>
 						</ul>
+					</div>
+				</div>
+                <div class="col-lg-3 col-md-6">
+					<div class="footer-box">
+						<h2 class="widget-title">Our Location</h2>
+						<iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.9443586071853!2d36.8837013!3d-1.2061226!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f3d97fa602737%3A0xc3f8e65893a7e44a!2sPizza%20Chick%20n%20Crust!5e0!3m2!1sen!2ske!4v1700000000000!5m2!1sen!2ske" 
+                            width="100%" height="150" style="border:0; border-radius: 15px;" allowfullscreen="" loading="lazy">
+                        </iframe>
 					</div>
 				</div>
 				<div class="col-lg-3 col-md-6">

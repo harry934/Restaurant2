@@ -1,11 +1,52 @@
-const MENU_ITEMS = [
-    { id: 1, name: 'Hawaiian Pizza', price: 1000, category: 'pizza', image: 'assets/img/products/product-img-1.png', tag: 'Bestseller' },
-    { id: 2, name: 'Premium Chicken Burger', price: 1000, category: 'burgers', image: 'assets/img/products/product-img-2.png', tag: 'Trending' },
-    { id: 3, name: 'Pizza Chick Barbeque', price: 1000, category: 'pizza', image: 'assets/img/products/product-img-3.png', tag: 'Chef Choice' },
-    { id: 4, name: 'Pizza Pie (Calzone)', price: 300, category: 'snacks', image: 'assets/img/products/product-img-4.png', tag: 'Mini Snack' }
-];
+let MENU_ITEMS = [];
+let APPLIED_DISCOUNT_PERCENT = 0;
+let APPLIED_PROMO_CODE = null;
+
+async function loadMenuData() {
+    try {
+        const res = await fetch('/api/menu');
+        MENU_ITEMS = await res.json();
+        return MENU_ITEMS;
+    } catch (e) {
+        console.error("Failed to load menu", e);
+        return [];
+    }
+}
 
 let currentFilter = 'all';
+
+// Notification System
+function showNotification(title, message, type = 'success') {
+    let container = document.querySelector('.pcnc-notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'pcnc-notification-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `pcnc-toast ${type}`;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <div class="pcnc-toast-content">
+            <span class="pcnc-toast-title">${title}</span>
+            <span class="pcnc-toast-msg">${message}</span>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
 
 // CART LOGIC
 function getCart() {
@@ -29,7 +70,7 @@ function addToCart(id) {
         cart.push({ ...item, quantity: 1 });
     }
     saveCart(cart);
-    alert('Added to cart!');
+    showNotification('Added!', item.name + ' has been added to your cart.', 'success');
 }
 
 function updateCartMetadata() {
@@ -63,21 +104,20 @@ function updateQuantity(id, delta) {
     }
 }
 
-// RENDER MENU (shop.html)
-function renderMenu(filter = 'all') {
-    const container = document.getElementById('menu-container');
-    if (!container) return;
+// Helper to generate premium product card HTML
+function generateProductCardHTML(item) {
+    const isSoldOut = item.isAvailable === false;
+    const opacity = isSoldOut ? '0.6' : '1';
+    const grayscale = isSoldOut ? 'grayscale(1)' : 'none';
     
-    currentFilter = filter;
-    const items = filter === 'all' ? MENU_ITEMS : MENU_ITEMS.filter(i => i.category === filter);
-
-    container.innerHTML = items.map(item => `
-        <div class="col-lg-4 col-md-6 mb-5">
+    return `
+        <div class="col-lg-4 col-md-6 mb-5" style="opacity: ${opacity}; pointer-events: ${isSoldOut ? 'none' : 'auto'};">
             <div class="single-product-item premium-card" style="border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border-radius: 20px; padding: 25px; transition: all 0.4s ease; background: #fff; position: relative; overflow: hidden;">
+                ${isSoldOut ? `<span style="position: absolute; top: 15px; right: 15px; background: #333; color: #fff; padding: 5px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; z-index: 3; text-transform: uppercase;">Sold Out</span>` : ''}
                 ${item.tag ? `<span style="position: absolute; top: 15px; left: 15px; background: #e7252d; color: #fff; padding: 5px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; z-index: 2; text-transform: uppercase;">${item.tag}</span>` : ''}
                 
                 <div class="product-image text-center mb-4" style="border-radius: 15px; overflow: hidden; background: #f9f9f9; padding: 20px;">
-                    <a href="#"><img src="${item.image}" alt="${item.name}" style="height: 180px; width: auto; object-fit: contain; transition: transform 0.5s ease;" class="product-img-hover"></a>
+                    <a href="#"><img src="${item.image}" alt="${item.name}" style="height: 180px; width: auto; object-fit: contain; transition: transform 0.5s ease; filter: ${grayscale};" class="product-img-hover"></a>
                 </div>
                 
                 <div style="text-align: left;">
@@ -89,17 +129,88 @@ function renderMenu(filter = 'all') {
                             <span style="display: block; font-size: 0.75rem; color: #aaa; text-transform: uppercase; font-weight: 700;">Price</span>
                             <span style="font-size: 1.4rem; font-weight: 900; color: #e7252d;">KES ${item.price.toLocaleString()}</span>
                         </div>
-                        <a href="#" onclick="addToCart(${item.id}); return false;" class="cart-btn" style="background: #1a1a1a; color: #fff; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.1rem;">
-                            <i class="fas fa-shopping-cart"></i>
-                        </a>
+                        ${isSoldOut ? `
+                            <button class="btn btn-sm btn-secondary disabled" style="border-radius: 12px; font-weight: 700;">SOLD OUT</button>
+                        ` : `
+                            <a href="#" onclick="addToCart(${item.id}); return false;" class="cart-btn" style="background: #1a1a1a; color: #fff; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.1rem;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </a>
+                        `}
                     </div>
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
+}
 
-    // Setup filter click listeners once
+// RENDER MENU (shop.html)
+async function renderMenu(filter = 'all') {
+    const container = document.getElementById('menu-container');
+    if (!container) return;
+
+    if (MENU_ITEMS.length === 0) await loadMenuData();
+
+    injectPremiumStyles();
+    
+    currentFilter = filter;
+    const searchTerm = (document.getElementById('shopSearch')?.value || '').toLowerCase();
+    
+    let items = filter === 'all' ? MENU_ITEMS : MENU_ITEMS.filter(i => i.category === filter);
+    
+    if (searchTerm) {
+        items = items.filter(i => i.name.toLowerCase().includes(searchTerm));
+    }
+
+    container.innerHTML = items.length > 0 
+        ? items.map(item => generateProductCardHTML(item)).join('')
+        : '<div class="col-12 text-center py-5"><h3 class="text-muted">No items found matching your search.</h3></div>';
+    
     setupFilters();
+}
+
+// RENDER HOMEPAGE MENU (index.html)
+async function renderHomepageMenu() {
+    const container = document.getElementById('homepage-menu-container');
+    if (!container) return;
+
+    if (MENU_ITEMS.length === 0) await loadMenuData();
+
+    injectPremiumStyles();
+
+    // Show top 3 featured/bestseller items
+    const sampleItems = MENU_ITEMS.slice(0, 3);
+    container.innerHTML = sampleItems.map(item => generateProductCardHTML(item)).join('');
+}
+
+function injectPremiumStyles() {
+    if (document.getElementById('pcnc-menu-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'pcnc-menu-styles';
+    style.innerHTML = `
+        .premium-card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12) !important; 
+        }
+        .premium-card:hover .product-img-hover { 
+            transform: scale(1.1); 
+        }
+        .cart-btn:hover { 
+            background: #e7252d !important; 
+            transform: scale(1.1); 
+        }
+        .filter-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .filter-btn {
+            transition: all 0.3s ease !important;
+        }
+        .premium-card {
+            background: #fff;
+            transition: all 0.4s ease;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 function setupFilters() {
@@ -149,10 +260,22 @@ function renderCartPage() {
                         <button onclick="updateQuantity(${item.id}, 1)" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #e7252d; background: #e7252d; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 14px;">+</button>
                     </div>
                 </td>
-                <td style="padding: 15px 0; text-align: right; vertical-align: middle; font-weight: 600; color: #333;">KES ${itemTotal}</td>
+                <td style="padding: 15px 0; text-align: right; vertical-align: middle; font-weight: 600; color: #333;">KES ${itemTotal.toLocaleString()}</td>
             </tr>
             `;
         }).join('');
+
+        // Handle Discount
+        if (APPLIED_DISCOUNT_PERCENT > 0) {
+            const discountAmount = Math.round(total * (APPLIED_DISCOUNT_PERCENT / 100));
+            document.getElementById('discount-row').style.display = 'flex';
+            document.getElementById('discount-amount').innerText = `-KES ${discountAmount.toLocaleString()}`;
+            total -= discountAmount;
+        } else {
+            const drow = document.getElementById('discount-row');
+            if (drow) drow.style.display = 'none';
+        }
+
     } else {
         tbody.innerHTML = cart.map(item => {
             const itemTotal = item.price * item.quantity;
@@ -162,15 +285,15 @@ function renderCartPage() {
                 <td class="product-remove"><a href="#" onclick="removeFromCart(${item.id})"><i class="far fa-window-close"></i></a></td>
                 <td class="product-image"><img src="${item.image}" alt=""></td>
                 <td class="product-name">${item.name}</td>
-                <td class="product-price">KES ${item.price}</td>
+                <td class="product-price">KES ${item.price.toLocaleString()}</td>
                 <td class="product-quantity"><input type="number" value="${item.quantity}" onchange="updateQuantity(${item.id}, this.value - ${item.quantity})"></td>
-                <td class="product-total">KES ${itemTotal}</td>
+                <td class="product-total">KES ${itemTotal.toLocaleString()}</td>
             </tr>
             `;
         }).join('');
     }
 
-    if(totalEl) totalEl.innerText = 'KES ' + total;
+    if(totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
     
     // Also update checkout subtotal if present
     const subtotalEl = document.getElementById('subtotal');
@@ -183,66 +306,250 @@ async function submitOrder(e) {
     
     const cart = getCart();
     if (cart.length === 0) {
-        alert('Cart is empty');
+        showNotification('Cart Empty', 'Please add some items to your cart before proceeding.', 'error');
         return;
     }
 
     const customerName = document.getElementById('name').value;
     const phoneNumber = document.getElementById('phone').value;
     const location = document.getElementById('address').value;
+    const notes = document.getElementById('order-notes').value;
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    const totalAmountRaw = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    const discountAmount = Math.round(totalAmountRaw * (APPLIED_DISCOUNT_PERCENT / 100));
+    const totalAmount = totalAmountRaw - discountAmount;
 
-    // M-Pesa Credentials (for reference in backend logic)
+    // M-Pesa Credentials
     const mpesa_credentials = {
         consumerKey: "RB7RwzrKvbNHTPAic7xvndo3ChzkwSk67uIj0wMw4T2A0rTY",
         consumerSecret: "DlUU4Bsp7SK8EPiTeJgXAirYPwBNaY19E75LA7PBWBthAvLk8iQIaJoG7tpMcAhU",
-        shortCode: "6994591" // Using the Till Number as identification
+        shortCode: "6994591"
     };
 
     const btn = document.getElementById('placeOrderBtn');
-    btn.innerText = 'Processing...';
-    btn.disabled = true;
+    if (btn) {
+        btn.innerText = 'Processing...';
+        btn.disabled = true;
+    }
 
     try {
-        const res = await fetch('http://localhost:3000/api/order', {
+        const res = await fetch('/api/order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 customerName,
                 phoneNumber,
                 location,
+                notes,
                 paymentMethod,
                 items: cart,
                 totalAmount,
+                discountAmount,
+                promoCode: APPLIED_PROMO_CODE,
                 credentials: mpesa_credentials
             })
         });
         const data = await res.json();
         if (data.success) {
-            alert(data.message);
+            showNotification('Order Placed', 'Your order has been received! Redirecting to tracking...', 'success');
             localStorage.removeItem('pcnc_cart');
-            window.location.href = 'index.html';
+            
+            // Store multiple order IDs
+            let orders = JSON.parse(localStorage.getItem('pcnc_order_ids') || '[]');
+            orders.unshift(data.orderId);
+            localStorage.setItem('pcnc_order_ids', JSON.stringify(orders));
+            localStorage.setItem('pcnc_last_order_id', data.orderId);
+
+            setTimeout(() => {
+                window.location.href = `track-order.html?id=${data.orderId}`;
+            }, 2000);
+
         } else {
-            alert('Error: ' + data.message);
+            showNotification('Order Failed', data.message, 'error');
             btn.innerText = 'Confirm Order';
             btn.disabled = false;
         }
     } catch (err) {
         console.error("Checkout Error:", err);
-        alert('Payment Request Failed. Please check if the server is running and your network connection is stable.');
+        showNotification('Connection Error', 'Payment Request Failed. Please check your network.', 'error');
         btn.innerText = 'Confirm Order';
         btn.disabled = false;
     }
 }
 
+// LOCATION SEARCH LOGIC
+const NEARBY_AREAS = [
+    { name: "Ndichu Container (USIU Road)", distance: "0.1km" },
+    { name: "USIU-Africa Main Campus", distance: "0.3km" },
+    { name: "Lillian Hostels", distance: "0.2km" },
+    { name: "Esanto Hostel", distance: "0.4km" },
+    { name: "Kisima Melrose Hostels", distance: "0.4km" },
+    { name: "Millennium Hostels", distance: "0.3km" },
+    { name: "Arcadia Hostels", distance: "0.2km" },
+    { name: "Qwetu Student Residences (USIU)", distance: "0.6km" },
+    { name: "Lumina Hostels", distance: "0.4km" },
+    { name: "Millennials Apartments", distance: "0.5km" },
+    { name: "The Address Apartments", distance: "0.5km" },
+    { name: "Gilgal Mansions", distance: "0.6km" },
+    { name: "Denluck Apartments", distance: "0.7km" },
+    { name: "Morningside Apartments", distance: "0.8km" },
+    { name: "Divine Apartments (Roysambu)", distance: "0.7km" },
+    { name: "Jewel Apartments", distance: "0.5km" },
+    { name: "Mirema Drive Apartments", distance: "0.8km" },
+    { name: "TRM Drive Apartments", distance: "0.9km" },
+    { name: "Petrocity Roysambu", distance: "0.6km" },
+    { name: "Shell Gas Station (Roysambu)", distance: "0.7km" },
+    { name: "Naivas Roysambu", distance: "0.8km" },
+    { name: "Quickmart Roysambu", distance: "0.9km" },
+    { name: "Pan African Christian University (PACU)", distance: "0.6km" },
+    { name: "Mirema School", distance: "0.9km" },
+    { name: "Mama Rosy's", distance: "1.2km" },
+    { name: "Blue and White (New Blue & White Hostel)", distance: "1.1km" },
+    { name: "Safari Park Hotel", distance: "1.0km" },
+    { name: "Thika Road Mall (TRM)", distance: "1.0km" }
+];
+
+function initializeLocationSearch() {
+    const addressInput = document.getElementById('address');
+    const suggestionBox = document.getElementById('location-suggestions');
+    if (!addressInput || !suggestionBox) return;
+
+    addressInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        if (val.length < 1) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+
+        const matches = NEARBY_AREAS.filter(area => 
+            area.name.toLowerCase().includes(val)
+        );
+
+        if (matches.length > 0) {
+            suggestionBox.innerHTML = matches.map(area => `
+                <div class="suggestion-item" onclick="selectLocation('${area.name}')" style="padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;">
+                    <div style="font-weight: 600; color: #333;">
+                        <i class="fas fa-map-marker-alt" style="color: #e7252d; margin-right: 10px; font-size: 0.8rem;"></i>
+                        ${area.name}
+                    </div>
+                    <small style="color: #999; font-weight: 700;">${area.distance}</small>
+                </div>
+            `).join('');
+            
+            // Add a "Use typed address" option if no exact match
+            if (!matches.some(m => m.name.toLowerCase() === val)) {
+                suggestionBox.innerHTML += `
+                    <div class="suggestion-item" onclick="selectLocation('${e.target.value}')" style="padding: 12px 20px; cursor: pointer; background: #fffcf5; border-top: 2px solid #fff0c4;">
+                        <i class="fas fa-keyboard" style="color: #d4a017; margin-right: 10px;"></i>
+                        <span style="color: #856404; font-weight: 600;">Use: "${e.target.value}"</span>
+                    </div>
+                `;
+            }
+            
+            suggestionBox.style.display = 'block';
+        } else {
+            // No matches, but still allow custom entry
+            suggestionBox.innerHTML = `
+                <div class="suggestion-item" onclick="selectLocation('${e.target.value}')" style="padding: 12px 20px; cursor: pointer; background: #fffcf5;">
+                    <i class="fas fa-keyboard" style="color: #d4a017; margin-right: 10px;"></i>
+                    <span style="color: #856404; font-weight: 600;">Area not found in list. Use custom: "${e.target.value}"</span>
+                </div>
+            `;
+            suggestionBox.style.display = 'block';
+        }
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.location-search-container')) {
+            suggestionBox.style.display = 'none';
+        }
+    });
+
+    // Add styles for hover
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .suggestion-item:hover { background: #f9f9f9 !important; }
+        .suggestion-item:last-child { border-bottom: none; }
+    `;
+    document.head.appendChild(style);
+}
+
+function selectLocation(name) {
+    const addressInput = document.getElementById('address');
+    const suggestionBox = document.getElementById('location-suggestions');
+    if (addressInput) addressInput.value = name;
+    if (suggestionBox) suggestionBox.style.display = 'none';
+}
+
+async function applyPromoCode() {
+    const input = document.getElementById('promoCodeInput');
+    const msg = document.getElementById('promo-msg');
+    const phone = document.getElementById('phone')?.value;
+    const code = input.value.trim();
+    
+    if (!code && !phone) return;
+
+    try {
+        const res = await fetch('/api/validate-promo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, phone })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            APPLIED_DISCOUNT_PERCENT = data.discountPercent;
+            APPLIED_PROMO_CODE = code ? code.toUpperCase() : 'LOYALTY';
+            msg.innerText = data.message || `Success! ${data.discountPercent}% discount applied.`;
+            msg.style.color = '#116940';
+            msg.style.display = 'block';
+            if (code) input.disabled = true;
+            renderCartPage();
+            showNotification('Reward Applied!', data.message || `You saved ${data.discountPercent}% on your order.`, 'success');
+        } else if (code) {
+            msg.innerText = data.message;
+            msg.style.color = '#e7252d';
+            msg.style.display = 'block';
+            showNotification('Invalid Code', data.message, 'error');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function rateOrder(orderId, rating, feedback) {
+    try {
+        const res = await fetch('/api/order/rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: orderId, rating, feedback })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Thank You!', 'Your feedback helps us improve.', 'success');
+            return true;
+        }
+    } catch (e) { console.error(e); }
+    return false;
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('menu-container')) renderMenu();
+    if (document.getElementById('homepage-menu-container')) renderHomepageMenu();
     if (document.getElementById('cart-table-body')) renderCartPage();
     
     const checkoutForm = document.getElementById('checkout-form');
-    if (checkoutForm) checkoutForm.addEventListener('submit', submitOrder);
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitOrder();
+        });
+    }
+
+    // Initialize Location Search
+    initializeLocationSearch();
 
     // Payment method switch logic
     const paymentRadios = document.querySelectorAll('input[name="payment_method"]');

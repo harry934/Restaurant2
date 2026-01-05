@@ -1,0 +1,70 @@
+{
+  "riders": [
+    {
+      "id": "1767554464412",
+      "name": "Dennis",
+      "phone": "01245458589",
+      "image": "uploads/1767554464398-retouch_2025051821332201.jpg"
+    },
+    {
+      "id": "1767556645974",
+      "name": "Festus Ombui",
+      "phone": "0734544324",
+      "image": "uploads/1767556645964-download (4).jpg"
+    }
+  ],
+  "whatsappNumber": "0725484595",
+  "team": [
+    {
+      "id": 1767542701788,
+      "name": "Harry Otieno",
+      "role": "Executive Chef",
+      "image": "uploads/1767542701777-1000419213_800.jpg"
+    }
+  ],
+  "menuCategories": [
+    {
+      "id": "pizza",
+      "name": "Classic Pizza"
+    },
+    {
+      "id": "burgers",
+      "name": "Burgers"
+    },
+    {
+      "id": "snacks",
+      "name": "Quick Snacks"
+    },
+    {
+      "id": "additives",
+      "name": "Extras & Add-ons"
+    }
+  ],
+  "supportPhones": [
+    "0725484595"
+  ],
+  "supportEmails": [
+    "delivery@pcnc.com"
+  ],
+  "homeTitle": "Delicious Pizza & Chicken",
+  "homeSubtext": "Home for Pizza Cuisines",
+  "aboutText": "",
+  "dealOfWeek": {
+    "title": "Deal of the Week",
+    "subtitle": "Buy One Get One Free",
+    "description": "Every Tuesday & Thursday! Get any flavor of pizza and get another one absolutely free.",
+    "image": "assets/img/traditional-supreme-pizza-isolated-white-background.jpg"
+  },
+  "homeAbout": {
+    "title": "Fresh & Tasty ",
+    "heading": "About Pizza Chick n Crust",
+    "description": "Pizza Chick n Crust is your home for pizza cuisines and chicken-based fast food. Located on USIU Road, we serve the best flavors in town.",
+    "abtImage": "uploads/1767544236210-Screenshot 2026-01-03 015702.png",
+    "videoLink": "uploads/1767543785018-Recording 2026-01-04 171209.mp4",
+    "isVideoLocal": false
+  },
+  "aboutPromo": {
+    "line1": "Get the best deals at Pizza Chick n Crust...",
+    "line2": "Fresh & Hot"
+  }
+}

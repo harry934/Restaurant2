@@ -51,7 +51,7 @@
 						<!-- logo -->
 						<div class="site-logo">
 							<a href="index.html">
-								<img src="/fruitkha-1.0.0/assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
+								<img src="assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
 							</a>
 						</div>
 						<!-- logo -->
@@ -60,10 +60,10 @@
 						<nav class="main-menu">
 							<ul>
 								<li><a href="index.html">Home</a></li>
-								<li><a href="shop.html">Menu</a></li>
 								<li><a href="about.html">About</a></li>
-								
+								<li><a href="shop.html">Menu</a></li>
 								<li class="current-list-item"><a href="checkout.html">Checkout</a></li>
+								<li><a href="track-order.html">Track Order</a></li>
 								<li>
 									<div class="header-icons">
 										<a class="shopping-cart" href="cart.html"><i class="fas fa-shopping-cart"></i></a>
@@ -119,8 +119,18 @@
 									</div>
 									<div class="col-md-12 mb-3">
 										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Exact Delivery Location</label>
-										<input type="text" id="address" placeholder="e.g. USIU Hostel, Gate A, Room 12" required style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333;">
-										<p style="color: #e7252d; font-size: 0.8rem; font-weight: 700; margin-top: 8px; margin-bottom: 0;">* Currently delivering only within the USIU Road area.</p>
+										<div class="location-search-container" style="position: relative;">
+											<div class="input-group">
+												<div class="input-group-prepend">
+													<span class="input-group-text" style="background: #fff; border-right: none;"><i class="fas fa-map-marker-alt" style="color: #e7252d;"></i></span>
+												</div>
+												<input type="text" id="address" placeholder="Search your area or type exact location..." required autocomplete="off" style="width: calc(100% - 45px); padding: 12px 15px; border: 1px solid #d0d0d0; border-left: none; border-radius: 0 6px 6px 0; background: #fafafa; color: #333; outline: none;">
+											</div>
+											<div id="location-suggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-top: none; border-radius: 0 0 10px 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; display: none; max-height: 250px; overflow-y: auto;">
+												<!-- Suggestions will be populated here -->
+											</div>
+										</div>
+										<p style="color: #e7252d; font-size: 0.8rem; font-weight: 700; margin-top: 8px; margin-bottom: 0;">* Currently delivering within 1.2km of USIU Road area.</p>
 									</div>
 									<div class="col-md-12 mt-3">
 										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Special Instructions (Optional)</label>
@@ -183,6 +193,23 @@
 									<!-- Items populated by JS -->
 								</tbody>
 							</table>
+
+							<div class="promo-section mb-4 p-3" style="background: #f9f9f9; border-radius: 12px; border: 1px dashed #ddd;">
+								<label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Apply Promo Code</label>
+								<div class="input-group">
+									<input type="text" id="promoCodeInput" class="form-control" placeholder="Enter code" style="border-radius: 8px 0 0 8px; border: 1px solid #ddd; background: #fff; text-transform: uppercase; font-weight: 700;">
+									<div class="input-group-append">
+										<button onclick="applyPromoCode()" class="btn btn-dark" style="border-radius: 0 8px 8px 0; font-weight: 700; padding: 0 20px;">Apply</button>
+									</div>
+								</div>
+								<div id="promo-msg" class="small mt-2 font-weight-bold" style="display: none;"></div>
+							</div>
+
+							<div id="discount-row" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+								<span style="font-weight: 700; color: #116940;">Discount Applied</span>
+								<span id="discount-amount" style="font-weight: 700; color: #116940;">-KES 0</span>
+							</div>
+
 							<div style="border-top: 2px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
 								<span style="font-weight: 800; font-size: 1.2rem; color: #333;">Total Amount</span>
 								<span id="cart-total" style="font-weight: 900; font-size: 1.8rem; color: #e7252d;">KES 0</span>
@@ -234,10 +261,19 @@
 						<h2 class="widget-title">Get in Touch</h2>
 						<ul>
 							<li>Ndichu Container, Room No. 7, USIU Road</li>
-							<li>0725 484595</li>
+							<li>0112601334</li>
 							<li>Till Number: 6994591</li>
 							<li>@pizzachickncrust</li>
 						</ul>
+					</div>
+				</div>
+                <div class="col-lg-3 col-md-6">
+					<div class="footer-box">
+						<h2 class="widget-title">Our Location</h2>
+						<iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.9443586071853!2d36.8837013!3d-1.2061226!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f3d97fa602737%3A0xc3f8e65893a7e44a!2sPizza%20Chick%20n%20Crust!5e0!3m2!1sen!2ske!4v1700000000000!5m2!1sen!2ske" 
+                            width="100%" height="150" style="border:0; border-radius: 15px;" allowfullscreen="" loading="lazy">
+                        </iframe>
 					</div>
 				</div>
 				<div class="col-lg-3 col-md-6">
@@ -296,7 +332,7 @@
 	<script src="assets/js/sticker.js"></script>
 	<!-- main js -->
 	<script src="assets/js/main.js"></script>
-    <script src="assets/js/pcnc.js"></script>
+    <script src="assets/js/pcnc.js?v=1.1"></script>
 
 </body>
 </html>

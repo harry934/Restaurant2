@@ -52,7 +52,7 @@
 						<div class="site-logo">
 							<a href="index.html">
 								
-								<img src="/fruitkha-1.0.0/assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
+								<img src="assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
 							
 							</a>
 						</div>
@@ -61,9 +61,11 @@
 						<!-- menu start -->
 						<nav class="main-menu">
 							<ul>
-								<li class="current-list-item"><a href="index.html">Home</a></li>
+								<li><a href="index.html">Home</a></li>
+								<li class="current-list-item"><a href="about.html">About</a></li>
 								<li><a href="shop.html">Menu</a></li>
 								<li><a href="checkout.html">Checkout</a></li>
+								<li><a href="track-order.html">Track Order</a></li>
 								<li>
 									<div class="header-icons">
 										<a class="shopping-cart" href="cart.html"><i class="fas fa-shopping-cart"></i></a>
@@ -115,7 +117,7 @@
 	<!-- end breadcrumb section -->
 
 	<!-- featured section -->
-	<div class="feature-bg">
+	<div class="feature-bg pt-100 pb-100">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-7">
@@ -151,7 +153,7 @@
 									</div>
 									<div class="content">
 										<h3>Student Friendly Prices</h3>
-										<p>Get the best value for your money with our affordable meal combos and special offers.</p>
+										<p id="aboutDescription">Get the best value for your money with our affordable meal combos and special offers.</p>
 									</div>
 								</div>
 							</div>
@@ -175,7 +177,7 @@
 	<!-- end featured section -->
 
 	<!-- team section -->
-	<div class="mt-150 mb-150">
+	<div class="team-section pt-100 pb-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-8 offset-lg-2 text-center">
@@ -185,54 +187,212 @@
 					</div>
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-lg-4 col-md-6">
-					<div class="single-team-item">
-						<div class="team-bg team-bg-1"></div>
-						<h4>Chef Kamau <span>Executive Chef</span></h4>
-						<ul class="social-link-team">
-							<li><a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-tiktok"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-instagram"></i></a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-lg-4 col-md-6">
-					<div class="single-team-item">
-						<div class="team-bg team-bg-2"></div>
-						<h4>Mercy W. <span>Kitchen Manager</span></h4>
-						<ul class="social-link-team">
-							<li><a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-tiktok"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-instagram"></i></a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-lg-4 col-md-6 offset-md-3 offset-lg-0">
-					<div class="single-team-item">
-						<div class="team-bg team-bg-3"></div>
-						<h4>Specialist John <span>Pizza Specialist</span></h4>
-						<ul class="social-link-team">
-							<li><a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-tiktok"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-instagram"></i></a></li>
-						</ul>
-					</div>
-				</div>
+			<div class="row" id="teamContainer">
+				<!-- Dynamic Team items -->
 			</div>
+		</div>
+	</div>
+
+	<style>
+		.team-card {
+			background: #fff;
+			border-radius: 20px;
+			overflow: hidden;
+			box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+			transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+			margin-bottom: 30px;
+			position: relative;
+		}
+		
+		.team-card:hover {
+			transform: translateY(-10px);
+			box-shadow: 0 20px 60px rgba(231, 37, 45, 0.15);
+		}
+		
+		.team-card-image {
+			position: relative;
+			overflow: hidden;
+			height: 350px;
+			background: linear-gradient(135deg, #e7252d 0%, #ff6b6b 100%);
+		}
+		
+		.team-card-image img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 0.5s ease;
+		}
+		
+		.team-card:hover .team-card-image img {
+			transform: scale(1.1);
+		}
+		
+		.team-card-overlay {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+			padding: 30px 20px 20px;
+			transform: translateY(0);
+			transition: all 0.4s ease;
+		}
+		
+		.team-card-content {
+			padding: 25px;
+			text-align: center;
+		}
+		
+		.team-card-name {
+			font-size: 1.4rem;
+			font-weight: 800;
+			color: #1a1a1a;
+			margin-bottom: 8px;
+			font-family: 'Poppins', sans-serif;
+		}
+		
+		.team-card-role {
+			color: #e7252d;
+			font-size: 0.95rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			margin-bottom: 15px;
+			display: block;
+		}
+		
+		.team-card-phone {
+			color: #666;
+			font-size: 0.9rem;
+			margin-bottom: 15px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+		
+		.team-card-phone i {
+			color: #e7252d;
+		}
+		
+		.team-social-links {
+			display: flex;
+			justify-content: center;
+			gap: 12px;
+			margin-top: 15px;
+		}
+		
+		.team-social-link {
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #f8f9fa;
+			color: #666;
+			transition: all 0.3s ease;
+			text-decoration: none;
+			font-size: 1rem;
+		}
+		
+		.team-social-link:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+		}
+		
+		.team-social-link.facebook:hover {
+			background: #3b5998;
+			color: white;
+		}
+		
+		.team-social-link.twitter:hover {
+			background: #1da1f2;
+			color: white;
+		}
+		
+		.team-social-link.instagram:hover {
+			background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+			color: white;
+		}
+		
+		.team-social-link.linkedin:hover {
+			background: #0077b5;
+			color: white;
+		}
+		
+		@media (max-width: 768px) {
+			.team-card-image {
+				height: 300px;
+			}
+			
+			.team-card-name {
+				font-size: 1.2rem;
+			}
+		}
+	</style>
+
+    <script>
+        async function loadAboutSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                
+                if (data.aboutText) document.getElementById('aboutDescription').innerText = data.aboutText;
+
+                // Load Team
+                const teamContainer = document.getElementById('teamContainer');
+                if (data.team && data.team.length > 0) {
+                    teamContainer.innerHTML = '';
+                    data.team.forEach(m => {
+						// Build social links
+						let socialLinks = '';
+						if (m.facebook) socialLinks += `<a href="${m.facebook}" target="_blank" class="team-social-link facebook"><i class="fab fa-facebook-f"></i></a>`;
+						if (m.twitter) socialLinks += `<a href="${m.twitter}" target="_blank" class="team-social-link twitter"><i class="fab fa-twitter"></i></a>`;
+						if (m.instagram) socialLinks += `<a href="${m.instagram}" target="_blank" class="team-social-link instagram"><i class="fab fa-instagram"></i></a>`;
+						if (m.linkedin) socialLinks += `<a href="${m.linkedin}" target="_blank" class="team-social-link linkedin"><i class="fab fa-linkedin-in"></i></a>`;
+						
+						const phoneDisplay = m.phone ? `<div class="team-card-phone"><i class="fas fa-phone-alt"></i> ${m.phone}</div>` : '';
+						const imgPath = m.image.startsWith('/') ? m.image : '/' + m.image;
+						
+                        teamContainer.innerHTML += `
+                            <div class="col-lg-4 col-md-6">
+                                <div class="team-card">
+                                    <div class="team-card-image">
+                                        <img src="${imgPath}" alt="${m.name}">
+                                    </div>
+                                    <div class="team-card-content">
+                                        <h4 class="team-card-name">${m.name}</h4>
+                                        <span class="team-card-role">${m.role}</span>
+										${phoneDisplay}
+										${socialLinks ? `<div class="team-social-links">${socialLinks}</div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+					teamContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No team members to display yet.</p></div>';
+				}
+            } catch(e) {
+				console.error('Error loading team:', e);
+			}
+        }
+        loadAboutSettings();
+    </script>
 		</div>
 	</div>
 	<!-- end team section -->
 
 	<!-- shop banner -->
-	<section class="shop-banner">
+	<section class="shop-banner pt-100 pb-100">
     	<div class="container">
-        	<h3>Get the best deals <br> at <span style="color: #e7252d;">Pizza Chick n Crust...</span> </h3>
+        	<h3 id="promoLine1">Get the best deals <br> at <span style="color: #e7252d;">Pizza Chick n Crust...</span> </h3>
 			<br>
 
-            <h3>Fresh & <span style="color: #e7252d"> Hot </span> </h3>
+            <h3 id="promoLine2">Fresh & <span style="color: #e7252d"> Hot </span> </h3>
 		<br>
-            <a href="shop.html" class="cart-btn btn-lg">View Our Delicious Menu</a>
+            <a href="shop.html" class="cart-btn btn-lg mt-3" style="border-radius: 50px;">View Our Delicious Menu</a>
         </div>
     </section>
 	<!-- end shop banner -->
@@ -252,10 +412,19 @@
 						<h2 class="widget-title">Get in Touch</h2>
 						<ul>
 							<li>Ndichu Container, Room No. 7, USIU Road</li>
-							<li>0725 484595</li>
+							<li>0112601334</li>
 							<li>Till Number: 6994591</li>
 							<li>@pizzachickncrust</li>
 						</ul>
+					</div>
+				</div>
+                <div class="col-lg-3 col-md-6">
+					<div class="footer-box">
+						<h2 class="widget-title">Our Location</h2>
+						<iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.9443586071853!2d36.8837013!3d-1.2061226!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f3d97fa602737%3A0xc3f8e65893a7e44a!2sPizza%20Chick%20n%20Crust!5e0!3m2!1sen!2ske!4v1700000000000!5m2!1sen!2ske" 
+                            width="100%" height="150" style="border:0; border-radius: 15px;" allowfullscreen="" loading="lazy">
+                        </iframe>
 					</div>
 				</div>
 				<div class="col-lg-3 col-md-6">

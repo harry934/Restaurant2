@@ -52,7 +52,7 @@
 						<div class="site-logo">
 							<a href="index.html">
 								
-								<img src="/fruitkha-1.0.0/assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
+								<img src="assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo" style="max-height: 110px; width: auto; margin-top: -30px; margin-left: 100px;">
 							
 							</a>
 						</div>
@@ -62,9 +62,10 @@
 						<nav class="main-menu">
 							<ul>
 								<li class="current-list-item"><a href="index.html">Home</a></li>
-								<li><a href="shop.html">Menu</a></li>
 								<li><a href="about.html">About</a></li>
+								<li><a href="shop.html">Menu</a></li>
 								<li><a href="checkout.html">Checkout</a></li>
+								<li><a href="track-order.html">Track Order</a></li>
 								<li>
 									<div class="header-icons">
 										<a class="shopping-cart" href="cart.html"><i class="fas fa-shopping-cart"></i></a>
@@ -107,8 +108,8 @@
 				<div class="col-lg-9 offset-lg-2 text-center">
 					<div class="hero-text">
 						<div class="hero-text-tablecell">
-							<p class="subtitle animated fadeInUp">Home for Pizza Cuisines</p>
-							<h1 class="animated fadeInUp" style="animation-delay: 0.4s;">Delicious Pizza & Chicken</h1>
+							<p class="subtitle animated fadeInUp" id="homeSubtext">Home for Pizza Cuisines</p>
+							<h1 class="animated fadeInUp" style="animation-delay: 0.4s;" id="homeTitle">Delicious Pizza & Chicken</h1>
 							<div class="hero-btns animated fadeInUp" style="animation-delay: 0.8s;">
 								<a href="shop.html" class="bordered-btn">View Our Menu</a>
 							</div>
@@ -118,10 +119,22 @@
 			</div>
 		</div>
 	</div>
+
+    <script>
+        async function loadHomeSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                if (data.homeTitle) document.getElementById('homeTitle').innerText = data.homeTitle;
+                if (data.homeSubtext) document.getElementById('homeSubtext').innerText = data.homeSubtext;
+            } catch(e) {}
+        }
+        loadHomeSettings();
+    </script>
 	<!-- end hero area -->
 
 	<!-- features list section -->
-	<div class="list-section pt-80 pb-80">
+	<div class="list-section pt-100 pb-100">
 		<div class="container">
 
 			<div class="row">
@@ -143,7 +156,7 @@
 						</div>
 						<div class="content">
 							<h3>Open Daily</h3>
-							<p>9 AM to 9 PM (10 PM Tue/Thu)</p>
+							<p>9 AM to 9 PM (10 PM Tue/Thur)</p>
 						</div>
 					</div>
 				</div>
@@ -164,53 +177,7 @@
 	</div>
 	<!-- end features list section -->
 
-	<!-- product section -->
-	<div class="product-section mt-150 mb-150">
-		<div class="container">
-			<div class="row">
-				<div class="col-lg-8 offset-lg-2 text-center">
-					<div class="section-title">	
-						<h3><span class="orange-text">Our</span> Sample Menu</h3>
-						<p>Check out our most popular pizza and chicken combos.</p>
-					</div>
-				</div>
-			</div>
 
-			<div class="row">
-				<div class="col-lg-4 col-md-6 text-center">
-					<div class="single-product-item">
-						<div class="product-image">
-							<a href="shop.html"><img src="assets/img/products/product-img-1.png" alt=""></a>
-						</div>
-						<h3>Hawaiian Pizza</h3>
-						<p class="product-price">KES 1,000 </p>
-						<a href="shop.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Order</a>
-					</div>
-				</div>
-				<div class="col-lg-4 col-md-6 text-center">
-					<div class="single-product-item">
-						<div class="product-image">
-							<a href="shop.html"><img src="assets/img/products/product-img-2.png" alt=""></a>
-						</div>
-						<h3>Chicken Burger</h3>
-						<p class="product-price">KES 1,000 </p>
-						<a href="shop.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Order</a>
-					</div>
-				</div>
-				<div class="col-lg-4 col-md-6 offset-md-3 offset-lg-0 text-center">
-					<div class="single-product-item">
-						<div class="product-image">
-							<a href="shop.html"><img src="assets/img/products/product-img-3.png" alt=""></a>
-						</div>
-						<h3>BBQ Pizza</h3>
-						<p class="product-price">KES 1,000 </p>
-						<a href="shop.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Order</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- end product section -->
 
 	<!-- cart banner section -->
 	<section class="cart-banner pt-100 pb-100">
@@ -221,21 +188,20 @@
                 	<div class="image">
                     	<div class="price-box">
                         	<div class="inner-price">
-                                <span class="price">
-                                    <strong>30%</strong> <br> off per kg
-                                </span>
+                                <span class="offer-text">Special</span>
+                                <span class="price-title">OFFER!</span>
                             </div>
                         </div>
-                    	<img src="assets/img/a.jpg" alt="">
+                    	<img src="assets/img/traditional-supreme-pizza-isolated-white-background.jpg" alt="offer" id="dealImage">
                     </div>
                 </div>
 				<!--Content Column-->
                  <div class="content-column col-lg-6">
-					<h3><span class="orange-text">Deal</span> of the week</h3>
-                     <h4>Buy One Get One Free</h4>
-                     <div class="text">Every Tuesday & Thursday! Get any flavor of pizza and get another one absolutely free.</div>
+					<h1 id="dealTitle"><span class="orange-text">Deal</span> of the week</h1>
+                     <h4 id="dealSubtitle">Buy One Get One Free</h4>
+                     <div class="text" id="dealDescription">Every Tuesday & Thursday! Get any flavor of pizza and get another one absolutely free.</div>
                      <!--Countdown Timer-->
-                 	<a href="shop.html" class="cart-btn mt-3"><i class="fas fa-shopping-cart"></i> Order Now</a>
+                  	<a href="shop.html" class="cart-btn mt-3" style="border-radius: 50px;"><i class="fas fa-shopping-cart"></i> Order Now</a>
                  </div>
             </div>
         </div>
@@ -244,20 +210,20 @@
 
 	
 	<!-- advertisement section -->
-	<div class="abt-section mb-150">
+	<div class="abt-section pt-100 pb-100">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-6 col-md-12">
-					<div class="abt-bg">
-						<a href="https://www.youtube.com/watch?v=DBLlFWYcIGQ" class="video-play-btn popup-youtube"><i class="fas fa-play"></i></a>
+					<div class="abt-bg" id="homeAboutImage">
+						<a href="https://www.youtube.com/watch?v=DBLlFWYcIGQ" class="video-play-btn popup-youtube" id="homeVideoLink"><i class="fas fa-play"></i></a>
 					</div>
 				</div>
 				<div class="col-lg-6 col-md-12">
 					<div class="abt-text">
-						<p class="top-sub">Fresh & Tasty</p>
-						<h2>About <span class="orange-text">PCnC</span></h2>
-						<p>Pizza Chick n Crust is your home for pizza cuisines and chicken-based fast food. Located on USIU Road, we serve the best flavors in town.</p>
-						<a href="shop.html" class="boxed-btn mt-4">Order Now</a>
+						<p class="top-sub" id="homeAboutTitle">Fresh & Tasty</p>
+						<h2 id="homeAboutHeading">About <span class="orange-text">Pizza Chick n Crust</span></h2>
+						<p id="homeAboutDescription">Pizza Chick n Crust is your home for pizza cuisines and chicken-based fast food. Located on USIU Road, we serve the best flavors in town.</p>
+						<a href="about.html" class="boxed-btn mt-4" style="border-radius: 50px;">Learn More About Us</a>
 					</div>
 				</div>
 			</div>
@@ -266,11 +232,11 @@
 	<!-- end advertisement section -->
 	
 	<!-- shop banner -->
-	<section class="shop-banner">
+	<section class="shop-banner pt-100 pb-100">
     	<div class="container">
-        	<h3>December sale is on! <br> with big <span class="orange-text">Discount...</span></h3>
-            <div class="sale-percent"><span>Sale! <br> Upto</span>50% <span>off</span></div>
-            <a href="shop.html" class="cart-btn btn-lg">Shop Now</a>
+        	<h3>New Year BOGO! <br> with <span class="orange-text">Pizza Chick n Crust</span></h3>
+            <div class="sale-percent"><span style="color: #fff; font-weight: 700;">Buy One <br> Get One</span> FREE <span>on Tue & Thur</span></div>
+            <a href="shop.html" class="cart-btn btn-lg mt-4" style="border-radius: 50px;">Get Your Order Now!</a> Now</a>
         </div>
     </section>
 	<!-- end shop banner -->
@@ -290,10 +256,19 @@
 						<h2 class="widget-title">Get in Touch</h2>
 						<ul>
 							<li>Ndichu Container, Room No. 7, USIU Road</li>
-							<li>0725 484595</li>
+							<li>0112601334</li>
 							<li>Till Number: 6994591</li>
 							<li>@pizzachickncrust</li>
 						</ul>
+					</div>
+				</div>
+                <div class="col-lg-3 col-md-6">
+					<div class="footer-box">
+						<h2 class="widget-title">Our Location</h2>
+						<iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.9443586071853!2d36.8837013!3d-1.2061226!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f3d97fa602737%3A0xc3f8e65893a7e44a!2sPizza%20Chick%20n%20Crust!5e0!3m2!1sen!2ske!4v1700000000000!5m2!1sen!2ske" 
+                            width="100%" height="150" style="border:0; border-radius: 15px;" allowfullscreen="" loading="lazy">
+                        </iframe>
 					</div>
 				</div>
 				<div class="col-lg-3 col-md-6">
@@ -353,5 +328,51 @@
 	<!-- main js -->
 	<script src="assets/js/main.js"></script>
 
+    <script>
+        async function loadHomeSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                if (data.homeTitle) document.getElementById('homeTitle').innerText = data.homeTitle;
+                if (data.homeSubtext) document.getElementById('homeSubtext').innerText = data.homeSubtext;
+                
+                // Deal of the Week
+                if (data.dealOfWeek) {
+                    if (data.dealOfWeek.title) document.getElementById('dealTitle').innerHTML = data.dealOfWeek.title;
+                    if (data.dealOfWeek.subtitle) document.getElementById('dealSubtitle').innerText = data.dealOfWeek.subtitle;
+                    if (data.dealOfWeek.description) document.getElementById('dealDescription').innerText = data.dealOfWeek.description;
+                    if (data.dealOfWeek.image) {
+                        const imgPath = data.dealOfWeek.image.startsWith('/') ? data.dealOfWeek.image : '/' + data.dealOfWeek.image;
+                        document.getElementById('dealImage').src = imgPath;
+                    }
+                }
+
+                // Home About
+                if (data.homeAbout) {
+                    if (data.homeAbout.abtImage) {
+                        const imgPath = data.homeAbout.abtImage.startsWith('/') ? data.homeAbout.abtImage : '/' + data.homeAbout.abtImage;
+                        document.getElementById('homeAboutImage').style.backgroundImage = `url("${imgPath}")`;
+                    }
+                    if (data.homeAbout.title) document.getElementById('homeAboutTitle').innerText = data.homeAbout.title;
+                    if (data.homeAbout.heading) document.getElementById('homeAboutHeading').innerHTML = data.homeAbout.heading;
+                    if (data.homeAbout.description) document.getElementById('homeAboutDescription').innerText = data.homeAbout.description;
+                    if (data.homeAbout.videoLink) {
+                        const videoLink = document.getElementById('homeVideoLink');
+                        const vPath = data.homeAbout.videoLink.startsWith('http') || data.homeAbout.videoLink.startsWith('/') ? data.homeAbout.videoLink : '/' + data.homeAbout.videoLink;
+                        videoLink.href = vPath;
+                        if (data.homeAbout.isVideoLocal) {
+                            videoLink.classList.remove('popup-youtube');
+                            videoLink.classList.add('popup-video');
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Error loading home settings:", e);
+            }
+        }
+        $(document).ready(function() {
+            loadHomeSettings();
+        });
+    </script>
 </body>
 </html>
