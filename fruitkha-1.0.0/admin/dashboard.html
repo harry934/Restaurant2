@@ -803,6 +803,40 @@
     <script src="../assets/js/jquery-1.11.3.min.js"></script>
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script>
+        // Auth Check
+        const adminToken = localStorage.getItem('adminToken');
+        if (!adminToken) {
+            window.location.href = 'index.html';
+        }
+
+        async function adminFetch(url, options = {}) {
+            const token = localStorage.getItem('adminToken');
+            const defaultHeaders = {
+                'Authorization': `Bearer ${token}`
+            };
+            
+            // Don't override content-type if it's already set or if it's FormData
+            if (!(options.body instanceof FormData)) {
+                defaultHeaders['Content-Type'] = 'application/json';
+            }
+
+            const mergedOptions = {
+                ...options,
+                headers: {
+                    ...defaultHeaders,
+                    ...(options.headers || {})
+                }
+            };
+
+            const res = await fetch(url, mergedOptions);
+            if (res.status === 401) {
+                localStorage.removeItem('adminToken');
+                window.location.href = 'index.html';
+                throw new Error('Unauthorized');
+            }
+            return res;
+        }
+
         let allOrders = [];
         let allRiders = [];
         let currentView = 'dashboard';
@@ -855,9 +889,8 @@
         async function saveGlobalWhatsapp() {
             const num = $('#globalWhatsappInput').val();
             try {
-                const res = await fetch('/api/admin/settings/update', {
+                const res = await adminFetch('/api/admin/settings/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ whatsappNumber: num })
                 });
                 if (res.ok) {
@@ -884,7 +917,7 @@
             try {
                 // Fetch both orders and settings to keep rider list fresh for dropdowns
                 const [ordersRes, settingsRes] = await Promise.all([
-                    fetch('/api/admin/orders'),
+                    adminFetch('/api/admin/orders'),
                     fetch('/api/settings')
                 ]);
                 
@@ -1136,9 +1169,8 @@
 
         async function updateOrder(orderId, updates) {
             try {
-                const res = await fetch('/api/admin/order/update', {
+                const res = await adminFetch('/api/admin/order/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ orderId, ...updates })
                 });
                 const data = await res.json();
@@ -1152,9 +1184,8 @@
         async function deleteOrder(orderId) {
             if(!confirm('Delete this order permanently?')) return;
             try {
-                const res = await fetch('/api/admin/order/delete', {
+                const res = await adminFetch('/api/admin/order/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ orderId })
                 });
                 const data = await res.json();
@@ -1298,9 +1329,8 @@
             // Clean up empty strings
             if (!data.estimatedTime) delete data.estimatedTime;
 
-            await fetch('/api/admin/order/update', {
+            await adminFetch('/api/admin/order/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             $('#editOrderModal').modal('hide');
@@ -1349,9 +1379,8 @@
 
         async function toggleAvailability(id) {
             try {
-                const res = await fetch('/api/admin/menu/toggle-availability', {
+                const res = await adminFetch('/api/admin/menu/toggle-availability', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
                 const data = await res.json();
@@ -1393,7 +1422,7 @@
             
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/api/admin/menu/update', {
+                const res = await adminFetch('/api/admin/menu/update', {
                     method: 'POST',
                     body: formData
                 });
@@ -1418,7 +1447,7 @@
             
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/api/admin/menu/add', {
+                const res = await adminFetch('/api/admin/menu/add', {
                     method: 'POST',
                     body: formData // No headers needed for FormData
                 });
@@ -1440,9 +1469,8 @@
         async function deleteMenuItem(id) {
             if(!confirm('Delete this menu item?')) return;
             try {
-                const res = await fetch('/api/admin/menu/delete', {
+                const res = await adminFetch('/api/admin/menu/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: String(id) })
                 });
                 const data = await res.json();
@@ -1606,7 +1634,7 @@
             btn.text('Uploading...').prop('disabled', true);
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/api/admin/team/add', {
+                const res = await adminFetch('/api/admin/team/add', {
                     method: 'POST',
                     body: formData
                 });
@@ -1623,9 +1651,8 @@
         async function deleteTeamMember(id) {
             if (!confirm('Remove this team member?')) return;
             try {
-                await fetch('/api/admin/team/delete', {
+                await adminFetch('/api/admin/team/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
                 loadSettings();
@@ -1656,7 +1683,7 @@
             btn.text('Saving...').prop('disabled', true);
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/api/admin/team/update', {
+                const res = await adminFetch('/api/admin/team/update', {
                     method: 'POST',
                     body: formData
                 });
@@ -1675,7 +1702,7 @@
             btn.text('Registering...').prop('disabled', true);
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/api/admin/riders/add', {
+                const res = await adminFetch('/api/admin/riders/add', {
                     method: 'POST',
                     body: formData
                 });
@@ -1699,9 +1726,8 @@
         async function deleteRider(id) {
             if (!confirm('Remove this dispatch rider?')) return;
             try {
-                await fetch('/api/admin/riders/delete', {
+                await adminFetch('/api/admin/riders/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
                 loadSettings();
@@ -1726,7 +1752,7 @@
             btn.text('Saving...').prop('disabled', true);
             const formData = new FormData(e.target);
             try {
-                const res = await fetch('/api/admin/riders/update', {
+                const res = await adminFetch('/api/admin/riders/update', {
                     method: 'POST',
                     body: formData
                 });
@@ -1743,9 +1769,8 @@
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
             try {
-                const res = await fetch('/api/admin/category/add', {
+                const res = await adminFetch('/api/admin/category/add', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
@@ -1760,9 +1785,8 @@
         async function deleteCategory(id) {
             if (!confirm('Delete this category? Menu items with this category will still exist.')) return;
             try {
-                await fetch('/api/admin/category/delete', {
+                await adminFetch('/api/admin/category/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
                 loadSettings();
@@ -1786,9 +1810,8 @@
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
             try {
-                const res = await fetch('/api/admin/category/update', {
+                const res = await adminFetch('/api/admin/category/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
@@ -1802,7 +1825,8 @@
         async function downloadReport() {
             // Check first order time for 24h rule
             if (allOrders.length === 0) { alert('No orders found to export'); return; }
-            window.open('/api/admin/export', '_blank');
+            const token = localStorage.getItem('adminToken');
+            window.open(`/api/admin/export?token=${token}`, '_blank');
         }
 
         $('#settingsForm').submit(async (e) => {
@@ -1821,9 +1845,8 @@
                 aboutText: formData.get('aboutText')
             };
             
-            const res = await fetch('/api/admin/settings/update', {
+            const res = await adminFetch('/api/admin/settings/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             const resData = await res.json();
@@ -1842,7 +1865,7 @@
             if (fileInput) {
                 const uploadData = new FormData();
                 uploadData.append('mediaFile', fileInput);
-                const uploadRes = await fetch('/api/admin/settings/upload', {
+                const uploadRes = await adminFetch('/api/admin/settings/upload', {
                     method: 'POST',
                     body: uploadData
                 });
@@ -1850,9 +1873,8 @@
                 if (uploadResult.success) dealData.image = uploadResult.filePath;
             }
 
-            const res = await fetch('/api/admin/settings/update', {
+            const res = await adminFetch('/api/admin/settings/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dealOfWeek: dealData })
             });
             if (res.ok) showNotification('Updated', 'Deal of the week saved', 'success');
@@ -1869,7 +1891,7 @@
             if (fileInput) {
                 const uploadData = new FormData();
                 uploadData.append('mediaFile', fileInput);
-                const uploadRes = await fetch('/api/admin/settings/upload', {
+                const uploadRes = await adminFetch('/api/admin/settings/upload', {
                     method: 'POST',
                     body: uploadData
                 });
@@ -1877,9 +1899,8 @@
                 if (uploadResult.success) aboutData.abtImage = uploadResult.filePath;
             }
 
-            const res = await fetch('/api/admin/settings/update', {
+            const res = await adminFetch('/api/admin/settings/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ homeAbout: aboutData })
             });
             if (res.ok) showNotification('Updated', 'Home About section saved', 'success');
@@ -1894,7 +1915,7 @@
             
             showNotification('Uploading...', 'Please wait for the video to upload', 'info');
             
-            const res = await fetch('/api/admin/settings/upload', {
+            const res = await adminFetch('/api/admin/settings/upload', {
                 method: 'POST',
                 body: uploadData
             });
@@ -1911,9 +1932,8 @@
             const formData = new FormData(e.target);
             const promoData = Object.fromEntries(formData);
 
-            const res = await fetch('/api/admin/settings/update', {
+            const res = await adminFetch('/api/admin/settings/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ aboutPromo: promoData })
             });
             if (res.ok) showNotification('Updated', 'About Promo section saved', 'success');
@@ -1947,9 +1967,8 @@
                 btn.text('Creating...').prop('disabled', true);
                 const data = Object.fromEntries(new FormData(e.target));
                 
-                const res = await fetch('/api/admin/promo/add', {
+                const res = await adminFetch('/api/admin/promo/add', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 

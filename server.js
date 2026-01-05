@@ -615,14 +615,16 @@ app.get("/api/order/:id", (req, res) => {
 });
 
 // --- ADMIN ROUTES ---
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "pcnc-secret-token-123";
+
 const authMiddleware = (req, res, next) => {
-  // Simple check for demonstration; in prod we'd verify JWT
   const authHeader = req.headers['authorization'];
-  if (authHeader || req.query.token === "fake-jwt-token-123") {
+  const queryToken = req.query.token;
+  
+  if (authHeader === `Bearer ${ADMIN_TOKEN}` || queryToken === ADMIN_TOKEN) {
     next();
   } else {
-    // res.status(401).json({ success: false, message: "Unauthorized" });
-    next(); // Keeping it open for now to ensure local testing doesn't break
+    res.status(401).json({ success: false, message: "Unauthorized Access" });
   }
 };
 
@@ -704,11 +706,17 @@ app.get("/api/admin/export", async (req, res) => {
   res.end();
 });
 
-// 5. Admin: Login (Simple hardcoded)
+// 5. Admin: Login (Environment Variable Based)
 app.post("/api/admin/login", (req, res) => {
   const { username, password } = req.body;
-  if (username === "admin" && password === "admin123") {
-    res.json({ success: true, token: "fake-jwt-token-123" });
+  const secureUser = process.env.ADMIN_USER || "admin";
+  const securePass = process.env.ADMIN_PASS || "admin123";
+
+  if (username === secureUser && password === securePass) {
+    res.json({ 
+      success: true, 
+      token: ADMIN_TOKEN 
+    });
   } else {
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
