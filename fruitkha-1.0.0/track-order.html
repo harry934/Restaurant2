@@ -195,6 +195,13 @@
 					<div class="text-center mb-5">
 						<h2 id="orderIdDisplay" style="font-weight: 900; color: #1a1a1a;">ORDER #------</h2>
 						<p class="text-muted"><span id="statusText" class="badge badge-danger px-3 py-2" style="border-radius: 50px; font-size: 0.8rem; letter-spacing: 1px;">Loading status...</span></p>
+                        
+                        <!-- Estimated Time Display -->
+                        <div id="estimatedTimeArea" style="display: none; margin-top: 15px;">
+                            <span style="background: #f0f7ff; color: #007bff; padding: 10px 20px; border-radius: 50px; font-weight: 800; font-size: 0.9rem; border: 1px solid #cce5ff;">
+                                <i class="fas fa-clock mr-2"></i> Estimated arrival: <span id="estimatedTimeText">--</span>
+                            </span>
+                        </div>
 					</div>
 
 					<div class="status-timeline">
@@ -404,6 +411,14 @@
 		function updateUI(order) {
             document.getElementById('orderIdDisplay').innerText = 'ORDER #' + order.id.replace('ORD-', '').toUpperCase();
 			document.getElementById('statusText').innerText = order.status;
+            
+            // ETA Logic
+            if (order.estimatedTime) {
+                $('#estimatedTimeText').text(order.estimatedTime);
+                $('#estimatedTimeArea').show();
+            } else {
+                $('#estimatedTimeArea').hide();
+            }
             
             // Rider & Support Logic
             const riderDiv = document.getElementById('supportContactInfo');

@@ -605,6 +605,7 @@ app.get("/api/order/:id", (req, res) => {
         customerName: order.customerName,
         items: order.items,
         totalAmount: order.totalAmount,
+        estimatedTime: order.estimatedTime,
         assignedRider: riderInfo
       }
     });

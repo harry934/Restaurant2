@@ -270,5 +270,74 @@
     "paymentStatus": "Pending",
     "date": "2026-01-04T20:51:32.993Z",
     "logDate": "2026-01-04T20:51:33.003Z"
+  },
+  {
+    "id": "ORD-1767591526745",
+    "customerName": "John",
+    "phoneNumber": "0735425424",
+    "location": "Arcadia Hostels",
+    "notes": "no salt",
+    "items": [
+      {
+        "id": 1,
+        "name": "Hawaaian Pizza",
+        "price": 1500,
+        "category": "pizza",
+        "image": "uploads/1767545398821-download (8).jpg",
+        "tag": "Top-up with cheese & soy sauce",
+        "quantity": 1
+      }
+    ],
+    "totalAmount": 1500,
+    "status": "New",
+    "paymentStatus": "Pending",
+    "date": "2026-01-05T05:38:46.745Z",
+    "logDate": "2026-01-05T05:38:46.756Z"
+  },
+  {
+    "id": "ORD-1767593352688",
+    "customerName": "momo",
+    "phoneNumber": "0735425424",
+    "location": "Arcadia Hostels",
+    "notes": "",
+    "items": [
+      {
+        "id": 1,
+        "name": "Hawaaian Pizza",
+        "price": 1500,
+        "category": "pizza",
+        "image": "uploads/1767545398821-download (8).jpg",
+        "tag": "Top-up with cheese & soy sauce",
+        "quantity": 1
+      }
+    ],
+    "totalAmount": 1500,
+    "status": "New",
+    "paymentStatus": "Pending",
+    "date": "2026-01-05T06:09:12.688Z",
+    "logDate": "2026-01-05T06:09:12.693Z"
+  },
+  {
+    "id": "ORD-1767593989233",
+    "customerName": "Harry Otieno",
+    "phoneNumber": "0112601334",
+    "location": "Kisima Melrose Hostels",
+    "notes": "NO SALT",
+    "items": [
+      {
+        "id": 1,
+        "name": "Hawaaian Pizza",
+        "price": 1500,
+        "category": "pizza",
+        "image": "uploads/1767545398821-download (8).jpg",
+        "tag": "Top-up with cheese & soy sauce",
+        "quantity": 1
+      }
+    ],
+    "totalAmount": 1500,
+    "status": "New",
+    "paymentStatus": "Pending",
+    "date": "2026-01-05T06:19:49.233Z",
+    "logDate": "2026-01-05T06:19:49.238Z"
   }
 ]

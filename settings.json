@@ -14,32 +14,8 @@
     }
   ],
   "whatsappNumber": "0725484595",
-  "team": [
-    {
-      "id": 1767542701788,
-      "name": "Harry Otieno",
-      "role": "Executive Chef",
-      "image": "uploads/1767542701777-1000419213_800.jpg"
-    }
-  ],
-  "menuCategories": [
-    {
-      "id": "pizza",
-      "name": "Classic Pizza"
-    },
-    {
-      "id": "burgers",
-      "name": "Burgers"
-    },
-    {
-      "id": "snacks",
-      "name": "Quick Snacks"
-    },
-    {
-      "id": "additives",
-      "name": "Extras & Add-ons"
-    }
-  ],
+  "team": [],
+  "menuCategories": [],
   "supportPhones": [
     "0725484595"
   ],
@@ -66,5 +42,11 @@
   "aboutPromo": {
     "line1": "Get the best deals at Pizza Chick n Crust...",
     "line2": "Fresh & Hot"
-  }
+  },
+  "promoCodes": [
+    {
+      "code": "MWAKAMPYA",
+      "discount": 10
+    }
+  ]
 }

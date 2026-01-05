@@ -19,7 +19,7 @@
             width: 260px; 
             padding: 25px; 
             box-shadow: 4px 0 10px rgba(0,0,0,0.05);
-            z-index: 1000;
+3            z-index: 1000;
         }
         .sidebar h4 { font-weight: 800; font-size: 1.2rem; margin-bottom: 30px; color: #fff; letter-spacing: 1px; }
         .sidebar h4 span { color: #e7252d; }
@@ -207,7 +207,6 @@
                                 <th>Name</th>
                                 <th>Category</th>
                                 <th>Price</th>
-                                <th>Available</th>
                                 <th class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -409,6 +408,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -593,6 +593,44 @@
         </div>
     </div>
 
+    <!-- Edit Order Modal -->
+    <div class="modal fade" id="editOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Edit Order Details</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <form id="editOrderForm">
+                        <input type="hidden" name="orderId">
+                        <div class="form-group"><label>Customer Name</label><input type="text" name="customerName" class="form-control" required></div>
+                        <div class="form-group"><label>Phone</label><input type="text" name="phoneNumber" class="form-control" required></div>
+                        <div class="form-group"><label>Delivery Location</label><input type="text" name="location" class="form-control" required></div>
+                        <div class="row">
+                            <div class="col-6"><div class="form-group"><label>Total Amount</label><input type="number" name="totalAmount" class="form-control" required></div></div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label>Payment Status</label>
+                                    <select name="paymentStatus" class="form-control">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Successful">Successful</option>
+                                        <option value="Failed">Failed</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Estimated Arrival Time (ETA)</label>
+                            <input type="text" name="estimatedTime" class="form-control" placeholder="e.g. 45 mins, 7:30 PM">
+                            <small class="text-muted">Will be visible to customer on tracking page</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Update Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Edit Category Modal -->
     <div class="modal fade" id="editCategoryModal" tabindex="-1">
         <div class="modal-dialog">
@@ -731,6 +769,32 @@
                         <div class="form-group"><label>Discount (%)</label><input type="number" name="discount" class="form-control" placeholder="10" required></div>
                         <button type="submit" class="btn btn-primary btn-block py-3 mt-4" style="border-radius: 12px; font-weight: 800;">Create Code</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick ETA Selection Modal -->
+    <div class="modal fade" id="quickETAModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold">Set Arrival Time</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <input type="hidden" id="etaOrderId">
+                    <div class="d-grid gap-2 mb-3">
+                        <button class="btn btn-outline-primary btn-block mb-2" onclick="selectETA('15 mins')">15 Mins</button>
+                        <button class="btn btn-outline-primary btn-block mb-2" onclick="selectETA('30 mins')">30 Mins</button>
+                        <button class="btn btn-outline-primary btn-block mb-2" onclick="selectETA('45 mins')">45 Mins</button>
+                        <button class="btn btn-outline-primary btn-block mb-2" onclick="selectETA('60 mins')">60 Mins</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="small font-weight-bold">Custom Time</label>
+                        <input type="text" id="customETA" class="form-control" placeholder="e.g. 2:30 PM">
+                    </div>
+                    <button class="btn btn-dark btn-block py-3 mt-3" style="border-radius: 12px; font-weight: 800;" onclick="saveCustomETA()">Save Time</button>
                 </div>
             </div>
         </div>
@@ -1040,6 +1104,15 @@
                                     <div class="text-dark font-italic">${o.notes}</div>
                                 </div>
                             ` : '<div class="mt-2 small text-muted font-italic" style="font-size: 0.7rem;">None</div>'}
+                            ${o.estimatedTime ? `
+                                <div class="mt-2 p-1 rounded" style="background: #f0f7ff; color: #007bff; border: 1px solid #cce5ff; font-size: 0.75rem; display: inline-block; cursor: pointer;" onclick="promptETA('${o.id}', '${o.estimatedTime}')" title="Click to change ETA">
+                                    <i class="fas fa-clock mr-1"></i> ETA: <strong>${o.estimatedTime}</strong>
+                                </div>
+                            ` : `
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-info py-0" style="font-size: 0.65rem;" onclick="promptETA('${o.id}', '')"><i class="fas fa-plus mr-1"></i> Set Arrival Time</button>
+                                </div>
+                            `}
                         </td>
                         <td class="small">${items}</td>
                         <td class="font-weight-bold">KES ${o.totalAmount}</td>
@@ -1050,8 +1123,7 @@
                             <div class="d-flex">
                                 <button title="Kitchen Prep" class="btn-action btn-prep" onclick="updateOrder('${o.id}', {status:'Preparing'})"><i class="fas fa-fire"></i></button>
                                 <button title="Send Delivery" class="btn-action btn-ship" onclick="updateOrder('${o.id}', {status:'Out for Delivery'})"><i class="fas fa-truck"></i></button>
-                                <button title="Done" class="btn-action btn-done" onclick="updateOrder('${o.id}', {status:'Completed'})"><i class="fas fa-check"></i></button>
-                                <button title="WhatsApp Alert" class="btn-action" onclick="sendWhatsApp('${o.id}')" style="background: #25d36622; color: #25d366;"><i class="fab fa-whatsapp"></i></button>
+                                <button title="Done & Print" class="btn-action btn-done" onclick="updateOrder('${o.id}', {status:'Completed'}); setTimeout(() => printReceipt('${o.id}'), 500);"><i class="fas fa-check"></i></button>
                                 <button title="Print Receipt" class="btn-action btn-edit" onclick="printReceipt('${o.id}')" style="background: #17a2b822; color: #17a2b8;"><i class="fas fa-print"></i></button>
                                 <button title="Edit Order" class="btn-action btn-edit" onclick="openEditOrder('${o.id}')"><i class="fas fa-edit"></i></button>
                                 <button title="Delete Record" class="btn-action btn-delete" onclick="deleteOrder('${o.id}')"><i class="fas fa-trash"></i></button>
@@ -1093,6 +1165,29 @@
                     alert('Error: ' + data.message);
                 }
             } catch (e) { console.error(e); }
+        }
+
+        function promptETA(orderId, current) {
+            $('#etaOrderId').val(orderId);
+            $('#customETA').val(current || '');
+            $('#quickETAModal').modal('show');
+        }
+
+        function selectETA(time) {
+            const orderId = $('#etaOrderId').val();
+            updateOrder(orderId, { estimatedTime: time });
+            $('#quickETAModal').modal('hide');
+        }
+
+        function saveCustomETA() {
+            const orderId = $('#etaOrderId').val();
+            const time = $('#customETA').val();
+            if (time) {
+                updateOrder(orderId, { estimatedTime: time });
+                $('#quickETAModal').modal('hide');
+            } else {
+                alert('Please enter a time or pick an option');
+            }
         }
 
         function printReceipt(orderId) {
@@ -1191,6 +1286,7 @@
             form.location.value = o.location;
             form.totalAmount.value = o.totalAmount;
             form.paymentStatus.value = o.paymentStatus || 'Pending';
+            if (form.estimatedTime) form.estimatedTime.value = o.estimatedTime || '';
             
             $('#editOrderModal').modal('show');
         }
@@ -1198,6 +1294,10 @@
         $('#editOrderForm').submit(async (e) => {
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
+            
+            // Clean up empty strings
+            if (!data.estimatedTime) delete data.estimatedTime;
+
             await fetch('/api/admin/order/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1236,12 +1336,6 @@
                         </td>
                         <td><span class="badge badge-light p-2">${item.category}</span></td>
                         <td>KES ${item.price}</td>
-                        <td>
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="avail-${item.id}" ${checked} onchange="toggleAvailability(${item.id})">
-                                <label class="custom-control-label" for="avail-${item.id}"></label>
-                            </div>
-                        </td>
                         <td class="text-center">
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-outline-primary" onclick="openEditMenu(${item.id})"><i class="fas fa-edit"></i></button>
@@ -1846,17 +1940,34 @@
 
         $('#addPromoForm').submit(async (e) => {
             e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target));
-            const res = await fetch('/api/admin/promo/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                $('#addPromoModal').modal('hide');
-                e.target.reset();
-                loadSettings();
-                showNotification('Code Created', 'Promo code is now active', 'success');
+            const btn = $(e.target).find('button[type="submit"]');
+            const originalText = btn.text();
+            
+            try {
+                btn.text('Creating...').prop('disabled', true);
+                const data = Object.fromEntries(new FormData(e.target));
+                
+                const res = await fetch('/api/admin/promo/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                
+                if (res.ok && result.success) {
+                    $('#addPromoModal').modal('hide');
+                    e.target.reset();
+                    loadSettings();
+                    showNotification('Code Created', 'Promo code is now active', 'success');
+                } else {
+                    showNotification('Failed', result.message || 'Could not create code', 'error');
+                }
+            } catch (err) {
+                console.error('Promo Add Error:', err);
+                showNotification('Error', 'Server communication failed', 'error');
+            } finally {
+                btn.text(originalText).prop('disabled', false);
             }
         });
 
