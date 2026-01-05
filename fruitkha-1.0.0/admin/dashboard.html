@@ -19,7 +19,8 @@
             width: 260px; 
             padding: 25px; 
             box-shadow: 4px 0 10px rgba(0,0,0,0.05);
-3            z-index: 1000;
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
         .sidebar h4 { font-weight: 800; font-size: 1.2rem; margin-bottom: 30px; color: #fff; letter-spacing: 1px; }
         .sidebar h4 span { color: #e7252d; }
@@ -39,7 +40,7 @@
         .sidebar a:hover, .sidebar a.active { color: white; background: rgba(231, 37, 45, 0.15); color: #e7252d; }
         .sidebar a.logout { margin-top: auto; color: #f44336; }
 
-        .main-content { margin-left: 260px; padding: 40px; }
+        .main-content { margin-left: 260px; padding: 40px; transition: margin-left 0.3s ease; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
         .stat-card { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
         
@@ -71,9 +72,188 @@
         
         tr.row-completed .customer-info div { color: #888; }
         tr.row-completed .btn-prep, tr.row-completed .btn-ship, tr.row-completed .btn-done { display: none; }
+
+        /* Mobile Menu Toggle Button */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: #e7252d;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(231, 37, 45, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: #c71f27;
+            transform: scale(1.05);
+        }
+
+        .mobile-menu-toggle i {
+            font-size: 20px;
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+        }
+
+        /* Mobile Responsive Styles */
+        @media only screen and (max-width: 991px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 80px 20px 20px 20px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header-top .d-flex {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .header-top button {
+                font-size: 13px;
+                padding: 10px 15px !important;
+            }
+
+            /* Stats cards mobile */
+            .stat-card {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+
+            /* Table mobile optimization */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table {
+                min-width: 800px;
+            }
+
+            .table thead th {
+                font-size: 0.65rem;
+                padding: 12px 8px;
+            }
+
+            .table td {
+                padding: 12px 8px;
+                font-size: 0.85rem;
+            }
+
+            /* Settings tabs mobile */
+            .settings-nav-btn {
+                font-size: 13px !important;
+                padding: 10px 15px !important;
+                margin-bottom: 10px;
+            }
+
+            /* Modal adjustments */
+            .modal-dialog {
+                margin: 10px;
+            }
+
+            .modal-body {
+                padding: 20px !important;
+            }
+
+            /* Form adjustments */
+            .form-group label {
+                font-size: 14px;
+            }
+
+            .form-control {
+                font-size: 14px;
+            }
+
+            /* Button groups */
+            .btn-action {
+                width: 28px;
+                height: 28px;
+                font-size: 0.7rem;
+            }
+
+            /* Hide some columns on very small screens */
+            @media only screen and (max-width: 575px) {
+                .table {
+                    font-size: 12px;
+                }
+
+                h2 {
+                    font-size: 1.5rem !important;
+                }
+
+                h5 {
+                    font-size: 1.1rem !important;
+                }
+            }
+        }
+
+        /* Tablet landscape */
+        @media only screen and (min-width: 768px) and (max-width: 991px) {
+            .sidebar {
+                width: 260px;
+            }
+
+        .table {
+                min-width: 700px;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
 
     <div class="sidebar d-flex flex-column">
         <h4>PCNC <span>HQ</span></h4>
@@ -2015,6 +2195,24 @@
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+
+        // Mobile Menu Toggle Function
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on a nav item
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 991) {
+                    toggleMobileMenu();
+                }
+            });
+        });
 
         setInterval(loadData, 10000);
         loadData();

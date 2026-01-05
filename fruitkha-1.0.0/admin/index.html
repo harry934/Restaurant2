@@ -60,6 +60,35 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         .admin-footer { margin-top: 30px; font-size: 0.8rem; color: #aaa; text-align: center; }
+
+        /* Mobile Responsive Styles */
+        @media only screen and (max-width: 575px) {
+            body {
+                padding: 20px;
+            }
+
+            .login-box {
+                padding: 30px 25px;
+                max-width: 100%;
+            }
+
+            .logo-area img {
+                max-height: 60px;
+            }
+
+            .logo-area h4 {
+                font-size: 1.3rem;
+            }
+
+            .form-control {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            .btn-orange {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
