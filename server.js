@@ -664,6 +664,32 @@ app.post("/api/order", async (req, res) => {
   });
 });
 
+// Validate Promo Code
+app.post("/api/validate-promo", async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ success: false, message: "No code provided" });
+
+    // 1. Check if it's the global "LOYALTY" code (10% off) - Hardcoded legacy or move to DB
+    // 2. Check DB Promo Codes
+    const settings = await getSettings();
+    const promo = (settings.promoCodes || []).find(p => p.code === code.toUpperCase());
+
+    if (promo) {
+      return res.json({ 
+        success: true, 
+        discountPercent: promo.discount, 
+        message: `Code applied! You get ${promo.discount}% off your entire order.` 
+      });
+    } else {
+      return res.json({ success: false, message: "Invalid or expired promo code" });
+    }
+  } catch (e) {
+    console.error("Promo Error:", e);
+    res.status(500).json({ success: false, message: "Server error checking code" });
+  }
+});
+
 // 2b. Track Order Status (Public)
 app.get("/api/order/:id", async (req, res) => {
   const order = await Order.findOne({ id: req.params.id });
