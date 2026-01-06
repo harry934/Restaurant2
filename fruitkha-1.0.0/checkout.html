@@ -95,87 +95,110 @@
 	<!-- end breadcrumb section -->
 
 	<!-- check out section -->
-	<div class="checkout-section mt-80 mb-150" style="background-color: #fcfcfc;">
+	<div class="checkout-section mt-80 mb-150">
 		<div class="container">
 			<div class="row justify-content-center">
 				<div class="col-lg-8">
 					
-					<!-- Step 1 -->
-					<div class="checkout-card mb-4" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03);">
-						<div style="background: #fdfdfd; padding: 20px 30px; border-bottom: 2px solid #e7252d; display: flex; align-items: center;">
-							<div style="background: #e7252d; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px;">1</div>
-							<h5 style="margin: 0; font-weight: 800; color: #1a1a1a; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Details</h5>
-						</div>
-						<div style="padding: 30px;">
-							<form id="checkout-form">
+					<form id="checkout-form">
+						<!-- Section: Delivery Info -->
+						<div class="mb-5">
+							<h4 style="font-weight: 800; color: #1a1a1a; margin-bottom: 25px; display: flex; align-items: center;">
+								<span style="background: #e7252d; color: #fff; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; margin-right: 15px;">1</span>
+								Where should we send it?
+							</h4>
+							
+							<div style="background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
 								<div class="row">
-									<div class="col-md-6 mb-3">
-										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Full Name</label>
-										<input type="text" id="name" placeholder="Who is receiving?" required style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333;">
+									<div class="col-md-6 mb-4">
+										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Your Name</label>
+										<input type="text" id="name" placeholder="John Doe" required style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 									</div>
-									<div class="col-md-6 mb-3">
-										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Mobile Number</label>
-										<input type="tel" id="phone" placeholder="07XXXXXXXX" required style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333;">
+									<div class="col-md-6 mb-4">
+										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Phone Number</label>
+										<input type="tel" id="phone" placeholder="07XXXXXXXX" required style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 									</div>
-									<div class="col-md-12 mb-3">
-										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Exact Delivery Location</label>
+									<div class="col-md-12 mb-4">
+										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Delivery Location</label>
 										<div class="location-search-container" style="position: relative;">
-											<div class="input-group">
-												<div class="input-group-prepend">
-													<span class="input-group-text" style="background: #fff; border-right: none;"><i class="fas fa-map-marker-alt" style="color: #e7252d;"></i></span>
-												</div>
-												<input type="text" id="address" placeholder="Search your area or type exact location..." required autocomplete="off" style="width: calc(100% - 45px); padding: 12px 15px; border: 1px solid #d0d0d0; border-left: none; border-radius: 0 6px 6px 0; background: #fafafa; color: #333; outline: none;">
-											</div>
-											<div id="location-suggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-top: none; border-radius: 0 0 10px 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; display: none; max-height: 250px; overflow-y: auto;">
-												<!-- Suggestions will be populated here -->
+											<input type="text" id="address" placeholder="Search area (e.g. USIU, Roysambu...)" required autocomplete="off" style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
+											<i class="fas fa-map-marker-alt" style="position: absolute; right: 25px; top: 50%; transform: translateY(-50%); color: #e7252d;"></i>
+											
+											<div id="location-suggestions" style="position: absolute; top: 110%; left: 0; right: 0; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; display: none; overflow: hidden;">
+												<!-- Populated by JS -->
 											</div>
 										</div>
-										<p style="color: #e7252d; font-size: 0.8rem; font-weight: 700; margin-top: 8px; margin-bottom: 0;">* Currently delivering within 1.2km of USIU Road area.</p>
+										<small style="color: #e7252d; font-weight: 700; margin-left: 15px; margin-top: 5px; display: block;">* We deliver within ROYSAMBU & USIU areas.</small>
 									</div>
-									<div class="col-md-12 mt-3">
-										<label style="font-weight: 700; font-size: 0.9rem; color: #555;">Special Instructions (Optional)</label>
-										<textarea id="order-notes" placeholder="e.g. Extra chili, no onions, or specific delivery directions..." style="width: 100%; padding: 12px 15px; border: 1px solid #d0d0d0; border-radius: 6px; background: #fafafa; color: #333; height: 80px; resize: none;"></textarea>
+									<div class="col-md-12">
+										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Note to Chef / Rider (Optional)</label>
+										<textarea id="order-notes" placeholder="e.g. Don't ring the doorbell, Leave at reception..." style="width: 100%; padding: 20px 25px; border: none; border-radius: 20px; background: #f4f4f4; color: #333; font-weight: 600; height: 100px; resize: none; outline: none;"></textarea>
 									</div>
 								</div>
-							</form>
-						</div>
-					</div>
-
-					<!-- Step 2 -->
-					<div class="checkout-card mb-4" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03);">
-						<div style="background: #fdfdfd; padding: 20px 30px; border-bottom: 2px solid #e7252d; display: flex; align-items: center; justify-content: space-between;">
-							<div style="display: flex; align-items: center;">
-								<div style="background: #e7252d; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px;">2</div>
-								<h5 style="margin: 0; font-weight: 800; color: #1a1a1a; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;">Choose Payment</h5>
 							</div>
 						</div>
-						<div style="padding: 30px;">
+
+						<!-- Section: Payment -->
+						<div class="mb-5">
+							<h4 style="font-weight: 800; color: #1a1a1a; margin-bottom: 25px; display: flex; align-items: center;">
+								<span style="background: #e7252d; color: #fff; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; margin-right: 15px;">2</span>
+								How would you like to pay?
+							</h4>
+							
 							<div class="row">
 								<div class="col-md-6 mb-3">
-									<label class="pm-card" style="display: block; border: 2px solid #f0f0f0; border-radius: 10px; padding: 20px; cursor: pointer; transition: 0.2s;" id="label-stk" onclick="document.querySelectorAll('.pm-card').forEach(c=>c.style.borderColor='#f0f0f0'); this.style.borderColor='#e7252d';">
-										<input type="radio" name="payment_method" value="stk" checked style="margin-right: 10px; accent-color: #e7252d;">
-										<span style="font-weight: 800; color: #1a1a1a;">M-Pesa STK Push</span><br>
-										<small style="color: #666;">Pay via phone prompt</small>
+									<label class="pm-card" style="display: block; background: #fff; border: 2px solid #fff; border-radius: 20px; padding: 25px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.03); height: 100%; position: relative; overflow: hidden;" id="label-stk" onclick="selectPayment('stk')">
+										<input type="radio" name="payment_method" value="stk" checked style="position: absolute; opacity: 0;">
+										<div class="check-icon" style="position: absolute; top: 20px; right: 20px; color: #e7252d; font-size: 1.2rem; display: none;"><i class="fas fa-check-circle"></i></div>
+										<img src="assets/img/mpesa.png" alt="M-Pesa" style="height: 40px; margin-bottom: 15px;">
+										<h5 style="font-weight: 800; color: #1a1a1a; margin-bottom: 5px;">M-Pesa Express</h5>
+										<p style="font-size: 0.8rem; color: #777; margin: 0; line-height: 1.4;">Automatic prompt sent to your phone. Fast & Secure.</p>
 									</label>
 								</div>
 								<div class="col-md-6 mb-3">
-									<label class="pm-card" style="display: block; border: 2px solid #f0f0f0; border-radius: 10px; padding: 20px; cursor: pointer; transition: 0.2s;" id="label-till" onclick="document.querySelectorAll('.pm-card').forEach(c=>c.style.borderColor='#f0f0f0'); this.style.borderColor='#e7252d';">
-										<input type="radio" name="payment_method" value="till" style="margin-right: 10px; accent-color: #e7252d;">
-										<span style="font-weight: 800; color: #1a1a1a;">Pay via Till Number</span><br>
-										<small style="color: #666;">Till: 6994591</small>
+									<label class="pm-card" style="display: block; background: #fff; border: 2px solid #fff; border-radius: 20px; padding: 25px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.03); height: 100%; position: relative; overflow: hidden;" id="label-till" onclick="selectPayment('till')">
+										<input type="radio" name="payment_method" value="till" style="position: absolute; opacity: 0;">
+										<div class="check-icon" style="position: absolute; top: 20px; right: 20px; color: #e7252d; font-size: 1.2rem; display: none;"><i class="fas fa-check-circle"></i></div>
+										<i class="fas fa-mobile-alt" style="font-size: 30px; color: #333; margin-bottom: 25px; display: block;"></i>
+										<h5 style="font-weight: 800; color: #1a1a1a; margin-bottom: 5px;">Buy Goods Till</h5>
+										<p style="font-size: 0.8rem; color: #777; margin: 0; line-height: 1.4;">Manually pay to Till: <strong>6994591</strong></p>
 									</label>
 								</div>
 							</div>
-							<div id="till-instructions" style="display: none; background: #fff8f8; border: 1px solid #ffcccc; padding: 20px; border-radius: 10px; margin-top: 10px;">
-								<strong style="color: #e7252d; display: block; margin-bottom: 8px;">M-Pesa Till Payment Steps:</strong>
-								<ul style="margin: 0; padding-left: 18px; color: #444; font-size: 0.9rem; line-height: 1.6;">
-									<li>Select <strong>Lipa na M-Pesa</strong> > <strong>Buy Goods & Services</strong></li>
-									<li>Enter Till Number: <strong>6994591</strong></li>
-									<li>Enter the total amount shown below and your PIN.</li>
-								</ul>
+							
+							<div id="till-instructions" style="display: none; background: #fff8f8; border: 2px dashed #ffcccc; padding: 25px; border-radius: 20px; margin-top: 15px;">
+								<strong style="color: #e7252d; display: block; margin-bottom: 10px; font-size: 0.95rem;">Please follow these steps:</strong>
+								<ol style="margin: 0; padding-left: 20px; color: #444; font-size: 0.9rem; line-height: 1.8; font-weight: 600;">
+									<li>Go to M-Pesa Menu > <span style="color: #000;">Lipa na M-Pesa</span></li>
+									<li>Select <span style="color: #000;">Buy Goods & Services</span></li>
+									<li>Enter Till Number: <strong style="font-size: 1.1rem;">6994591</strong></li>
+									<li>Enter the Amount shown below</li>
+								</ol>
 							</div>
+							
+							<script>
+								function selectPayment(type) {
+									document.querySelectorAll('.pm-card').forEach(c => {
+										c.style.borderColor = '#fff';
+										c.querySelector('.check-icon').style.display = 'none';
+									});
+									const active = document.getElementById('label-' + type);
+									active.style.borderColor = '#e7252d';
+									active.querySelector('.check-icon').style.display = 'block';
+									
+									if(type === 'stk') {
+										document.getElementById('till-instructions').style.display = 'none';
+										document.getElementById('stk-notice').style.display = 'inline-block';
+									} else {
+										document.getElementById('till-instructions').style.display = 'block';
+										document.getElementById('stk-notice').style.display = 'none';
+									}
+								}
+								// Select default
+								setTimeout(() => selectPayment('stk'), 100);
+							</script>
 						</div>
-					</div>
+					<!-- End Form fields, submit is in footer of card 3 -->
 
 					<!-- Step 3 -->
 					<div class="checkout-card" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">

@@ -744,12 +744,29 @@ app.get("/api/admin/orders", authMiddleware, async (req, res) => {
   res.json(orders);
 });
 
+// Helper to sync changes to OrderLog
+const syncOrderLog = async (orderId, updates) => {
+  try {
+    await OrderLog.findOneAndUpdate(
+      { "order.id": orderId },
+      { $set: Object.keys(updates).reduce((acc, key) => {
+          acc[`order.${key}`] = updates[key];
+          return acc;
+        }, {}) 
+      }
+    );
+  } catch (e) {
+    console.error("Failed to sync OrderLog:", e);
+  }
+};
+
 // 4. Admin: Update Order Status or Payment
 app.post("/api/admin/order/update", async (req, res) => {
   const { orderId, ...rest } = req.body;
 
   const updated = await updateOrder(orderId, rest);
   if (updated) {
+    await syncOrderLog(orderId, rest); // Keep log in sync
     res.json({ success: true, order: updated });
   } else {
     res.status(404).json({ success: false, message: "Order not found" });
@@ -760,52 +777,92 @@ app.post("/api/admin/order/update", async (req, res) => {
 app.post("/api/admin/order/delete", async (req, res) => {
   const { orderId } = req.body;
   console.log(`[ADMIN] Request to delete order: ${orderId}`);
+  
+  // Update log status to "Deleted" before removing from active Orders
+  await syncOrderLog(orderId, { status: 'Deleted (Admin)' });
+
   const result = await Order.deleteOne({ id: orderId });
   if (result.deletedCount > 0) {
     console.log(`[ADMIN] Order ${orderId} deleted successfully`);
     res.json({ success: true });
   } else {
-    console.warn(`[ADMIN] Order ${orderId} not found for deletion`);
     res.status(404).json({ success: false, message: "Order not found" });
   }
 });
 
 // 5. Admin: Export Daily Report (Excel)
 app.get("/api/admin/export", async (req, res) => {
-  const logs = await OrderLog.find().sort({ logDate: -1 });
-  
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Daily Report");
-  
-  worksheet.columns = [
-    { header: "Order ID", key: "id", width: 20 },
-    { header: "Customer Name", key: "customerName", width: 25 },
-    { header: "Phone", key: "phoneNumber", width: 15 },
-    { header: "Location", key: "location", width: 30 },
-    { header: "Total Amount", key: "totalAmount", width: 15 },
-    { header: "Status", key: "status", width: 15 },
-    { header: "Payment", key: "paymentStatus", width: 15 },
-    { header: "Order Date", key: "date", width: 25 }
-  ];
-  
-  logs.forEach(log => {
-    const order = log.order;
-    worksheet.addRow({
-      id: order.id,
-      customerName: order.customerName,
-      phoneNumber: order.phoneNumber,
-      location: order.location,
-      totalAmount: order.totalAmount,
-      status: order.status,
-      paymentStatus: order.paymentStatus,
-      date: new Date(order.date).toLocaleString()
+  try {
+    const logs = await OrderLog.find().sort({ logDate: -1 });
+    
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Sales Report");
+    
+    worksheet.columns = [
+      { header: "Order ID", key: "id", width: 15 },
+      { header: "Date", key: "date", width: 22 },
+      { header: "Customer", key: "customerName", width: 20 },
+      { header: "Phone", key: "phoneNumber", width: 15 },
+      { header: "Location", key: "location", width: 25 },
+      { header: "Items Ordered", key: "items", width: 40 },
+      { header: "Total (KES)", key: "totalAmount", width: 12 },
+      { header: "Payment Status", key: "paymentStatus", width: 15 },
+      { header: "Order Status", key: "status", width: 15 },
+      { header: "Rating", key: "rating", width: 10 },
+      { header: "Feedback", key: "feedback", width: 30 }
+    ];
+    
+    // Style header
+    worksheet.getRow(1).font = { bold: true };
+    
+    logs.forEach(log => {
+      const o = log.order || {};
+      // Format items list
+      const itemsStr = (o.items || []).map(i => `${i.quantity}x ${i.name}`).join(", ");
+      
+      worksheet.addRow({
+        id: o.id,
+        date: o.date ? new Date(o.date).toLocaleString() : '',
+        customerName: o.customerName,
+        phoneNumber: o.phoneNumber,
+        location: o.location,
+        items: itemsStr,
+        totalAmount: o.totalAmount,
+        paymentStatus: o.paymentStatus,
+        status: o.status,
+        rating: o.rating || '',
+        feedback: o.feedback || ''
+      });
     });
-  });
-  
-  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", "attachment; filename=Daily_Report.xlsx");
-  await workbook.xlsx.write(res);
-  res.end();
+    
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename=PCnC_Sales_Report_${Date.now()}.xlsx`);
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (e) {
+    console.error("Export Error:", e);
+    res.status(500).send("Error exporting data");
+  }
+});
+
+// Order Rating
+app.post("/api/order/rate", async (req, res) => {
+  const { id, rating, feedback } = req.body;
+  try {
+    const updated = await Order.findOneAndUpdate(
+      { id: id }, 
+      { rating: parseInt(rating), feedback: feedback },
+      { new: true }
+    );
+    if (updated) {
+      await syncOrderLog(id, { rating: parseInt(rating), feedback: feedback });
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ success: false, message: "Order not found" });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
 });
 
 // 5. Admin: Login (Environment Variable Based)
