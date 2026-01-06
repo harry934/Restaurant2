@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
@@ -13,10 +14,28 @@ const PORT = process.env.PORT || 3000;
 // MongoDB Connection
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/restaurant";
+
+let isConnected = false;
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB Connection Error:", err));
+  .then(() => {
+    console.log("Connected to MongoDB");
+    isConnected = true;
+  })
+  .catch((err) => {
+    console.error("MongoDB Connection Error:", err);
+    isConnected = false;
+  });
+
+// Health check middleware to warn if DB is down
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') && !isConnected) {
+    // Attempt reconnect if request comes in and we are disconnected
+    if (mongoose.connection.readyState === 1) isConnected = true;
+    else return res.status(500).json({ success: false, message: "Database connection unavailable. Check server logs." });
+  }
+  next();
+});
 
 // Schemas
 const OrderSchema = new mongoose.Schema({
