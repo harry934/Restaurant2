@@ -174,75 +174,106 @@ app.post("/api/order/rate", async (req, res) => {
 
 // Admin Menu Management (with file upload)
 app.post("/api/admin/menu/add", upload.single('imageFile'), async (req, res) => {
-  const menu = await getMenu();
-  const { name, price, category, tag } = req.body;
-  
-  let imagePath = req.body.image || 'assets/img/products/product-img-1.png';
-  if (req.file) {
-    imagePath = 'uploads/' + req.file.filename;
+  try {
+    const { name, price, category, tag } = req.body;
+    
+    // Find highest ID to increment
+    const highestItem = await Menu.findOne().sort({ id: -1 });
+    const nextId = highestItem ? highestItem.id + 1 : 1;
+
+    let imagePath = req.body.image || 'assets/img/products/product-img-1.png';
+    if (req.file) {
+      imagePath = 'uploads/' + req.file.filename;
+    }
+
+    const newItem = new Menu({
+      id: nextId,
+      name,
+      price: parseInt(price),
+      category,
+      image: imagePath,
+      tag
+    });
+
+    await newItem.save();
+    res.json({ success: true, item: newItem });
+  } catch (e) {
+    console.error("Add Menu Error:", e);
+    res.status(500).json({ success: false, message: e.message });
   }
-
-  const newItem = new Menu({
-    id: menu.length > 0 ? Math.max(...menu.map(m => m.id)) + 1 : 1,
-    name,
-    price: parseInt(price),
-    category,
-    image: imagePath,
-    tag
-  });
-
-  await newItem.save();
-  res.json({ success: true, item: newItem });
 });
 
 // Admin Menu Management - Update
 app.post("/api/admin/menu/update", upload.single('imageFile'), async (req, res) => {
-  const { id, name, price, category, tag } = req.body;
-  
-  const updates = {
-    name,
-    price: parseFloat(price),
-    category,
-    tag: tag || ''
-  };
-  if (req.file) updates.image = 'uploads/' + req.file.filename;
-  
-  const updated = await Menu.findOneAndUpdate({ id: parseInt(id) }, updates, { new: true });
-  if (updated) {
-    res.json({ success: true, item: updated });
-  } else {
-    res.status(404).json({ success: false, message: "Item not found" });
+  try {
+    const { id, name, price, category, tag } = req.body;
+    
+    const updates = {
+      name,
+      price: parseFloat(price),
+      category,
+      tag: tag || ''
+    };
+    if (req.file) updates.image = 'uploads/' + req.file.filename;
+    
+    const updated = await Menu.findOneAndUpdate({ id: parseInt(id) }, updates, { new: true });
+    if (updated) {
+      res.json({ success: true, item: updated });
+    } else {
+      res.status(404).json({ success: false, message: "Item not found" });
+    }
+  } catch (e) {
+    console.error("Update Menu Error:", e);
+    res.status(500).json({ success: false, message: e.message });
   }
 });
 
 // Admin Menu Management - Toggle Availability
 app.post("/api/admin/menu/toggle-availability", async (req, res) => {
-  const { id } = req.body;
-  const item = await Menu.findOne({ id: parseInt(id) });
-  
-  if (item) {
-    item.isAvailable = !item.isAvailable;
-    await item.save();
-    res.json({ success: true, isAvailable: item.isAvailable });
-  } else {
-    res.status(404).json({ success: false, message: "Item not found" });
+  try {
+    const { id } = req.body;
+    const item = await Menu.findOne({ id: parseInt(id) });
+    
+    if (item) {
+      item.isAvailable = !item.isAvailable;
+      await item.save();
+      res.json({ success: true, isAvailable: item.isAvailable });
+    } else {
+      res.status(404).json({ success: false, message: "Item not found" });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
   }
 });
 
 app.post("/api/admin/menu/delete", async (req, res) => {
-  const { id } = req.body;
-  await Menu.deleteOne({ id: parseInt(id) });
-  res.json({ success: true });
+  try {
+    const { id } = req.body;
+    await Menu.deleteOne({ id: parseInt(id) });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 // Settings API
 app.get("/api/settings", async (req, res) => {
-  res.json(await getSettings());
+  try {
+    res.json(await getSettings());
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/settings/update", async (req, res) => {
-  const updated = await Settings.findOneAndUpdate({}, req.body, { new: true, upsert: true });
-  res.json({ success: true, settings: updated });
+  try {
+    // Upsert ensures document is created if it doesn't exist
+    const updated = await Settings.findOneAndUpdate({}, req.body, { new: true, upsert: true });
+    res.json({ success: true, settings: updated });
+  } catch (e) {
+    console.error("Update Settings Error:", e);
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 // Media Upload (for deal image, home about video, etc.)
@@ -256,136 +287,179 @@ app.post("/api/admin/settings/upload", upload.single('mediaFile'), (req, res) =>
 
 // Team Management
 app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
-  const { name, role, phone, facebook, twitter, instagram, linkedin } =
-    req.body;
+  try {
+    const { name, role, phone, facebook, twitter, instagram, linkedin } = req.body;
+    
+    const newMember = {
+      id: Date.now(),
+      name,
+      role,
+      image: req.file ? 'uploads/' + req.file.filename : 'assets/img/team/team-1.jpg',
+      phone: phone || '',
+      facebook: facebook || '',
+      twitter: twitter || '',
+      instagram: instagram || '',
+      linkedin: linkedin || ''
+    };
 
-  const newMember = {
-    id: Date.now(),
-    name,
-    role,
-    image: req.file
-      ? "uploads/" + req.file.filename
-      : "assets/img/team/team-1.jpg",
-    phone: phone || "",
-    facebook: facebook || "",
-    twitter: twitter || "",
-    instagram: instagram || "",
-    linkedin: linkedin || "",
-  };
-
-  await Settings.findOneAndUpdate({}, { $push: { team: newMember } });
-  res.json({ success: true, member: newMember });
+    // Use upsert to create Settings doc if missing
+    await Settings.findOneAndUpdate({}, { $push: { team: newMember } }, { upsert: true });
+    res.json({ success: true, member: newMember });
+  } catch (e) {
+    console.error("Add Team Error:", e);
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/team/delete", async (req, res) => {
-  const { id } = req.body;
-  await Settings.findOneAndUpdate({}, { $pull: { team: { id: parseInt(id) } } });
-  res.json({ success: true });
+  try {
+    const { id } = req.body;
+    await Settings.findOneAndUpdate({}, { $pull: { team: { id: parseInt(id) } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/team/update", upload.single("teamImg"), async (req, res) => {
-  const { id, name, role, phone, facebook, twitter, instagram, linkedin } =
-    req.body;
-  const current = await getSettings();
-  const team = current.team || [];
-  const index = team.findIndex((m) => m.id == id);
+  try {
+    const { id, name, role, phone, facebook, twitter, instagram, linkedin } = req.body;
+    const current = await getSettings();
+    const team = current.team || [];
+    const index = team.findIndex((m) => m.id == id);
 
-  if (index !== -1) {
-    const updatedMember = {
-      ...team[index],
-      name,
-      role,
-      phone: phone || team[index].phone || "",
-      facebook: facebook || team[index].facebook || "",
-      twitter: twitter || team[index].twitter || "",
-      instagram: instagram || team[index].instagram || "",
-      linkedin: linkedin || team[index].linkedin || "",
-    };
-    if (req.file) updatedMember.image = "uploads/" + req.file.filename;
+    if (index !== -1) {
+      const updatedMember = {
+        ...team[index],
+        name,
+        role,
+        phone: phone || team[index].phone || '',
+        facebook: facebook || team[index].facebook || '',
+        twitter: twitter || team[index].twitter || '',
+        instagram: instagram || team[index].instagram || '',
+        linkedin: linkedin || team[index].linkedin || ''
+      };
+      if (req.file) updatedMember.image = "uploads/" + req.file.filename;
 
-    await Settings.findOneAndUpdate({ "team.id": parseInt(id) }, { $set: { "team.$": updatedMember } });
-    res.json({ success: true, member: updatedMember });
-  } else {
-    res.status(404).json({ success: false, message: "Member not found" });
+      await Settings.findOneAndUpdate({ "team.id": parseInt(id) }, { $set: { "team.$": updatedMember } });
+      res.json({ success: true, member: updatedMember });
+    } else {
+      res.status(404).json({ success: false, message: "Member not found" });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
   }
 });
 
 // Rider Management
 app.post("/api/admin/riders/add", upload.single("riderImg"), async (req, res) => {
-  const { name, phone, vehicle } = req.body;
+  try {
+    const { name, phone, vehicle } = req.body;
 
-  const newRider = {
-    id: Date.now().toString(),
-    name,
-    phone,
-    vehicle: vehicle || "",
-    image: req.file
-      ? "uploads/" + req.file.filename
-      : "assets/img/team/team-1.jpg",
-  };
+    const newRider = {
+      id: Date.now().toString(),
+      name,
+      phone,
+      vehicle: vehicle || '',
+      image: req.file ? 'uploads/' + req.file.filename : 'assets/img/team/team-1.jpg'
+    };
 
-  await Settings.findOneAndUpdate({}, { $push: { riders: newRider } });
-  res.json({ success: true, rider: newRider });
+    await Settings.findOneAndUpdate({}, { $push: { riders: newRider } }, { upsert: true });
+    res.json({ success: true, rider: newRider });
+  } catch (e) {
+    console.error("Add Rider Error:", e);
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/riders/delete", async (req, res) => {
-  const { id } = req.body;
-  await Settings.findOneAndUpdate({}, { $pull: { riders: { id: id.toString() } } });
-  res.json({ success: true });
+  try {
+    const { id } = req.body;
+    await Settings.findOneAndUpdate({}, { $pull: { riders: { id: id.toString() } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/riders/update", upload.single("riderImg"), async (req, res) => {
-  const { id, name, phone, vehicle } = req.body;
-  const current = await getSettings();
-  const riders = current.riders || [];
-  const index = riders.findIndex((r) => r.id == id);
+  try {
+    const { id, name, phone, vehicle } = req.body;
+    const current = await getSettings();
+    const riders = current.riders || [];
+    const index = riders.findIndex((r) => r.id == id);
 
-  if (index !== -1) {
-    const updatedRider = {
-      ...riders[index],
-      name,
-      phone,
-      vehicle: vehicle || riders[index].vehicle || "",
-    };
-    if (req.file) updatedRider.image = "uploads/" + req.file.filename;
+    if (index !== -1) {
+      const updatedRider = {
+        ...riders[index],
+        name,
+        phone,
+        vehicle: vehicle || riders[index].vehicle || ''
+      };
+      if (req.file) updatedRider.image = "uploads/" + req.file.filename;
 
-    await Settings.findOneAndUpdate({ "riders.id": id.toString() }, { $set: { "riders.$": updatedRider } });
-    res.json({ success: true, rider: updatedRider });
-  } else {
-    res.status(404).json({ success: false, message: "Rider not found" });
+      await Settings.findOneAndUpdate({ "riders.id": id.toString() }, { $set: { "riders.$": updatedRider } });
+      res.json({ success: true, rider: updatedRider });
+    } else {
+      res.status(404).json({ success: false, message: "Rider not found" });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
   }
 });
 
 // Category Management
 app.post("/api/admin/category/add", async (req, res) => {
-  const { catId, catName } = req.body;
-  await Settings.findOneAndUpdate({}, { $push: { menuCategories: { id: catId, name: catName } } });
-  res.json({ success: true, category: { id: catId, name: catName } });
+  try {
+    const { catId, catName } = req.body;
+    await Settings.findOneAndUpdate({}, { $push: { menuCategories: { id: catId, name: catName } } }, { upsert: true });
+    res.json({ success: true, category: { id: catId, name: catName } });
+  } catch (e) {
+    console.error("Add Category Error:", e);
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/category/delete", async (req, res) => {
-  const { id } = req.body;
-  await Settings.findOneAndUpdate({}, { $pull: { menuCategories: { id: id } } });
-  res.json({ success: true });
+  try {
+    const { id } = req.body;
+    await Settings.findOneAndUpdate({}, { $pull: { menuCategories: { id: id } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/category/update", async (req, res) => {
-  const { oldId, catId, catName } = req.body;
-  await Settings.findOneAndUpdate({ "menuCategories.id": oldId }, { $set: { "menuCategories.$": { id: catId, name: catName } } });
-  res.json({ success: true });
+  try {
+    const { oldId, catId, catName } = req.body;
+    await Settings.findOneAndUpdate({ "menuCategories.id": oldId }, { $set: { "menuCategories.$": { id: catId, name: catName } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 // Promo Management
 app.post("/api/admin/promo/add", async (req, res) => {
-  const { code, discount } = req.body;
-  await Settings.findOneAndUpdate({}, { $push: { promoCodes: { code: code.toUpperCase(), discount: parseInt(discount) } } });
-  res.json({ success: true });
+  try {
+    const { code, discount } = req.body;
+    await Settings.findOneAndUpdate({}, { $push: { promoCodes: { code: code.toUpperCase(), discount: parseInt(discount) } } }, { upsert: true });
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Add Promo Error:", e);
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 app.post("/api/admin/promo/delete", async (req, res) => {
-  const { code } = req.body;
-  await Settings.findOneAndUpdate({}, { $pull: { promoCodes: { code: code } } });
-  res.json({ success: true });
+  try {
+    const { code } = req.body;
+    await Settings.findOneAndUpdate({}, { $pull: { promoCodes: { code: code } } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 });
 
 // --- BACKUPS (Legacy or Cloud) ---
