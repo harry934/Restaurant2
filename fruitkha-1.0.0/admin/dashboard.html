@@ -337,28 +337,8 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
-                        <h5 class="font-weight-bold mb-3">Top Selling Categories</h5>
-                        <div style="height: 250px;">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                 <div class="col-md-6">
-                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
-                        <h5 class="font-weight-bold mb-3">Customer Growth (New vs Returning)</h5>
-                        <div style="height: 250px;">
-                            <canvas id="customerChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-
-            <!-- Feedback Section -->
-            <div class="row mt-4">
+            <!-- Feedback Section (Moved Here) -->
+            <div class="row mb-4">
                 <div class="col-12">
                     <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
                         <h5 class="font-weight-bold mb-3">Recent Customer Feedback (Anonymous)</h5>
@@ -380,6 +360,28 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-3">Top Selling Categories</h5>
+                        <div style="height: 250px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-md-6">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-3">Customer Growth (New vs Returning)</h5>
+                        <div style="height: 250px;">
+                            <canvas id="customerChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+
         </div>
 
         <!-- Menu Management View -->
@@ -479,37 +481,48 @@
                         </form>
 
                         <hr class="my-4">
-                        <h6 class="font-weight-bold small text-uppercase text-danger mb-3">Homepage "About" Video Section</h6>
-                        <form id="homeAboutForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group"><label class="small font-weight-bold">Section Title</label><input type="text" name="title" class="form-control" placeholder="Since 2019"></div>
-                                    <div class="form-group"><label class="small font-weight-bold">Main Heading</label><input type="text" name="heading" class="form-control" placeholder="We are Pizza Chick n Crust"></div>
-                                    <div class="form-group"><label class="small font-weight-bold">Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">Video Source</label>
-                                        <div class="custom-control custom-switch mb-2">
-                                            <input type="checkbox" class="custom-control-input" id="isVideoLocal" name="isVideoLocal">
-                                            <label class="custom-control-label" for="isVideoLocal">Use Uploaded Video</label>
+                        <hr class="my-5">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-10">
+                                <h6 class="font-weight-bold small text-uppercase text-danger mb-4 text-center">Homepage "About" Video Section</h6>
+                                <form id="homeAboutForm">
+                                    <div class="card bg-light border-0 p-4" style="border-radius: 15px;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group"><label class="small font-weight-bold text-muted">Section Title</label><input type="text" name="title" class="form-control form-control-sm" placeholder="Since 2019"></div>
+                                                <div class="form-group"><label class="small font-weight-bold text-muted">Main Heading</label><input type="text" name="heading" class="form-control form-control-sm" placeholder="We are Pizza Chick n Crust"></div>
+                                                <div class="form-group"><label class="small font-weight-bold text-muted">Description</label><textarea name="description" class="form-control form-control-sm" rows="3"></textarea></div>
+                                            </div>
+                                            <div class="col-md-6 border-left">
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-muted">Video Source</label>
+                                                    <div class="custom-control custom-switch mb-2">
+                                                        <input type="checkbox" class="custom-control-input" id="isVideoLocal" name="isVideoLocal">
+                                                        <label class="custom-control-label small" for="isVideoLocal">Use Uploaded Video</label>
+                                                    </div>
+                                                    <input type="text" name="videoLink" class="form-control form-control-sm mb-2" placeholder="Youtube URL or file path">
+                                                    
+                                                    <div class="custom-file mt-2">
+                                                        <input type="file" class="custom-file-input" id="videoUpload" accept="video/mp4,video/webm">
+                                                        <label class="custom-file-label small" for="videoUpload">Choose Video...</label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group mt-3">
+                                                    <label class="small font-weight-bold text-muted">Background Image</label>
+                                                    <div class="custom-file">
+                                                        <input type="file" class="custom-file-input" id="homeAboutImageInput">
+                                                        <label class="custom-file-label small" for="homeAboutImageInput">Choose Image...</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <input type="text" name="videoLink" class="form-control mb-2" placeholder="Youtube URL or file path">
-                                        
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" id="videoUpload" accept="video/mp4,video/webm">
-                                            <label class="custom-file-label" for="videoUpload">Upload Video File</label>
+                                        <div class="text-center mt-3">
+                                            <button type="submit" class="btn btn-danger px-4 py-2 shadow-sm" style="border-radius: 50px; font-size: 0.9rem; font-weight: 600;">Update Video Section</button>
                                         </div>
-                                        <small class="text-muted">Uploads will auto-fill the path.</small>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">Background Image</label>
-                                        <input type="file" id="homeAboutImageInput" class="form-control-file">
-                                    </div>
-                                </div>
+                                </form>
                             </div>
-                            <button type="submit" class="btn btn-danger btn-block py-2" style="border-radius: 10px;">UPDATE ABOUT SECTION</button>
-                        </form>
+                        </div>
 
 
                         <hr class="my-4">
