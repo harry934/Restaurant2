@@ -157,6 +157,10 @@
             $(".search-area").removeClass("search-active");
         });
     
+        // Auto-close meanmenu on link click
+        $('.mean-nav a').on('click', function() {
+            $('.meanmenu-reveal').click();
+        });
     });
 
 
