@@ -526,12 +526,8 @@ async function rateOrder(orderId, rating, feedback) {
             body: JSON.stringify({ id: orderId, rating, feedback })
         });
         const data = await res.json();
-        if (data.success) {
-            showNotification('Thank You!', 'Your feedback helps us improve.', 'success');
-            return true;
-        }
-    } catch (e) { console.error(e); }
-    return false;
+        return data;
+    } catch (e) { console.error(e); return { success: false, message: e.message }; }
 }
 
 // Init

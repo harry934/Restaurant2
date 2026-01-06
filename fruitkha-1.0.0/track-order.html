@@ -518,12 +518,12 @@
                 return;
             }
             $(this).prop('disabled', true).text('Submitting...');
-            const success = await rateOrder(orderId, currentRating, feedback);
-            if (success) {
+            const res = await rateOrder(orderId, currentRating, feedback);
+            if (res.success) {
                 $('#ratingArea').html('<div class="alert alert-success mt-3" style="border-radius:12px;">Thank you for your feedback! ❤️</div>');
             } else {
                 $(this).prop('disabled', false).text('Submit Feedback');
-                alert('Submission failed. Please try again.');
+                alert('Submission failed: ' + (res.message || 'Unknown error'));
             }
         });
 
