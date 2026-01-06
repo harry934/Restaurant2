@@ -247,18 +247,7 @@
                         <h2 style="font-weight: 900;">THANK YOU FOR ORDERING!</h2>
                         <p class="text-muted">We hope you enjoyed your meal from PCnC Restaurant.</p>
                         
-                        <div id="ratingArea" class="mt-5 p-4" style="background: #fdfdfd; border-radius: 20px; border: 1px solid #eee;">
-                            <h5 class="font-weight-bold mb-3">How was your meal?</h5>
-                            <div class="stars mb-3" style="font-size: 1.8rem; color: #ddd; cursor: pointer;">
-                                <i class="fas fa-star star-btn" data-val="1"></i>
-                                <i class="fas fa-star star-btn" data-val="2"></i>
-                                <i class="fas fa-star star-btn" data-val="3"></i>
-                                <i class="fas fa-star star-btn" data-val="4"></i>
-                                <i class="fas fa-star star-btn" data-val="5"></i>
-                            </div>
-                            <textarea id="feedbackText" class="form-control mb-3" placeholder="Any feedback for us?" style="border-radius: 12px; border: 1px solid #eee;"></textarea>
-                            <button id="submitRatingBtn" class="btn btn-dark px-4" style="border-radius: 10px; font-weight: 700;">Submit Feedback</button>
-                        </div>
+
 
                         <a href="shop.html" class="btn btn-primary px-5 py-3 mt-4" style="border-radius: 15px; font-weight: 800;">ORDER AGAIN</a>
                     </div>
@@ -502,31 +491,7 @@
 		// Initialize
         renderOrderList();
         verifyAllOrders();
-        // Rating Logic
-        let currentRating = 0;
-        $(document).on('click', '.star-btn', function() {
-            currentRating = $(this).data('val');
-            $('.star-btn').css('color', '#ddd');
-            for(let i=0; i<currentRating; i++) {
-                $('.star-btn').eq(i).css('color', '#ffc107');
-            }
-        });
 
-        $('#submitRatingBtn').click(async function() {
-            const feedback = $('#feedbackText').val();
-            if (currentRating === 0) {
-                alert('Please select a star rating');
-                return;
-            }
-            $(this).prop('disabled', true).text('Submitting...');
-            const res = await rateOrder(orderId, currentRating, feedback);
-            if (res.success) {
-                $('#ratingArea').html('<div class="alert alert-success mt-3" style="border-radius:12px;">Thank you for your feedback! ❤️</div>');
-            } else {
-                $(this).prop('disabled', false).text('Submit Feedback');
-                alert('Submission failed: ' + (res.message || 'Unknown error'));
-            }
-        });
 
 		setInterval(trackOrder, 5000);
 		trackOrder();

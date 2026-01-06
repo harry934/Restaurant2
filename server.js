@@ -180,27 +180,7 @@ app.post("/api/validate-promo", async (req, res) => {
   }
 });
 
-// 3. Rate Order
-app.post("/api/order/rate", async (req, res) => {
-  const { id, rating, feedback } = req.body;
-  
-  // Clean rating
-  const r = parseInt(rating);
-  if (isNaN(r) || r < 1 || r > 5) return res.status(400).json({ success: false, message: "Invalid rating" });
 
-  const updated = await Order.findOneAndUpdate(
-    { id: id }, 
-    { rating: r, feedback: feedback || '' }, 
-    { new: true }
-  );
-
-  if (updated) {
-    await syncOrderLog(id, { rating: r, feedback: feedback || '' });
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ success: false, message: "Order not found in database" });
-  }
-});
 
 // Admin Menu Management (with file upload)
 app.post("/api/admin/menu/add", upload.single('imageFile'), async (req, res) => {
@@ -871,9 +851,7 @@ app.get("/api/admin/export", async (req, res) => {
       { header: "Items Ordered", key: "items", width: 40 },
       { header: "Total (KES)", key: "totalAmount", width: 12 },
       { header: "Payment Status", key: "paymentStatus", width: 15 },
-      { header: "Order Status", key: "status", width: 15 },
-      { header: "Rating", key: "rating", width: 10 },
-      { header: "Feedback", key: "feedback", width: 30 }
+      { header: "Order Status", key: "status", width: 15 }
     ];
     
     // Style header
@@ -893,9 +871,7 @@ app.get("/api/admin/export", async (req, res) => {
         items: itemsStr,
         totalAmount: o.totalAmount,
         paymentStatus: o.paymentStatus,
-        status: o.status,
-        rating: o.rating || '',
-        feedback: o.feedback || ''
+        status: o.status
       });
     });
     
@@ -909,25 +885,7 @@ app.get("/api/admin/export", async (req, res) => {
   }
 });
 
-// Order Rating
-app.post("/api/order/rate", async (req, res) => {
-  const { id, rating, feedback } = req.body;
-  try {
-    const updated = await Order.findOneAndUpdate(
-      { id: id }, 
-      { rating: parseInt(rating), feedback: feedback },
-      { new: true }
-    );
-    if (updated) {
-      await syncOrderLog(id, { rating: parseInt(rating), feedback: feedback });
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ success: false, message: "Order not found" });
-    }
-  } catch (e) {
-    res.status(500).json({ success: false });
-  }
-});
+
 
 // 5. Admin: Login (Environment Variable Based)
 app.post("/api/admin/login", (req, res) => {

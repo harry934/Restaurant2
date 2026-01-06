@@ -337,29 +337,7 @@
                 </div>
             </div>
 
-            <!-- Feedback Section (Moved Here) -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
-                        <h5 class="font-weight-bold mb-3">Recent Customer Feedback (Anonymous)</h5>
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-borderless">
-                                <thead class="text-muted small text-uppercase">
-                                    <tr>
-                                        <th>Rating</th>
-                                        <th>Feedback</th>
-                                        <th>Date</th>
-                                        <th>Order ID</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="feedbackTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="row">
                 <div class="col-md-6">
@@ -1337,40 +1315,6 @@
                     }
                 });
             }
-            
-            // 4. Render Feedback
-            renderFeedback();
-        }
-        
-        function renderFeedback() {
-            const tbody = $('#feedbackTableBody');
-            tbody.empty();
-            
-            // Filter orders with ratings
-            const ratedOrders = allOrders.filter(o => o.rating && o.rating > 0);
-            
-            if (ratedOrders.length === 0) {
-                tbody.html('<tr><td colspan="4" class="text-center text-muted">No feedback yet.</td></tr>');
-                return;
-            }
-            
-            ratedOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            ratedOrders.slice(0, 10).forEach(o => {
-                let stars = '';
-                for(let i=0; i<5; i++) {
-                    stars += i < o.rating ? '<i class="fas fa-star text-warning"></i>' : '<i class="far fa-star text-muted"></i>';
-                }
-                
-                tbody.append(`
-                    <tr>
-                        <td>${stars}</td>
-                        <td class="text-wrap" style="max-width: 300px;">"${o.feedback || 'No comment'}"</td>
-                        <td class="small text-muted">${new Date(o.date).toLocaleDateString()}</td>
-                        <td class="small">#${o.id.slice(-6).toUpperCase()}</td>
-                    </tr>
-                `);
-            });
         }
 
         function renderOrders() {

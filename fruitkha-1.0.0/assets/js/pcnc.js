@@ -518,17 +518,7 @@ async function applyPromoCode() {
     }
 }
 
-async function rateOrder(orderId, rating, feedback) {
-    try {
-        const res = await fetch('/api/order/rate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: orderId, rating, feedback })
-        });
-        const data = await res.json();
-        return data;
-    } catch (e) { console.error(e); return { success: false, message: e.message }; }
-}
+
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
