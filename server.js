@@ -183,8 +183,19 @@ app.post("/api/validate-promo", async (req, res) => {
 // 3. Rate Order
 app.post("/api/order/rate", async (req, res) => {
   const { id, rating, feedback } = req.body;
-  const updated = await Order.findOneAndUpdate({ id }, { rating, feedback }, { new: true });
+  
+  // Clean rating
+  const r = parseInt(rating);
+  if (isNaN(r) || r < 1 || r > 5) return res.status(400).json({ success: false, message: "Invalid rating" });
+
+  const updated = await Order.findOneAndUpdate(
+    { id: id }, 
+    { rating: r, feedback: feedback || '' }, 
+    { new: true }
+  );
+
   if (updated) {
+    await syncOrderLog(id, { rating: r, feedback: feedback || '' });
     res.json({ success: true });
   } else {
     res.status(404).json({ success: false });
@@ -302,6 +313,59 @@ app.post("/api/admin/settings/upload", upload.single('mediaFile'), (req, res) =>
   } else {
     res.status(400).json({ success: false, message: "No file uploaded" });
   }
+});
+
+// Home About Section Update (Video/Image)
+app.post("/api/admin/settings/home-about", upload.fields([{ name: 'videoFile', maxCount: 1 }, { name: 'abtImage', maxCount: 1 }]), async (req, res) => {
+    try {
+        const { title, heading, description, videoLink, isVideoLocal } = req.body;
+        
+        const homeAbout = {
+            title,
+            heading,
+            description,
+            videoLink: videoLink || '',
+            isVideoLocal: isVideoLocal === 'on' || isVideoLocal === 'true' // Checkbox logic
+        };
+
+        // Handle File Uploads
+        if (req.files['videoFile']) {
+            homeAbout.videoLink = 'uploads/' + req.files['videoFile'][0].filename;
+            homeAbout.isVideoLocal = true;
+        }
+        
+        if (req.files['abtImage']) {
+            homeAbout.abtImage = 'uploads/' + req.files['abtImage'][0].filename;
+        } else {
+            // Keep existing image if not provided?
+            // Need to fetch existing first, or UI should send existing path.
+            // Simplified: If not uploaded, we don't overwrite if it wasn't sent.
+            // But here we overwrite 'homeAbout' object in Settings.
+            // Ideally we merge.
+            const current = await getSettings();
+            if (current.homeAbout && current.homeAbout.abtImage) {
+                homeAbout.abtImage = current.homeAbout.abtImage;
+            }
+        }
+
+        // If no new video file but videoLink is provided, use that.
+        // If neither, preserve existing?
+        if (!process.env.RESET_VIDEO && !homeAbout.videoLink) {
+             const current = await getSettings();
+             if (current.homeAbout && current.homeAbout.videoLink) {
+                 homeAbout.videoLink = current.homeAbout.videoLink;
+                 homeAbout.isVideoLocal = current.homeAbout.isVideoLocal;
+             }
+        }
+
+        // Update Settings
+        await Settings.findOneAndUpdate({}, { $set: { homeAbout: homeAbout } }, { upsert: true });
+        
+        res.json({ success: true, homeAbout });
+    } catch (e) {
+        console.error("Home About Error:", e);
+        res.status(500).json({ success: false, message: e.message });
+    }
 });
 
 // Team Management

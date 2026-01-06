@@ -342,16 +342,22 @@
                     if (data.dealOfWeek.subtitle) document.getElementById('dealSubtitle').innerText = data.dealOfWeek.subtitle;
                     if (data.dealOfWeek.description) document.getElementById('dealDescription').innerText = data.dealOfWeek.description;
                     if (data.dealOfWeek.image) {
-                        const imgPath = data.dealOfWeek.image.startsWith('/') ? data.dealOfWeek.image : '/' + data.dealOfWeek.image;
-                        document.getElementById('dealImage').src = imgPath;
+                        let imgPath = data.dealOfWeek.image;
+                        if (!imgPath.startsWith('http') && !imgPath.startsWith('/')) imgPath = '/' + imgPath;
+                        const dImg = document.getElementById('dealImage');
+                        dImg.src = imgPath;
+                        dImg.onerror = function() { this.src = 'assets/img/traditional-supreme-pizza-isolated-white-background.jpg'; };
                     }
                 }
 
                 // Home About
                 if (data.homeAbout) {
                     if (data.homeAbout.abtImage) {
-                        const imgPath = data.homeAbout.abtImage.startsWith('/') ? data.homeAbout.abtImage : '/' + data.homeAbout.abtImage;
-                        document.getElementById('homeAboutImage').style.backgroundImage = `url("${imgPath}")`;
+                        let imgPath = data.homeAbout.abtImage;
+                        if (!imgPath.startsWith('http') && !imgPath.startsWith('/')) imgPath = '/' + imgPath;
+                        // For background image, we can't easily use onerror. We trust the path or use fetch check?
+                        // Fallback logic: set valid bg.
+                        document.getElementById('homeAboutImage').style.backgroundImage = `url("${imgPath}"), url("assets/img/feature-bg.jpg")`; 
                     }
                     if (data.homeAbout.title) document.getElementById('homeAboutTitle').innerText = data.homeAbout.title;
                     if (data.homeAbout.heading) document.getElementById('homeAboutHeading').innerHTML = data.homeAbout.heading;
