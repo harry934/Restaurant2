@@ -161,8 +161,15 @@
 
 
     jQuery(window).on("load",function(){
-        jQuery(".loader").fadeOut(1000);
+        jQuery(".loader").fadeOut(300);
     });
+
+    // Safety timeout: force hide loader if it takes more than 1.2 seconds
+    setTimeout(function() {
+        if (jQuery(".loader").is(":visible")) {
+            jQuery(".loader").fadeOut(300);
+        }
+    }, 1200);
 
 
 }(jQuery));
