@@ -596,30 +596,32 @@
   }
 
   /* Ensure mobile menu is visible and pretty */
+  /* Ensure mobile menu is visible and pretty */
   .mean-container .mean-bar {
     background: transparent !important;
     position: absolute !important;
-    right: 15px !important;
-    top: 50% !important;
-    transform: translateY(-50%);
+    right: 20px !important;
+    top: 30px !important;
     padding: 0 !important;
     min-height: auto !important;
-    z-index: 9999 !important;
+    z-index: 999999 !important;
+    width: auto !important;
   }
 
   .mean-container a.meanmenu-reveal {
     color: #fff !important;
     background: #e7252d !important;
-    border-radius: 12px;
-    padding: 12px 14px !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    box-shadow: 0 4px 15px rgba(231, 37, 45, 0.4);
-    text-indent: 0 !important;
-    width: auto !important;
+    border-radius: 5px;
+    padding: 10px 12px !important;
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    margin-top: -5px;
   }
+
 
   .mean-container a.meanmenu-reveal span {
     background-color: #fff !important;
