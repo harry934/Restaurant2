@@ -198,7 +198,7 @@ app.post("/api/order/rate", async (req, res) => {
     await syncOrderLog(id, { rating: r, feedback: feedback || '' });
     res.json({ success: true });
   } else {
-    res.status(404).json({ success: false });
+    res.status(404).json({ success: false, message: "Order not found in database" });
   }
 });
 
