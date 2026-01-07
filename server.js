@@ -126,8 +126,8 @@ const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve Static Files
 app.use(express.static(path.join(__dirname, "fruitkha-1.0.0")));
@@ -472,11 +472,12 @@ app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
       linkedin: linkedin || "",
     };
 
-    // Use upsert to create Settings doc if missing
-    await Settings.findOneAndUpdate(
-      {},
+    // Use ID-based update for safety
+    const settings = await getSettings();
+    await Settings.findByIdAndUpdate(
+      settings._id,
       { $push: { team: newMember } },
-      { upsert: true }
+      { new: true }
     );
     res.json({ success: true, member: newMember });
   } catch (e) {
@@ -617,10 +618,11 @@ app.post(
 app.post("/api/admin/category/add", async (req, res) => {
   try {
     const { catId, catName } = req.body;
-    await Settings.findOneAndUpdate(
-      {},
+    const settings = await getSettings();
+    await Settings.findByIdAndUpdate(
+      settings._id,
       { $push: { menuCategories: { id: catId, name: catName } } },
-      { upsert: true }
+      { new: true }
     );
     res.json({ success: true, category: { id: catId, name: catName } });
   } catch (e) {
