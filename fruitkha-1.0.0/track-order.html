@@ -16,6 +16,10 @@
 	<link rel="stylesheet" href="assets/css/main.css?v=1.1">
 	<!-- responsive -->
 	<link rel="stylesheet" href="assets/css/responsive.css?v=1.1">
+    
+    <!-- Leaflet Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         .tracking-container {
             background: #fff;
@@ -137,6 +141,53 @@
         }
         .badge-pending { background: #fff3cd; color: #856404; }
         .badge-paid { background: #d4edda; color: #155724; }
+        /* Timeline Mobile Responsiveness */
+        @media only screen and (max-width: 767px) {
+            .tracking-container {
+                padding: 30px 20px;
+                margin-top: -50px;
+                border-radius: 20px;
+            }
+            .status-timeline {
+                flex-direction: column;
+                align-items: flex-start;
+                margin: 40px 0;
+                padding-left: 40px;
+            }
+            .status-timeline::before {
+                top: 0;
+                bottom: 0;
+                left: 27px;
+                width: 3px;
+                height: 100%;
+            }
+            .status-step {
+                flex-direction: row;
+                display: flex;
+                align-items: center;
+                text-align: left;
+                width: 100%;
+                margin-bottom: 40px;
+            }
+            .status-step:last-child {
+                margin-bottom: 0;
+            }
+            .step-icon {
+                margin: 0 20px 0 -27px;
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+            .step-label {
+                font-size: 0.75rem;
+                margin-top: 0;
+            }
+            .status-step.active .step-icon {
+                transform: scale(1.1);
+            }
+        }
+
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -258,6 +309,22 @@
 							</div>
 						</div>
 					</div>
+
+                    <!-- Map Tracking Section -->
+                    <div id="trackingMapSection" style="display: none; margin-top: 30px;" class="fade-in">
+                        <div class="order-info-card p-0" style="overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                            <div style="background: #1a1a1a; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+                                <h6 style="color: #fff; margin: 0; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    <i class="fas fa-map-marked-alt mr-2 text-danger"></i> Delivery Destination
+                                </h6>
+                                <span class="badge badge-danger">Live Location</span>
+                            </div>
+                            <div id="trackingMap" style="height: 300px; background: #eee;"></div>
+                            <div class="p-3 bg-white text-center">
+                                <p class="small text-muted mb-0"><i class="fas fa-info-circle mr-1"></i> This is the pinpointed location for your delivery.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Thank You Message -->
                     <div id="thankYouSection" class="text-center py-5" style="display: none;">
@@ -483,6 +550,14 @@
                     }
                 }
             });
+            
+            // Map Logic
+            if (order.lat && order.lng) {
+                $('#trackingMapSection').show();
+                initTrackingMap(order.lat, order.lng, order.id);
+            } else {
+                $('#trackingMapSection').hide();
+            }
 
             // Cleanup: If order is completed, remove from local list to keep it fresh
             if (order.status === 'Completed') {
@@ -504,6 +579,37 @@
                 myOrderIds = validOrders;
                 renderOrderList();
             }
+        }
+
+        let trackingMap;
+        function initTrackingMap(lat, lng, orderId) {
+            setTimeout(() => {
+                const mapDiv = document.getElementById('trackingMap');
+                if (!mapDiv) return;
+
+                if (trackingMap) {
+                    trackingMap.setView([lat, lng], 17);
+                    // Update marker if needed or just leave it
+                    return;
+                }
+
+                trackingMap = L.map('trackingMap', {
+                    dragging: !L.Browser.mobile,
+                    tap: !L.Browser.mobile
+                }).setView([lat, lng], 17);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(trackingMap);
+
+                L.marker([lat, lng], {
+                    icon: L.icon({
+                        iconUrl: 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40]
+                    })
+                }).addTo(trackingMap)
+                .bindPopup(`<b>Your Delivery Point</b><br>Order #${orderId.slice(-6).toUpperCase()}`)
+                .openPopup();
+            }, 500);
         }
 
 		// Initialize

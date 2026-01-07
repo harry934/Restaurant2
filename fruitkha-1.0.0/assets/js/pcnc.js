@@ -27,7 +27,9 @@ function showNotification(title, message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `pcnc-toast ${type}`;
     
-    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    let icon = 'fa-check-circle';
+    if (type === 'error') icon = 'fa-times-circle';
+    if (type === 'info') icon = 'fa-info-circle';
     
     toast.innerHTML = `
         <i class="fas ${icon}"></i>
@@ -349,6 +351,9 @@ async function submitOrder(e) {
         btn.disabled = true;
     }
 
+    const lat = document.getElementById('lat') ? document.getElementById('lat').value : null;
+    const lng = document.getElementById('lng') ? document.getElementById('lng').value : null;
+
     try {
         const res = await fetch('/api/order', {
             method: 'POST',
@@ -357,6 +362,8 @@ async function submitOrder(e) {
                 customerName,
                 phoneNumber,
                 location,
+                lat,
+                lng,
                 notes,
                 paymentMethod,
                 items: cart,

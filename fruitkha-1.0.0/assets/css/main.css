@@ -2874,3 +2874,104 @@ table.order-details tbody td {
 .sticky-wrapper.is-sticky .header-icons a {
   padding: 5px 10px;
 }
+
+/* Professional Notification System */
+.pcnc-notification-container {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.pcnc-toast {
+    position: relative;
+    min-width: 320px;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    pointer-events: auto;
+    animation: toast-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    overflow: hidden;
+}
+
+.pcnc-toast::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: currentColor;
+    width: 100%;
+    animation: toast-progress 4s linear forwards;
+}
+
+.pcnc-toast.success { color: #116940; border-left: 5px solid #116940; }
+.pcnc-toast.error { color: #e7252d; border-left: 5px solid #e7252d; }
+.pcnc-toast.info { color: #17a2b8; border-left: 5px solid #17a2b8; }
+
+.pcnc-toast i {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.pcnc-toast-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.pcnc-toast-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+}
+
+.pcnc-toast-msg {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+.pcnc-toast.fade-out {
+    animation: toast-out 0.4s ease forwards;
+}
+
+@keyframes toast-in {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toast-out {
+    from { transform: translateX(0) scale(1); opacity: 1; }
+    to { transform: translateX(50px) scale(0.9); opacity: 0; }
+}
+
+@keyframes toast-progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+@media (max-width: 576px) {
+    .pcnc-notification-container {
+        top: auto;
+        bottom: 90px;
+        left: 20px;
+        right: 20px;
+    }
+    .pcnc-toast {
+        min-width: auto;
+        width: 100%;
+    }
+}

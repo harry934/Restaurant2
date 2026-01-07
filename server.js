@@ -49,6 +49,8 @@ const OrderSchema = new mongoose.Schema({
   feedback: String,
   estimatedTime: String,
   assignedRiderId: String,
+  lat: Number,
+  lng: Number,
 });
 
 const MenuSchema = new mongoose.Schema({
@@ -747,6 +749,8 @@ app.post("/api/order", async (req, res) => {
     customerName,
     phoneNumber,
     location,
+    lat,
+    lng,
     notes,
     items,
     totalAmount,
@@ -767,6 +771,8 @@ app.post("/api/order", async (req, res) => {
     customerName,
     phoneNumber,
     location: location || "Pick Up",
+    lat: lat ? parseFloat(lat) : null,
+    lng: lng ? parseFloat(lng) : null,
     notes: notes || "",
     items,
     totalAmount,
@@ -925,6 +931,8 @@ app.get("/api/order/:id", async (req, res) => {
         totalAmount: order.totalAmount,
         estimatedTime: order.estimatedTime,
         assignedRider: riderInfo,
+        lat: order.lat,
+        lng: order.lng,
       },
     });
   } else {

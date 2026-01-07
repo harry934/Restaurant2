@@ -30,6 +30,45 @@
 	<link rel="stylesheet" href="assets/css/main.css">
 	<!-- responsive -->
 	<link rel="stylesheet" href="assets/css/responsive.css">
+    
+    <!-- Leaflet Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #locationMap {
+            height: 250px;
+            width: 100%;
+            border-radius: 20px;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 2px solid #fff;
+            display: none;
+        }
+        .locate-btn {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #fff;
+            border: none;
+            color: #e7252d;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 50%;
+            transition: 0.3s;
+            z-index: 5;
+        }
+        .locate-btn:hover { background: #e7252d; color: #fff; }
+        .location-suggestion-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .location-suggestion-item:hover { background: #f9f9f9; color: #e7252d; }
+        .location-suggestion-item i { margin-right: 15px; color: #888; }
+    </style>
 
 </head>
 <body>
@@ -121,16 +160,24 @@
 										<input type="tel" id="phone" placeholder="07XXXXXXXX" required style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 									</div>
 									<div class="col-md-12 mb-4">
-										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Delivery Location</label>
+										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Search Delivery Area</label>
 										<div class="location-search-container" style="position: relative;">
-											<input type="text" id="address" placeholder="Search area (e.g. USIU, Roysambu...)" required autocomplete="off" style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
-											<i class="fas fa-map-marker-alt" style="position: absolute; right: 25px; top: 50%; transform: translateY(-50%); color: #e7252d;"></i>
+											<input type="text" id="address" placeholder="e.g. USIU, Roysambu, Total Petrol Station..." required autocomplete="off" style="width: 100%; padding: 15px 110px 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
+											<button type="button" class="locate-btn" onclick="locateMe()" title="Use my current location">
+                                                <i class="fas fa-location-arrow"></i>
+                                            </button>
+                                            <i class="fas fa-map-marker-alt" style="position: absolute; right: 25px; top: 50%; transform: translateY(-50%); color: #e7252d;"></i>
 											
-											<div id="location-suggestions" style="position: absolute; top: 110%; left: 0; right: 0; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; display: none; overflow: hidden;">
+											<div id="location-suggestions" style="position: absolute; top: 110%; left: 0; right: 0; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1000; display: none; overflow: hidden; border: 1px solid #eee;">
 												<!-- Populated by JS -->
 											</div>
 										</div>
-										<small style="color: #e7252d; font-weight: 700; margin-left: 15px; margin-top: 5px; display: block;">* We deliver within ROYSAMBU & USIU areas.</small>
+                                        <div id="locationMap"></div>
+                                        <input type="hidden" id="lat">
+                                        <input type="hidden" id="lng">
+										<small style="color: #666; font-weight: 600; margin-left: 15px; margin-top: 8px; display: block;">
+                                            <i class="fas fa-info-circle mr-1"></i> Drag the red marker to pinpoint your exact door.
+                                        </small>
 									</div>
 									<div class="col-md-12">
 										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Note to Chef / Rider (Optional)</label>
@@ -351,9 +398,123 @@
 	<script src="assets/js/jquery.meanmenu.min.js"></script>
 	<!-- sticker js -->
 	<script src="assets/js/sticker.js"></script>
-	<!-- main js -->
-	<script src="assets/js/main.js"></script>
-    <script src="assets/js/pcnc.js?v=1.1"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, marker, searchTimeout;
+        const defaultPos = [-1.2185, 36.8837]; // Roysambu Center
+
+        function initCheckoutMap() {
+            if (map) return;
+            
+            $("#locationMap").fadeIn();
+            map = L.map('locationMap').setView(defaultPos, 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            marker = L.marker(defaultPos, { draggable: true, icon: L.icon({
+                iconUrl: 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-512.png',
+                iconSize: [40, 40],
+                iconAnchor: [20, 40]
+            }) }).addTo(map);
+
+            marker.on('dragend', function() {
+                const pos = marker.getLatLng();
+                document.getElementById('lat').value = pos.lat;
+                document.getElementById('lng').value = pos.lng;
+            });
+            
+            // Initial coords
+            document.getElementById('lat').value = defaultPos[0];
+            document.getElementById('lng').value = defaultPos[1];
+        }
+
+        function locateMe() {
+            if (!navigator.geolocation) {
+                showNotification('Error', 'Geolocation not supported by your browser.', 'error');
+                return;
+            }
+
+            showNotification('Locating...', 'Please allow location access to pinpoint your house.', 'info');
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    
+                    initCheckoutMap();
+                    map.setView([lat, lng], 18);
+                    marker.setLatLng([lat, lng]);
+                    document.getElementById('lat').value = lat;
+                    document.getElementById('lng').value = lng;
+                    
+                    // Reverse geocode to get name (simple version)
+                    fetch(`https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.features && data.features.length > 0) {
+                                const feat = data.features[0].properties;
+                                const name = [feat.name, feat.street, feat.city].filter(Boolean).join(', ');
+                                document.getElementById('address').value = name;
+                                showNotification('Located!', 'We found your area: ' + (feat.name || 'Current Position'), 'success');
+                            }
+                        });
+                },
+                (err) => {
+                    showNotification('Location Denied', 'Couldn\'t get your GPS position. Please search manually.', 'error');
+                }
+            );
+        }
+
+        // Live Search with Photon
+        document.getElementById('address').addEventListener('input', function(e) {
+            const query = e.target.value;
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 3) {
+                $('#location-suggestions').hide();
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=-1.2185&lon=36.8837&limit=5`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const container = $('#location-suggestions').empty();
+                        if (data.features.length > 0) {
+                            data.features.forEach(f => {
+                                const p = f.properties;
+                                const label = [p.name, p.street, p.city].filter(Boolean).join(', ');
+                                container.append(`
+                                    <div class="location-suggestion-item" onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${label.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <div>
+                                            <div style="font-weight: 700;">${p.name || ''}</div>
+                                            <div style="font-size: 0.75rem; color: #888;">${label}</div>
+                                        </div>
+                                    </div>
+                                `);
+                            });
+                            container.show();
+                        } else {
+                            container.hide();
+                        }
+                    });
+            }, 300);
+        });
+
+        function selectLocation(lat, lng, label) {
+            document.getElementById('address').value = label;
+            document.getElementById('lat').value = lat;
+            document.getElementById('lng').value = lng;
+            $('#location-suggestions').hide();
+            
+            initCheckoutMap();
+            map.setView([lat, lng], 17);
+            marker.setLatLng([lat, lng]);
+        }
+    </script>
 
 	<!-- Mobile Bottom Nav -->
 	<div class="mobile-bottom-nav">
