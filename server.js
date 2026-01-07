@@ -376,12 +376,18 @@ app.post("/api/admin/settings/update", async (req, res) => {
 });
 
 // Media Upload (for deal image, home about video, etc.)
+// Media Upload (for deal image, etc.)
 app.post(
   "/api/admin/settings/upload",
   upload.single("mediaFile"),
-  (req, res) => {
+  async (req, res) => {
     if (req.file) {
-      res.json({ success: true, filePath: "uploads/" + req.file.filename });
+      try {
+        const dbPath = await saveImageToMongoDB(req.file, 'settings');
+        res.json({ success: true, filePath: dbPath });
+      } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+      }
     } else {
       res.status(400).json({ success: false, message: "No file uploaded" });
     }
@@ -404,32 +410,26 @@ app.post(
         heading,
         description,
         videoLink: videoLink || "",
-        isVideoLocal: isVideoLocal === "on" || isVideoLocal === "true", // Checkbox logic
+        isVideoLocal: isVideoLocal === "on" || isVideoLocal === "true",
       };
 
       // Handle File Uploads
       if (req.files["videoFile"]) {
-        homeAbout.videoLink = "uploads/" + req.files["videoFile"][0].filename;
+        // Warning: MongoDB Document size limit is 16MB. Large videos will fail.
+        homeAbout.videoLink = await saveImageToMongoDB(req.files["videoFile"][0], 'home-video');
         homeAbout.isVideoLocal = true;
       }
 
       if (req.files["abtImage"]) {
-        homeAbout.abtImage = "uploads/" + req.files["abtImage"][0].filename;
+        homeAbout.abtImage = await saveImageToMongoDB(req.files["abtImage"][0], 'home-image');
       } else {
-        // Keep existing image if not provided?
-        // Need to fetch existing first, or UI should send existing path.
-        // Simplified: If not uploaded, we don't overwrite if it wasn't sent.
-        // But here we overwrite 'homeAbout' object in Settings.
-        // Ideally we merge.
         const current = await getSettings();
         if (current.homeAbout && current.homeAbout.abtImage) {
           homeAbout.abtImage = current.homeAbout.abtImage;
         }
       }
 
-      // If no new video file but videoLink is provided, use that.
-      // If neither, preserve existing?
-      if (!process.env.RESET_VIDEO && !homeAbout.videoLink) {
+      if (!req.files["videoFile"] && !homeAbout.videoLink) {
         const current = await getSettings();
         if (current.homeAbout && current.homeAbout.videoLink) {
           homeAbout.videoLink = current.homeAbout.videoLink;
