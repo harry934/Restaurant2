@@ -8,9 +8,15 @@ const multer = require("multer");
 const ExcelJS = require("exceljs");
 const mongoose = require("mongoose");
 
-// Initialize Express (Already done above via middleware block addition)
-// const app = express(); <--- Removing duplicate
-// const PORT = process.env.PORT || 3000; <--- Removing duplicate
+// Initialize Express
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Security Middleware Imports
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
 
 // MongoDB Connection
 const MONGODB_URI =
@@ -125,15 +131,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
-
-// ... imports ...
-
-const app = express();
-const PORT = process.env.PORT || 3000;
+// (Moved to top)
 
 // GLOBAL SECURITY MIDDLEWARE
 
