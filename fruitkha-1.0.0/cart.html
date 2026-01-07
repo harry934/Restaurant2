@@ -69,7 +69,11 @@
 						</nav>
 
                         <div class="header-icons mobile-header-icons">
-                            <a class="shopping-cart" href="cart.html"><i class="fas fa-shopping-cart"></i></a>
+                            <a class="search-bar-icon" href="#"><i class="fas fa-search"></i></a>
+                            <a class="shopping-cart" href="cart.html">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="cart-count-badge" style="display: none;">0</span>
+                            </a>
                         </div>
 						
 						<div class="mobile-menu"></div>
@@ -237,6 +241,27 @@
 	<!-- main js -->
 	<script src="assets/js/main.js"></script>
     <script src="assets/js/pcnc.js"></script>
+
+	<!-- Mobile Bottom Nav -->
+	<div class="mobile-bottom-nav">
+		<a href="index.html" class="nav-item">
+			<i class="fas fa-home"></i>
+			<span>Home</span>
+		</a>
+		<a href="shop.html" class="nav-item">
+			<i class="fas fa-utensils"></i>
+			<span>Menu</span>
+		</a>
+		<a href="cart.html" class="nav-item active">
+			<i class="fas fa-shopping-cart"></i>
+			<span class="cart-count">0</span>
+			<span>Cart</span>
+		</a>
+		<a href="track-order.html" class="nav-item">
+			<i class="fas fa-truck"></i>
+			<span>Track</span>
+		</a>
+	</div>
 
 </body>
 </html>

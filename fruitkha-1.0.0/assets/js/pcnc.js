@@ -76,7 +76,24 @@ function addToCart(id) {
 function updateCartMetadata() {
     const cart = getCart();
     const count = cart.reduce((sum, i) => sum + i.quantity, 0);
-    console.log('Cart count:', count);
+    
+    // Update top header badges
+    const badges = document.querySelectorAll('.cart-count-badge');
+    badges.forEach(b => {
+        b.innerText = count;
+        b.style.display = count > 0 ? 'flex' : 'none';
+    });
+
+    // Update bottom nav cart count
+    const bottomNavCount = document.querySelector('.mobile-bottom-nav .cart-count');
+    if (bottomNavCount) {
+        bottomNavCount.innerText = count;
+        bottomNavCount.style.display = count > 0 ? 'block' : 'none';
+    }
+
+    // Update any other .cart-count elements
+    const genericCounts = document.querySelectorAll('.cart-count:not(.mobile-bottom-nav .cart-count)');
+    genericCounts.forEach(gc => gc.innerText = count);
 }
 
 function removeFromCart(id) {
@@ -522,6 +539,7 @@ async function applyPromoCode() {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    updateCartMetadata();
     if (document.getElementById('menu-container')) renderMenu();
     if (document.getElementById('homepage-menu-container')) renderHomepageMenu();
     if (document.getElementById('cart-table-body')) renderCartPage();
@@ -536,6 +554,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Location Search
     initializeLocationSearch();
+
+    // Bottom Nav Active State
+    const currentPath = window.location.pathname;
+    const bottomNavItems = document.querySelectorAll('.mobile-bottom-nav .nav-item');
+    bottomNavItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (currentPath.includes(href) || (currentPath === '/' && href === 'index.html')) {
+            bottomNavItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+        }
+    });
 
     // Payment method switch logic
     const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
