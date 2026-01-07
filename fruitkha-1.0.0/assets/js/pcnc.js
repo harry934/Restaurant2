@@ -337,10 +337,24 @@ async function submitOrder(e) {
         return;
     }
 
-    const customerName = document.getElementById('name').value;
-    const phoneNumber = document.getElementById('phone').value;
-    const location = document.getElementById('address').value;
-    const notes = document.getElementById('order-notes').value;
+    const customerName = document.getElementById('name').value.trim();
+    const phoneNumber = document.getElementById('phone').value.trim();
+    const location = document.getElementById('address').value.trim();
+    const notes = document.getElementById('order-notes').value.trim();
+
+    // VALIDATION
+    if (!customerName || !phoneNumber || !location) {
+        showNotification('Missing Details', 'Please fill in your name, phone, and delivery address.', 'error');
+        return;
+    }
+
+    // Phone Validation: 10 digits starting with 07 or 01
+    const phoneRegex = /^(07|01)\d{8}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+        showNotification('Invalid Phone', 'Please enter a valid 10-digit Kenyan phone number starting with 07 or 01.', 'error');
+        return;
+    }
+
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
     const totalAmountRaw = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
     const discountAmount = Math.round(totalAmountRaw * (APPLIED_DISCOUNT_PERCENT / 100));
@@ -599,9 +613,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const checkoutForm = document.getElementById('checkout-form');
     if (checkoutForm) {
+        // Prevent Enter key from submitting the form (Desktop)
+        checkoutForm.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
         checkoutForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            submitOrder();
+            submitOrder(e);
         });
     }
 
