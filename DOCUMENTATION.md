@@ -1,100 +1,94 @@
-# PCnC Restaurant System Documentation
+# Pizza Chick n Crust (PCnC) - Digital Ecosystem Documentation
 
-This document provides a comprehensive overview of the technologies, architecture, and implementation details of the PCnC Restaurant website and Admin Dashboard.
-
----
-
-## 🏗️ 1. System Architecture
-
-The application follows a **Client-Server Architecture**:
-
-- **Frontend**: A rich, responsive UI built with HTML5, CSS3, and JavaScript, served as static files.
-- **Backend**: A RESTful API built with Node.js and Express.js to handle data processing, file uploads, and reporting.
-- **Persistence**: A lightweight, file-based JSON storage system (NoSQL style).
+This document provides a comprehensive guide to the technology, architecture, and operation of the Pizza Chick n Crust website and administrative systems.
 
 ---
 
-## 🎨 2. Frontend Technologies
+## 🏗️ 1. Technology Stack (The "Engine")
 
-The user interface is designed for premium look and feel, responsiveness across all devices, and interactive feedback.
+The application is built using a modern **MERN-style** stack (though it uses plain JavaScript/jQuery instead of React to maintain high performance and SEO compatibility).
 
-### Core Stack:
-
-- **HTML5 & CSS3**: Custom responsive layouts using modern styling techniques (glassmorphism, vibrant gradients).
-- **JavaScript (ES6)**: Handles dynamic page updates and asynchronous API communications.
-- **jQuery (1.11.3)**: Used for DOM manipulation, AJAX requests, and UI effects.
-- **Bootstrap 4**: Provides the foundation for grid systems, modals (pop-ups), and base styling.
-
-### UI Enhancements:
-
-- **FontAwesome 5**: High-quality icons used for status indicators, actions, and navigation.
-- **Google Fonts (Inter & Poppins)**: Custom typography for a professional, modern aesthetic.
-- **Animate.css**: Subtle animations for page transitions and notifications.
-- **Toast Notifications**: Simplified custom alert system for real-time admin feedback.
+- **Backend**: Node.js with Express.js (RESTful API).
+- **Database**: **MongoDB Atlas** (Cloud-hosted NoSQL database for high reliability).
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+), jQuery.
+- **Mapping**: Leaflet.js with OpenStreetMap.
+- **Geocoding**: Photon API (for street/building search).
+- **Payment**: M-Pesa STK Push API integration.
 
 ---
 
-## ⚙️ 3. Backend Technologies
+## 🗺️ 2. Smart Delivery System
 
-The server acts as the central hub managing order flow, menu updates, and system configuration.
+One of the website's most advanced features is the **Natural Search & Delivery Calculation**.
 
-### Core Stack:
+### How Location Search Works:
 
-- **Node.js**: The runtime environment for the backend.
-- **Express.js (v5.x)**: The web framework used to build RESTful API endpoints.
+1. **Local Priority**: The system carries a list of USIU-proximate landmarks (Hostels like Priwanna, Esanto, Qwetu, etc.). This makes searching instant for local students.
+2. **Global Fallback**: If a user types an address outside the USIU vicinity, the system automatically queries the **Photon map database** to find any building or street in Kenya.
+3. **Interactive Confirmation**: A map appears only if the distance is > 1km, allowing users to move a red marker to their exact gate.
 
-### Key Libraries:
+### Delivery Fee Logic:
 
-- **Multer**: Middleware specifically used for handling `multipart/form-data` during menu item photo uploads.
-- **ExcelJS**: A powerful engine used to generate and format the Daily Report (.xlsx) files.
-- **CORS**: Enables secure cross-origin resource sharing between the frontend and backend.
-- **Body-Parser**: Parses incoming request bodies (JSON and URL-encoded).
-
----
-
-## 🗄️ 4. Data Storage ("Database")
-
-The system uses **JSON Flat-Files** for storage, providing a fast, schema-less, and easy-to-manage data layer.
-
-| File              | Purpose                                                           |
-| :---------------- | :---------------------------------------------------------------- |
-| `menu.json`       | Stores the restaurant menu (name, price, category, images, tags). |
-| `orders.json`     | Stores currently active orders being processed in the kitchen.    |
-| `order_logs.json` | A permanent audit trail (Black Box) of every order ever placed.   |
-| `settings.json`   | Global system configurations (Support phone, email, rider names). |
+- **Free Zone**: 0 - 1.0 km from the restaurant is completely free.
+- **Paid Zone**: > 1.0 km is charged at **KES 100 per kilometer**.
+- **Dynamic Updates**: The fee updates in real-time as the marker is dragged.
 
 ---
 
-## 🚀 5. Key Feature Implementations
+## 🚀 3. Deployment Guide
 
-### Real-Time Order Tracking
+The website is designed to be hosted on **Render.com** or **Railway.app** for the server, and **MongoDB Atlas** for the data.
 
-- **How it works**: The user side uses "Polling" (via `setInterval`) to ping the `/api/order/:id` endpoint every few seconds.
-- **Experience**: This allows order status changes (e.g., from "Preparing" to "On the Way") to appear instantly on the user's screen without a refresh.
+### Step-by-Step Deployment:
 
-### Professional Admin Dashboard ("Command Center")
-
-- **Kitchen Actions**: One-click status updates (`status: 'Preparing'`, etc.).
-- **Visual Filters**: Separate views for "Active Orders" and "Order History" using JavaScript array filtering.
-- **Status Coloring**: Dynamic CSS classes (`row-new`, `row-preparing`) applied based on order state for high-speed operation.
-
-### M-Pesa Payment Flow (Simulation)
-
-- Integrates with the `orders.json` logic to mark payments as "Pending Verification" until an admin clicks "Mark Paid," ensuring secure financial control.
-
-### WhatsApp Support Integration
-
-- Dynamically converts phone numbers from `settings.json` into international `wa.me` links for instant customer-to-support messaging.
+1. **Database**: Create a free cluster on MongoDB Atlas and get your `MONGODB_URI`.
+2. **Environment Variables**: Create a `.env` file containing:
+   - `MONGODB_URI`: Your database link.
+   - `PORT`: Usually 3000.
+   - `MPESA_CONSUMER_KEY` & `SECRET`: For payments.
+3. **Hosting (Render)**:
+   - Connect your GitHub repository to Render.
+   - Set the build command: `npm install`
+   - Set the start command: `node server.js`
+   - Add your `.env` variables in the "Environment" tab.
 
 ---
 
-## 📂 6. Folder Structure
+## ✅ 4. Pros & Cons
 
-- `/fruitkha-1.0.0`: The complete frontend codebase.
-- `/fruitkha-1.0.0/admin`: Secure admin management pages.
-- `/uploads`: Storage for menu item images uploaded by the admin.
-- `server.js`: The heart of the system containing all API logic.
+### Pros (Strengths):
+
+- **User Experience**: No login/password required to order (reduces friction).
+- **Mobile First**: Optimized for one-handed operation on smartphones.
+- **Persistence**: Remembers your cart even if you refresh or close the browser (using `localStorage`).
+- **Transparency**: Users see exactly where the delivery fee comes from via the distance calculation.
+- **Admin Control**: Admins can change pizza prices, restaurant coordinates, and contact info without touching code.
+
+### Cons (Current Limitations):
+
+- **Manual verification**: Admins must manually confirm M-Pesa codes for "Buy Goods" payments.
+- **Image Hosting**: Currently images are saved to the server disk; for very large scale, a cloud bucket (like AWS S3) would be better.
 
 ---
 
-**Developed for PCnC Restaurant**
+## 🔮 5. Future Roadmap
+
+Potential upgrades to make the platform even more powerful:
+
+1. **Rider App**: A simple interface for delivery riders to mark "Order Picked Up" and share their GPS location in real-time.
+2. **Instant M-Pesa Callback**: Automatically mark orders as "Paid" the moment the user enters their PIN (using M-Pesa Daraja callbacks).
+3. **User Accounts**: Optional login for users to see their "Loyalty Points" and "Order History."
+4. **AI Recommendations**: Suggesting sides (like extra fries) based on the pizza selected.
+
+---
+
+## 🛠️ 6. Maintenance & Updates
+
+- **Changing Restaurant Location**: Go to the Admin Settings page to update the Map Coordinates. This will instantly recalculate delivery fees for all customers.
+- **Adding Promo Codes**: Done through the **Marketing & Deals** tab in the Admin Panel.
+- **Backups**: Since data is in MongoDB Atlas, it is backed up automatically by the cloud provider.
+
+---
+
+**© 2026 Pizza Chick n Crust**
+_Engineered for speed, taste, and efficiency._
