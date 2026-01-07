@@ -1776,8 +1776,9 @@
 
                 // Load Team
                 const tbody = $('#teamTableBody').empty();
-                if (data.team && data.team.length > 0) {
-                    data.team.forEach(m => {
+                const teamData = data.team || [];
+                if (teamData.length > 0) {
+                    teamData.forEach(m => {
                         tbody.append(`
                             <tr>
                                 <td><img src="../${m.image}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"></td>
@@ -1796,9 +1797,11 @@
                 // Load Categories
                 const catBody = $('#categoryTableBody').empty();
                 const catDropdown = $('#addMenuCategoryDropdown');
-                if (data.menuCategories && data.menuCategories.length > 0) {
+                const catData = data.menuCategories || [];
+                
+                if (catData.length > 0) {
                     if (catDropdown.length > 0) catDropdown.empty();
-                    data.menuCategories.forEach(cat => {
+                    catData.forEach(cat => {
                         catBody.append(`
                             <tr>
                                 <td><code>${cat.id}</code></td>
