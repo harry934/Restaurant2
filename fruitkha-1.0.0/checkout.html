@@ -317,7 +317,7 @@
 								<label class="pm-card" id="label-stk" onclick="selectPayment('stk')">
 									<input type="radio" name="payment_method" value="stk" checked style="display: none;">
 									<div class="check-icon" style="position: absolute; top: 15px; right: 15px; color: #e7252d; display: none;"><i class="fas fa-check-circle"></i></div>
-									<i class="fas fa-money-check-alt" style="color: #43B02A;"></i>
+									<i class="fas fa-bolt" style="color: #43B02A;"></i>
 									<h6 style="font-weight: 800; margin-bottom: 5px;">M-Pesa Express</h6>
 									<p style="font-size: 0.75rem; color: #777; margin: 0; line-height: 1.4;">Automatic prompt to your phone.</p>
 								</label>
@@ -325,19 +325,38 @@
 								<label class="pm-card" id="label-till" onclick="selectPayment('till')">
 									<input type="radio" name="payment_method" value="till" style="display: none;">
 									<div class="check-icon" style="position: absolute; top: 15px; right: 15px; color: #e7252d; display: none;"><i class="fas fa-check-circle"></i></div>
-									<i class="fas fa-mobile-alt" style="color: #1a1a1a;"></i>
+									<i class="fas fa-store-alt" style="color: #43B02A;"></i>
 									<h6 style="font-weight: 800; margin-bottom: 5px;">Buy Goods Till</h6>
-									<p style="font-size: 0.75rem; color: #777; margin: 0; line-height: 1.4;">Manual pay to Till 6994591.</p>
+									<p style="font-size: 0.75rem; color: #777; margin: 0; line-height: 1.4;">Manual pay to merchant till.</p>
 								</label>
 							</div>
 							
-							<div id="till-instructions" style="display: none; background: #fffcf5; border: 1px dashed #f1c40f; padding: 20px; border-radius: 16px; margin-top: 20px;">
-								<strong style="color: #d4a017; font-size: 0.85rem;">How to manually pay:</strong>
-								<ul style="margin: 10px 0 0; padding-left: 20px; font-size: 0.8rem; line-height: 1.6; color: #666;">
-									<li>Lipa na M-Pesa > Buy Goods</li>
-									<li>Till Number: <strong style="color: #333;">6994591</strong></li>
-									<li>Enter the Total Amount</li>
-								</ul>
+							<!-- ENHANCED TILL INSTRUCTIONS -->
+							<div id="till-instructions" style="display: none; margin-top: 25px; background: #fdfdfd; border: 2px solid #43B02A; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(67, 176, 42, 0.08);">
+								<div style="background: #43B02A; padding: 15px 25px; color: #fff; display: flex; align-items: center; gap: 12px;">
+									<i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+									<span style="font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Follow these steps to pay manually</span>
+								</div>
+								<div style="padding: 25px;">
+									<div style="display: flex; flex-direction: column; gap: 15px;">
+										<div style="display: flex; align-items: center; gap: 15px;">
+											<div style="width: 28px; height: 28px; background: #e8f5e9; color: #43B02A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; flex-shrink: 0;">1</div>
+											<p style="margin: 0; font-weight: 700; color: #444; font-size: 0.9rem;">Go to Lipa na M-Pesa > <span style="color: #43B02A;">Buy Goods</span></p>
+										</div>
+										<div style="display: flex; align-items: center; gap: 15px;">
+											<div style="width: 28px; height: 28px; background: #e8f5e9; color: #43B02A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; flex-shrink: 0;">2</div>
+											<p style="margin: 0; font-weight: 700; color: #444; font-size: 0.9rem;">Till Number: <strong style="font-size: 1.2rem; color: #1a1a1a; letter-spacing: 1px; background: #f4f4f4; padding: 2px 10px; border-radius: 6px; margin-left: 5px;">6994591</strong></p>
+										</div>
+										<div style="display: flex; align-items: center; gap: 15px;">
+											<div style="width: 28px; height: 28px; background: #e8f5e9; color: #43B02A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; flex-shrink: 0;">3</div>
+											<p style="margin: 0; font-weight: 700; color: #444; font-size: 0.9rem;">Enter amount shown in summary below</p>
+										</div>
+									</div>
+									<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px;">
+                                        <i class="fas fa-check-circle" style="color: #43B02A;"></i>
+                                        <span style="font-size: 0.8rem; color: #888; font-weight: 600;">You'll enter the M-Pesa code on the tracking page.</span>
+                                    </div>
+								</div>
 							</div>
 						</div>
 							
