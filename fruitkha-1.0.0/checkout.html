@@ -474,26 +474,32 @@
         function updateDeliveryFee(lat, lng) {
             const dist = calculateDistance(usiuPos[0], usiuPos[1], lat, lng);
             
-            // Show info card for distance/confirmation
-            $('#distance-info').fadeIn();
-            $('#locationMap').fadeIn();
-            $('#drag-instructions').fadeIn();
-            initCheckoutMap();
-
             // Logic: Within 1km = FREE. Beyond 1km = 100 per km.
             let fee = 0;
             if (dist > 1.0) {
                 fee = Math.round(dist * 100);
+                
+                // Reveal map and info ONLY for paid delivery
+                $('#distance-info').fadeIn();
+                $('#locationMap').fadeIn();
+                $('#drag-instructions').fadeIn();
+                initCheckoutMap();
+            } else {
+                // Hide if within free zone
+                $('#distance-info').fadeOut();
+                $('#locationMap').fadeOut();
+                $('#drag-instructions').fadeOut();
             }
             
             $('#delivery_fee_hidden').val(fee);
             if (fee > 0) {
                 $('#delivery-fee-display').text(`KES ${fee}`);
                 $('#delivery-row').css('display', 'flex');
-                $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. Delivery fee <strong>KES ${fee}</strong> applied.`);
+                if ($('#distance-note').length) {
+                    $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. Delivery fee <strong>KES ${fee}</strong> applied.`);
+                }
             } else {
                 $('#delivery-row').hide();
-                $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. You are within our Free Delivery Zone!`);
             }
             renderCartPage();
         }
