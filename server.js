@@ -77,6 +77,8 @@ const SettingsSchema = new mongoose.Schema(
     dealOfWeek: Object,
     homeAbout: Object,
     whatsappNumber: String,
+    restaurantLat: { type: Number, default: -1.2200414264779664 },
+    restaurantLng: { type: Number, default: 36.87814128003106 },
   },
   { strict: false }
 );
@@ -146,7 +148,11 @@ const getMenu = async () => {
 const getSettings = async () => {
   let settings = await Settings.findOne();
   if (!settings) {
-    settings = new Settings({ supportPhone: "0112601334" });
+    settings = new Settings({ 
+        supportPhone: "0112601334",
+        restaurantLat: -1.2200414264779664,
+        restaurantLng: 36.87814128003106
+    });
     await settings.save();
   }
   return settings;

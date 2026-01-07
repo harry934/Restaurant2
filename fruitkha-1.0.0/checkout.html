@@ -452,8 +452,20 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map, marker, searchTimeout;
-        const usiuPos = [-1.2185, 36.8837]; // Ndichu Container
+        let usiuPos = [-1.2200414264779664, 36.87814128003106]; // Default Restaurant Coordinates
         let deliveryZone = 'usiu';
+
+        // Fetch settings for dynamic restaurant location
+        async function loadRestaurantPos() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                if (data.restaurantLat && data.restaurantLng) {
+                    usiuPos = [data.restaurantLat, data.restaurantLng];
+                }
+            } catch (e) { console.error("Could not load dynamic settings", e); }
+        }
+        loadRestaurantPos();
 
         function setDeliveryZone(zone) {
             deliveryZone = zone;
@@ -461,15 +473,16 @@
             $(`#zone-${zone}`).addClass('active');
 
             if (zone === 'usiu') {
-                $('#search-label').text('Search USIU Area');
-                $('#address').attr('placeholder', 'e.g. USIU, Roysambu, Lillian Hostels...');
+                $('#search-label').text('Search Around USIU Area');
+                $('#address').attr('placeholder', 'e.g. USIU, Qwetu, Lillian Hostels...');
                 $('#locationMap').hide();
                 $('#outside-usiu-info').hide();
                 $('#drag-instructions').hide();
-                $('#delivery-row').hide();
-                $('#delivery_fee_hidden').val(0);
                 $('#lat').val(usiuPos[0]);
                 $('#lng').val(usiuPos[1]);
+                // Fees for USIU area still depend on distance? 
+                // User said "those within USIU they can just search... any beyond that point [distance] they pay extra"
+                // So I'll keep the distance check even for USIU search if coordinates are found.
             } else {
                 $('#search-label').text('Search Exact Location');
                 $('#address').attr('placeholder', 'Enter street, building or area name...');
@@ -493,13 +506,11 @@
         }
 
         function updateDeliveryFee(lat, lng) {
-            if (deliveryZone === 'usiu') return;
-            
             const dist = calculateDistance(usiuPos[0], usiuPos[1], lat, lng);
-            // Deduct first km or so? User said "any beyond that point... pay extra 100 per km"
-            // Let's assume within 0.5km is free even for outside category, then 100/km
+            
+            // Logic: Within 1km = FREE. Beyond 1km = 100 per km.
             let fee = 0;
-            if (dist > 0.6) {
+            if (dist > 1.0) {
                 fee = Math.round(dist * 100);
             }
             
@@ -626,12 +637,15 @@
             document.getElementById('lng').value = lng;
             $('#location-suggestions').hide();
             
-            if (deliveryZone === 'outside') {
+            // Map updates if in map mode
+            if (deliveryZone === 'outside' || (map && $('#locationMap').is(':visible'))) {
                 initCheckoutMap();
                 map.setView([lat, lng], 17);
                 marker.setLatLng([lat, lng]);
-                updateDeliveryFee(lat, lng);
             }
+
+            // Always calculate fee based on distance
+            updateDeliveryFee(lat, lng);
         }
     </script>
 
