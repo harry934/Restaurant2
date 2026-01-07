@@ -417,6 +417,8 @@ const NEARBY_AREAS = [
     { name: "Ndichu Container (USIU Road)", lat: -1.220041, lng: 36.878141, distance: "0.1km" },
     { name: "USIU-Africa Main Campus", lat: -1.220141, lng: 36.882841, distance: "0.3km" },
     { name: "Lillian Hostels", lat: -1.219500, lng: 36.884100, distance: "0.2km" },
+    { name: "Esanto Hostel", lat: -1.219700, lng: 36.883500, distance: "0.4km" },
+    { name: "Priwanna Hostels (Near Esanto)", lat: -1.219800, lng: 36.883700, distance: "0.4km" },
     { name: "Qwetu Student Residences (USIU)", lat: -1.214100, lng: 36.885800, distance: "0.6km" },
     { name: "Lumina Hostels", lat: -1.217800, lng: 36.885200, distance: "0.4km" },
     { name: "Kisima Melrose Hostels", lat: -1.221000, lng: 36.884500, distance: "0.4km" },
@@ -424,31 +426,33 @@ const NEARBY_AREAS = [
     { name: "Arcadia Hostels", lat: -1.218500, lng: 36.884800, distance: "0.2km" },
     { name: "Millennials Apartments", lat: -1.216500, lng: 36.886000, distance: "0.5km" },
     { name: "TRM Drive Apartments", lat: -1.219500, lng: 36.888500, distance: "0.9km" },
+    { name: "The Address (USIU Road)", lat: -1.218800, lng: 36.884200, distance: "0.5km" },
+    { name: "Gilgal Mansions", lat: -1.221500, lng: 36.885500, distance: "0.6km" },
     { name: "Naivas Roysambu", lat: -1.217500, lng: 36.890500, distance: "0.8km" },
     { name: "Thika Road Mall (TRM)", lat: -1.218500, lng: 36.889700, distance: "1.0km" }
 ];
 
+let globalSearchTimeout;
 function initializeLocationSearch() {
     const addressInput = document.getElementById('address');
     const suggestionBox = document.getElementById('location-suggestions');
     if (!addressInput || !suggestionBox) return;
 
     addressInput.addEventListener('input', (e) => {
-        // If outside zone, checkout.html handles the Photon search
-        if (typeof deliveryZone !== 'undefined' && deliveryZone === 'outside') return;
-
         const val = e.target.value.toLowerCase();
         if (val.length < 1) {
             suggestionBox.style.display = 'none';
             return;
         }
 
+        // 1. Filter Local Landmarks First (Instant)
         const matches = NEARBY_AREAS.filter(area => 
             area.name.toLowerCase().includes(val)
         );
 
+        let html = '';
         if (matches.length > 0) {
-            suggestionBox.innerHTML = matches.map(area => `
+            html = matches.map(area => `
                 <div class="suggestion-item" onclick="selectLocation(${area.lat}, ${area.lng}, '${area.name.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;">
                     <div style="font-weight: 600; color: #333;">
                         <i class="fas fa-map-marker-alt" style="color: #e7252d; margin-right: 10px; font-size: 0.8rem;"></i>
@@ -457,34 +461,60 @@ function initializeLocationSearch() {
                     <small style="color: #999; font-weight: 700;">${area.distance}</small>
                 </div>
             `).join('');
-            
-            // Add a "Use typed address" option if no exact match
-            if (!matches.some(m => m.name.toLowerCase() === val)) {
-                // Fallback to usiuPos (Restaurant coords) if custom name used within USIU zone
-                const fallbackLat = (typeof usiuPos !== 'undefined') ? usiuPos[0] : -1.220041;
-                const fallbackLng = (typeof usiuPos !== 'undefined') ? usiuPos[1] : 36.878141;
-
-                suggestionBox.innerHTML += `
-                    <div class="suggestion-item" onclick="selectLocation(${fallbackLat}, ${fallbackLng}, '${e.target.value.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; background: #fffcf5; border-top: 2px solid #fff0c4;">
-                        <i class="fas fa-keyboard" style="color: #d4a017; margin-right: 10px;"></i>
-                        <span style="color: #856404; font-weight: 600;">Use: "${e.target.value}"</span>
-                    </div>
-                `;
-            }
-            
+            suggestionBox.innerHTML = html;
             suggestionBox.style.display = 'block';
-        } else {
-            // No matches, but still allow custom entry
-            const fallbackLat = (typeof usiuPos !== 'undefined') ? usiuPos[0] : -1.220041;
-            const fallbackLng = (typeof usiuPos !== 'undefined') ? usiuPos[1] : 36.878141;
+        }
 
-            suggestionBox.innerHTML = `
-                <div class="suggestion-item" onclick="selectLocation(${fallbackLat}, ${fallbackLng}, '${e.target.value.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; background: #fffcf5;">
-                    <i class="fas fa-keyboard" style="color: #d4a017; margin-right: 10px;"></i>
-                    <span style="color: #856404; font-weight: 600;">Area not found in list. Use custom: "${e.target.value}"</span>
-                </div>
-            `;
-            suggestionBox.style.display = 'block';
+        // 2. Clear previous global timeout
+        clearTimeout(globalSearchTimeout);
+
+        // 3. Trigger Global Search (Debounced) if length > 2
+        if (val.length > 2) {
+            globalSearchTimeout = setTimeout(() => {
+                const restLat = (typeof usiuPos !== 'undefined') ? usiuPos[0] : -1.220041;
+                const restLng = (typeof usiuPos !== 'undefined') ? usiuPos[1] : 36.878141;
+
+                fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(e.target.value)}&lat=${restLat}&lon=${restLng}&limit=5`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.features && data.features.length > 0) {
+                            const globalHtml = data.features.map(f => {
+                                const p = f.properties;
+                                const label = [p.name, p.street, p.city].filter(Boolean).join(', ');
+                                // Avoid duplicate labels if local match already shown
+                                if (matches.some(m => m.name.toLowerCase() === label.toLowerCase())) return '';
+                                
+                                return `
+                                    <div class="suggestion-item" onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${label.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f5; background: #fffcf5;">
+                                        <i class="fas fa-search-location" style="color: #666; margin-right: 10px;"></i>
+                                        <span style="font-size: 0.85rem; color: #555;">${label}</span>
+                                    </div>
+                                `;
+                            }).join('');
+                            
+                            if (globalHtml) {
+                                // Append or show if no local matches
+                                if (matches.length === 0) {
+                                    suggestionBox.innerHTML = globalHtml;
+                                } else {
+                                    suggestionBox.innerHTML += `<div style="padding: 5px 20px; background: #f8f9fa; font-size: 0.65rem; color: #aaa; text-transform: uppercase; font-weight: 800;">Other Results</div>` + globalHtml;
+                                }
+                                suggestionBox.style.display = 'block';
+                            }
+                        }
+                        
+                        // Fallback "Use Typed" option
+                        if (suggestionBox.innerHTML === '') {
+                             suggestionBox.innerHTML = `
+                                <div class="suggestion-item" onclick="selectLocation(${restLat}, ${restLng}, '${e.target.value.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; background: #fffcf5;">
+                                    <i class="fas fa-keyboard" style="color: #d4a017; margin-right: 10px;"></i>
+                                    <span style="color: #856404; font-weight: 600;">Use: "${e.target.value}"</span>
+                                </div>
+                            `;
+                            suggestionBox.style.display = 'block';
+                        }
+                    });
+            }, 600);
         }
     });
 

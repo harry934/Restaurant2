@@ -35,29 +35,34 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         #locationMap {
-            height: 250px;
+            height: 300px;
             width: 100%;
             border-radius: 20px;
-            margin-top: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 2px solid #fff;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 4px solid #fff;
             display: none;
+            transition: all 0.5s ease;
         }
         .locate-btn {
             position: absolute;
-            right: 60px;
+            right: 65px;
             top: 50%;
             transform: translateY(-50%);
-            background: #fff;
+            background: #e7252d;
             border: none;
-            color: #e7252d;
+            color: #fff;
             cursor: pointer;
-            padding: 5px 10px;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 50%;
-            transition: 0.3s;
-            z-index: 5;
+            transition: all 0.3s ease;
+            z-index: 10;
         }
-        .locate-btn:hover { background: #e7252d; color: #fff; }
+        .locate-btn:hover { background: #116940; transform: translateY(-50%) scale(1.1); }
         .location-suggestion-item {
             padding: 12px 20px;
             cursor: pointer;
@@ -179,23 +184,12 @@
 										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Phone Number</label>
 										<input type="tel" id="phone" placeholder="07XXXXXXXX" required style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 									</div>
-                                    
-                                    <div class="col-md-12 mb-4">
-                                        <label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 12px; margin-left: 15px; display: block;">Select Delivery Zone</label>
-                                        <div style="display: flex; gap: 15px; margin: 0 10px 20px;">
-                                            <div class="zone-selector active" id="zone-usiu" onclick="setDeliveryZone('usiu')">
-                                                <i class="fas fa-university mr-2"></i> Around USIU (Free)
-                                            </div>
-                                            <div class="zone-selector" id="zone-outside" onclick="setDeliveryZone('outside')">
-                                                <i class="fas fa-globe mr-2"></i> Outside USIU (+100/km)
-                                            </div>
-                                        </div>
-                                    </div>
+									</div>
 
 									<div class="col-md-12 mb-4">
-										<label id="search-label" style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Search Delivery Area</label>
+										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Search Delivery Area (Hostel, Street or Building)</label>
 										<div class="location-search-container" style="position: relative;">
-											<input type="text" id="address" placeholder="e.g. USIU, Roysambu, Total Petrol Station..." required autocomplete="off" style="width: 100%; padding: 15px 110px 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
+											<input type="text" id="address" placeholder="e.g. Priwanna, USIU, Qwetu, Roysambu..." required autocomplete="off" style="width: 100%; padding: 15px 110px 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 											<button type="button" class="locate-btn" onclick="locateMe()" title="Use my current location">
                                                 <i class="fas fa-location-arrow"></i>
                                             </button>
@@ -206,10 +200,10 @@
 											</div>
 										</div>
                                         
-                                        <div id="outside-usiu-info" style="display: none; margin-top: 15px; padding: 15px 20px; background: #fff8f8; border-radius: 15px; border-left: 4px solid #e7252d;">
+                                        <div id="distance-info" style="display: none; margin-top: 15px; padding: 15px 20px; background: #fff8f8; border-radius: 15px; border-left: 4px solid #e7252d;">
                                             <p class="small mb-0" style="color: #e7252d; font-weight: 700;">
-                                                <i class="fas fa-exclamation-triangle mr-2"></i> Pinpoint your location exactly. 
-                                                <span display="block" style="font-weight: 400; color: #666; margin-top: 5px;">A delivery fee of KES 100 per km from USIU applies.</span>
+                                                <i class="fas fa-map-marked-alt mr-2"></i> Confirm Your Pinpoint
+                                                <span display="block" id="distance-note" style="font-weight: 400; color: #666; margin-top: 5px;">We deliver for free within 1km. Beyond that, a fee of KES 100/km applies.</span>
                                             </p>
                                         </div>
 
@@ -218,7 +212,7 @@
                                         <input type="hidden" id="lng">
                                         <input type="hidden" id="delivery_fee_hidden" value="0">
 										<small id="drag-instructions" style="color: #666; font-weight: 600; margin-left: 15px; margin-top: 8px; display: none;">
-                                            <i class="fas fa-info-circle mr-1"></i> Drag the red marker to pinpoint your exact door.
+                                            <i class="fas fa-info-circle mr-1"></i> Not exactly there? Drag the red marker to your exact gate/door.
                                         </small>
 									</div>
 									<div class="col-md-12">
@@ -453,7 +447,6 @@
     <script>
         let map, marker, searchTimeout;
         let usiuPos = [-1.2200414264779664, 36.87814128003106]; // Default Restaurant Coordinates
-        let deliveryZone = 'usiu';
 
         // Fetch settings for dynamic restaurant location
         async function loadRestaurantPos() {
@@ -466,33 +459,6 @@
             } catch (e) { console.error("Could not load dynamic settings", e); }
         }
         loadRestaurantPos();
-
-        function setDeliveryZone(zone) {
-            deliveryZone = zone;
-            $('.zone-selector').removeClass('active');
-            $(`#zone-${zone}`).addClass('active');
-
-            if (zone === 'usiu') {
-                $('#search-label').text('Search Around USIU Area');
-                $('#address').attr('placeholder', 'e.g. USIU, Qwetu, Lillian Hostels...');
-                $('#locationMap').hide();
-                $('#outside-usiu-info').hide();
-                $('#drag-instructions').hide();
-                $('#lat').val(usiuPos[0]);
-                $('#lng').val(usiuPos[1]);
-                // Fees for USIU area still depend on distance? 
-                // User said "those within USIU they can just search... any beyond that point [distance] they pay extra"
-                // So I'll keep the distance check even for USIU search if coordinates are found.
-            } else {
-                $('#search-label').text('Search Exact Location');
-                $('#address').attr('placeholder', 'Enter street, building or area name...');
-                $('#outside-usiu-info').show();
-                $('#drag-instructions').show();
-                initCheckoutMap();
-                $('#locationMap').fadeIn();
-            }
-            if(window.renderCartPage) renderCartPage();
-        }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // km
@@ -508,6 +474,12 @@
         function updateDeliveryFee(lat, lng) {
             const dist = calculateDistance(usiuPos[0], usiuPos[1], lat, lng);
             
+            // Show info card for distance/confirmation
+            $('#distance-info').fadeIn();
+            $('#locationMap').fadeIn();
+            $('#drag-instructions').fadeIn();
+            initCheckoutMap();
+
             // Logic: Within 1km = FREE. Beyond 1km = 100 per km.
             let fee = 0;
             if (dist > 1.0) {
@@ -518,15 +490,16 @@
             if (fee > 0) {
                 $('#delivery-fee-display').text(`KES ${fee}`);
                 $('#delivery-row').css('display', 'flex');
+                $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. Delivery fee <strong>KES ${fee}</strong> applied.`);
             } else {
                 $('#delivery-row').hide();
+                $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. You are within our Free Delivery Zone!`);
             }
             renderCartPage();
         }
 
         function initCheckoutMap() {
             if (map) return;
-            
             const defaultPos = usiuPos;
             map = L.map('locationMap').setView(defaultPos, 16);
             
@@ -572,7 +545,6 @@
                     document.getElementById('lng').value = lng;
                     updateDeliveryFee(lat, lng);
                     
-                    // Reverse geocode to get name (simple version)
                     fetch(`https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}`)
                         .then(r => r.json())
                         .then(data => {
@@ -590,59 +562,16 @@
             );
         }
 
-        // Live Search with Photon
-        document.getElementById('address').addEventListener('input', function(e) {
-            const query = e.target.value;
-            clearTimeout(searchTimeout);
-            
-            if (query.length < 3) {
-                $('#location-suggestions').hide();
-                return;
-            }
-
-            if (deliveryZone === 'outside') {
-                searchTimeout = setTimeout(() => {
-                    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${usiuPos[0]}&lon=${usiuPos[1]}&limit=5`)
-                        .then(r => r.json())
-                        .then(data => {
-                            const container = $('#location-suggestions').empty();
-                            if (data.features.length > 0) {
-                                data.features.forEach(f => {
-                                    const p = f.properties;
-                                    const label = [p.name, p.street, p.city].filter(Boolean).join(', ');
-                                    container.append(`
-                                        <div class="location-suggestion-item" onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${label.replace(/'/g, "\\'")}')">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <div>
-                                                <div style="font-weight: 700;">${p.name || ''}</div>
-                                                <div style="font-size: 0.75rem; color: #888;">${label}</div>
-                                            </div>
-                                        </div>
-                                    `);
-                                });
-                                container.show();
-                            } else {
-                                container.hide();
-                            }
-                        });
-                }, 300);
-            } else {
-                // Inside USIU - use the list logic from pcnc.js (handled by it)
-            }
-        });
-
         function selectLocation(lat, lng, label) {
             document.getElementById('address').value = label;
             document.getElementById('lat').value = lat;
             document.getElementById('lng').value = lng;
             $('#location-suggestions').hide();
             
-            // Map updates if in map mode
-            if (deliveryZone === 'outside' || (map && $('#locationMap').is(':visible'))) {
-                initCheckoutMap();
-                map.setView([lat, lng], 17);
-                marker.setLatLng([lat, lng]);
-            }
+            // Map updates and confirmation
+            initCheckoutMap();
+            map.setView([lat, lng], 17);
+            marker.setLatLng([lat, lng]);
 
             // Always calculate fee based on distance
             updateDeliveryFee(lat, lng);
