@@ -78,7 +78,7 @@ function updateCartMetadata() {
     const count = cart.reduce((sum, i) => sum + i.quantity, 0);
     
     // Update top header badges
-    const badges = document.querySelectorAll('.cart-count-badge');
+    const badges = document.querySelectorAll('.pcnc-header-badge');
     badges.forEach(b => {
         b.innerText = count;
         b.style.display = count > 0 ? 'flex' : 'none';
