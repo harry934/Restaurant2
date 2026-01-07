@@ -210,8 +210,13 @@
 						<p class="text-muted"><span id="statusText" class="badge badge-danger px-3 py-2" style="border-radius: 50px; font-size: 0.8rem; letter-spacing: 1px;">Loading status...</span></p>
                         
                         <!-- Estimated Time Display -->
-                        <!-- Estimated Time Display (Removed as per request) -->
-                        <div id="estimatedTimeArea" style="display: none !important;"></div>
+                        <div id="estimatedTimeArea" style="display: none; margin-top: 15px;" class="fade-in">
+                            <div class="eta-box" style="display: inline-block; background: #fff4e1; padding: 10px 25px; border-radius: 50px; border: 1px solid #ffeeba; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                                <span style="color: #856404; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <i class="fas fa-clock mr-2" style="color: #ffc107;"></i> Est. Arrival: <span id="estimatedTimeText" style="color: #e7252d;">--:--</span>
+                                </span>
+                            </div>
+                        </div>
 
 					</div>
 
