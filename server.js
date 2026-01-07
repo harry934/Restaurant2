@@ -8,8 +8,9 @@ const multer = require("multer");
 const ExcelJS = require("exceljs");
 const mongoose = require("mongoose");
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Initialize Express (Already done above via middleware block addition)
+// const app = express(); <--- Removing duplicate
+// const PORT = process.env.PORT || 3000; <--- Removing duplicate
 
 // MongoDB Connection
 const MONGODB_URI =
@@ -124,10 +125,43 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+
+// ... imports ...
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// GLOBAL SECURITY MIDDLEWARE
+
+// 1. Set Security Headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled for simplicity with multiple external scripts/images
+}));
+
+// 2. Limit requests from same API
+const limiter = rateLimit({
+  max: 100, // Max 100 requests
+  windowMs: 60 * 60 * 1000, // per hour
+  message: 'Too many requests from this IP, please try again in an hour!'
+});
+app.use('/api', limiter);
+
+// 3. Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// 4. Data Sanitization against XSS
+app.use(xss());
+
+// 5. CORS restricted (Optional - adjust generic * if needed)
+app.use(cors()); // Allow all for now to avoid breaking existing clients, but in prod restrict to specific domains if possible.
+
+// Body Parsers
+app.use(express.json({ limit: '10kb' })); // Limit body size
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Serve Static Files
 app.use(express.static(path.join(__dirname, "fruitkha-1.0.0")));
