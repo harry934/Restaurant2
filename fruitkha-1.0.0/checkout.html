@@ -398,6 +398,10 @@
 	<script src="assets/js/jquery.meanmenu.min.js"></script>
 	<!-- sticker js -->
 	<script src="assets/js/sticker.js"></script>
+	<!-- main js -->
+	<script src="assets/js/main.js"></script>
+    <script src="assets/js/pcnc.js?v=1.2"></script>
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map, marker, searchTimeout;
@@ -432,11 +436,11 @@
 
         function locateMe() {
             if (!navigator.geolocation) {
-                showNotification('Error', 'Geolocation not supported by your browser.', 'error');
+                if(typeof showNotification === 'function') showNotification('Error', 'Geolocation not supported by your browser.', 'error');
                 return;
             }
 
-            showNotification('Locating...', 'Please allow location access to pinpoint your house.', 'info');
+            if(typeof showNotification === 'function') showNotification('Locating...', 'Please allow location access to pinpoint your house.', 'info');
             
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
@@ -457,12 +461,12 @@
                                 const feat = data.features[0].properties;
                                 const name = [feat.name, feat.street, feat.city].filter(Boolean).join(', ');
                                 document.getElementById('address').value = name;
-                                showNotification('Located!', 'We found your area: ' + (feat.name || 'Current Position'), 'success');
+                                if(typeof showNotification === 'function') showNotification('Located!', 'We found your area: ' + (feat.name || 'Current Position'), 'success');
                             }
                         });
                 },
                 (err) => {
-                    showNotification('Location Denied', 'Couldn\'t get your GPS position. Please search manually.', 'error');
+                    if(typeof showNotification === 'function') showNotification('Location Denied', 'Couldn\'t get your GPS position. Please search manually.', 'error');
                 }
             );
         }
