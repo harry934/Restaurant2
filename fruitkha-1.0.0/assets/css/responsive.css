@@ -819,3 +819,165 @@
     height: 200px;
   }
 }
+
+/* -------------------------------------------------------------------------
+   MOBILE HARDENING FIXES 2026 (Applied to ensure 100% responsiveness)
+   ------------------------------------------------------------------------- */
+
+/* Global Reset for Box Sizing */
+* {
+    box-sizing: border-box;
+}
+
+/* Ensure images never overflow their containers */
+img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Fix Hero Section on Mobile */
+@media only screen and (max-width: 767px) {
+    .hero-area {
+        min-height: 100vh; /* Use Viewport Height */
+        padding-top: 100px; /* Space for fixed header */
+        display: flex;
+        align-items: center; /* Vertically center content */
+    }
+
+    .hero-text-tablecell {
+        vertical-align: middle;
+        padding-top: 0 !important;
+        padding-bottom: 50px !important;
+    }
+
+    .hero-text h1 {
+        font-size: 2rem !important; /* Smaller, readable title */
+        line-height: 1.3 !important;
+        margin-bottom: 15px !important;
+    }
+
+    .hero-text p.subtitle {
+        font-size: 1rem !important;
+        letter-spacing: 2px !important;
+        line-height: 1.5;
+    }
+
+    /* Stack buttons properly */
+    .hero-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .hero-btns a {
+        width: 80%; /* Nice wide buttons */
+        margin: 0 !important;
+        text-align: center;
+    }
+}
+
+/* Fix Huge Margins/Paddings */
+@media only screen and (max-width: 767px) {
+    .mt-150 { margin-top: 60px !important; }
+    .mb-150 { margin-bottom: 60px !important; }
+    .pt-150 { padding-top: 60px !important; }
+    .pb-150 { padding-bottom: 60px !important; }
+    
+    .mt-100 { margin-top: 50px !important; }
+    .mb-100 { margin-bottom: 50px !important; }
+    .pt-100 { padding-top: 50px !important; }
+    .pb-100 { padding-bottom: 50px !important; }
+
+    /* Section Titles */
+    .section-title {
+        margin-bottom: 40px !important;
+    }
+    
+    .section-title h3 {
+        font-size: 28px !important;
+    }
+    
+    .section-title p {
+        width: 100% !important;
+        padding: 0 15px;
+    }
+}
+
+/* Navigation Hardening */
+@media only screen and (max-width: 991px) {
+    .site-logo {
+        position: relative;
+        z-index: 1000; /* Above menu bar background */
+        max-width: 120px; /* Limit logo text size collision */
+    }
+
+    /* Meanmenu Bar positioning */
+    .mean-container .mean-bar {
+        position: absolute !important;
+        top: 15px !important;
+        right: 15px !important;
+        background: transparent !important;
+        min-height: 0 !important;
+    }
+
+    .mean-container a.meanmenu-reveal { 
+        border: 1px solid #e7252d;
+        color: #e7252d !important; 
+        background: #fff !important; /* Visible hamburger button */
+        padding: 8px 10px !important;
+        top: 0 !important;
+        right: 0 !important;
+    }
+
+    .mean-container a.meanmenu-reveal span {
+        background: #e7252d !important; /* Bars color */
+    }
+
+    /* Dropdown Menus */
+    .mean-container .mean-nav {
+        margin-top: 60px !important;
+        background: #fff !important;
+        border-top: 4px solid #e7252d;
+    }
+
+    .mean-container .mean-nav ul li a {
+        color: #333 !important;
+        border-top: 1px solid #eee !important;
+    }
+}
+
+/* Card & Product Fixes */
+@media only screen and (max-width: 767px) {
+    .single-product-item {
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05); /* Softer shadow */
+    }
+    
+    .single-product-img img {
+        max-height: 250px;
+        object-fit: contain; /* Ensure full product visible */
+    }
+    
+    /* Footer stacking */
+    .footer-box {
+        text-align: center;
+    }
+    
+    .footer-box ul {
+        padding: 0;
+    }
+}
+
+/* Cart & Checkout Tables */
+@media only screen and (max-width: 767px) {
+    .cart-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Force min-width to ensure table helps readibility even if scrolled */
+    .cart-table {
+        min-width: 600px; 
+    }
+}
