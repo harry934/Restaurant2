@@ -388,7 +388,7 @@
                 
                 // Show global thank you message if everything is done
                 $('#thankYouSection').fadeIn();
-                $('.status-timeline, h2#orderIdDisplay, p.text-muted, #orderInfoRow').hide();
+                $('.status-timeline, h2#orderIdDisplay, p.text-muted, #orderInfoRow, #estimatedTimeArea, #trackingMapSection').hide();
                 return;
             }
             // Hide thank you if there are active orders
@@ -485,8 +485,8 @@
             document.getElementById('orderIdDisplay').innerText = 'ORDER #' + order.id.replace('ORD-', '').toUpperCase();
 			document.getElementById('statusText').innerText = order.status;
             
-            // ETA Logic
-            if (order.estimatedTime) {
+            // ETA Logic - Hide if completed
+            if (order.estimatedTime && order.status !== 'Completed') {
                 $('#estimatedTimeText').text(order.estimatedTime);
                 $('#estimatedTimeArea').show();
             } else {
