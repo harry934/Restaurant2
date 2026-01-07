@@ -270,16 +270,24 @@ function renderCartPage() {
             const itemTotal = item.price * item.quantity;
             total += itemTotal;
             return `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 15px 0;">
-                    <div style="font-weight: 600; color: #333; margin-bottom: 5px;">${item.name}</div>
-                    <div class="quantity-controls" style="display: flex; align-items: center; gap: 10px;">
-                        <button onclick="updateQuantity(${item.id}, -1)" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #e7252d; background: #fff; color: #e7252d; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 14px;">-</button>
-                        <span style="font-weight: 700; min-width: 20px; text-align: center;">${item.quantity}</span>
-                        <button onclick="updateQuantity(${item.id}, 1)" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #e7252d; background: #e7252d; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 14px;">+</button>
+            <tr class="summary-item-row">
+                <td>
+                    <div style="font-weight: 700; color: #1a1a1a; margin-bottom: 8px; font-size: 0.95rem;">${item.name}</div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: flex; align-items: center; background: #fff; border: 1.5px solid #eee; border-radius: 50px; padding: 4px 10px; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <button onclick="updateQuantity(${item.id}, -1)" style="border: none; background: none; color: #e7252d; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 900; padding: 2px 5px;">
+                                <i class="fas fa-minus" style="font-size: 10px;"></i>
+                            </button>
+                            <span style="font-weight: 800; color: #333; font-size: 0.9rem; min-width: 15px; text-align: center;">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.id}, 1)" style="border: none; background: none; color: #116940; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 900; padding: 2px 5px;">
+                                <i class="fas fa-plus" style="font-size: 10px;"></i>
+                            </button>
+                        </div>
                     </div>
                 </td>
-                <td style="padding: 15px 0; text-align: right; vertical-align: middle; font-weight: 600; color: #333;">KES ${itemTotal.toLocaleString()}</td>
+                <td style="text-align: right; vertical-align: middle; font-weight: 800; color: #1a1a1a; font-size: 1rem;">
+                    KES ${itemTotal.toLocaleString()}
+                </td>
             </tr>
             `;
         }).join('');
