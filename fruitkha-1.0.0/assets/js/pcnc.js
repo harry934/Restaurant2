@@ -314,6 +314,14 @@ function renderCartPage() {
 
     if(totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
     
+    // Add Delivery Fee if present
+    const deliveryFeeEl = document.getElementById('delivery_fee_hidden');
+    if (deliveryFeeEl && parseInt(deliveryFeeEl.value) > 0) {
+        const fee = parseInt(deliveryFeeEl.value);
+        total += fee;
+        if(totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
+    }
+
     // Also update checkout subtotal if present
     const subtotalEl = document.getElementById('subtotal');
     if (subtotalEl) subtotalEl.innerText = 'KES ' + total;
@@ -336,7 +344,9 @@ async function submitOrder(e) {
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
     const totalAmountRaw = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
     const discountAmount = Math.round(totalAmountRaw * (APPLIED_DISCOUNT_PERCENT / 100));
-    const totalAmount = totalAmountRaw - discountAmount;
+    
+    const deliveryFee = document.getElementById('delivery_fee_hidden') ? parseInt(document.getElementById('delivery_fee_hidden').value) : 0;
+    const totalAmount = totalAmountRaw - discountAmount + deliveryFee;
 
     // M-Pesa Credentials
     const mpesa_credentials = {
@@ -369,6 +379,7 @@ async function submitOrder(e) {
                 items: cart,
                 totalAmount,
                 discountAmount,
+                deliveryFee,
                 promoCode: APPLIED_PROMO_CODE,
                 credentials: mpesa_credentials
             })
@@ -439,6 +450,9 @@ function initializeLocationSearch() {
     if (!addressInput || !suggestionBox) return;
 
     addressInput.addEventListener('input', (e) => {
+        // If outside zone, checkout.html handles the Photon search
+        if (typeof deliveryZone !== 'undefined' && deliveryZone === 'outside') return;
+
         const val = e.target.value.toLowerCase();
         if (val.length < 1) {
             suggestionBox.style.display = 'none';

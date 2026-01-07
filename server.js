@@ -51,6 +51,7 @@ const OrderSchema = new mongoose.Schema({
   assignedRiderId: String,
   lat: Number,
   lng: Number,
+  deliveryFee: { type: Number, default: 0 },
 });
 
 const MenuSchema = new mongoose.Schema({
@@ -754,6 +755,7 @@ app.post("/api/order", async (req, res) => {
     notes,
     items,
     totalAmount,
+    deliveryFee,
     paymentMethod,
     credentials,
   } = req.body;
@@ -773,6 +775,7 @@ app.post("/api/order", async (req, res) => {
     location: location || "Pick Up",
     lat: lat ? parseFloat(lat) : null,
     lng: lng ? parseFloat(lng) : null,
+    deliveryFee: deliveryFee || 0,
     notes: notes || "",
     items,
     totalAmount,

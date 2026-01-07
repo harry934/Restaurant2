@@ -68,6 +68,26 @@
         }
         .location-suggestion-item:hover { background: #f9f9f9; color: #e7252d; }
         .location-suggestion-item i { margin-right: 15px; color: #888; }
+        
+        .zone-selector {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f4f4f4;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid transparent;
+            font-weight: 700;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .zone-selector.active {
+            background: #fff;
+            border-color: #e7252d;
+            color: #e7252d;
+            box-shadow: 0 5px 15px rgba(231, 37, 45, 0.1);
+        }
     </style>
 
 </head>
@@ -159,8 +179,21 @@
 										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Phone Number</label>
 										<input type="tel" id="phone" placeholder="07XXXXXXXX" required style="width: 100%; padding: 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 									</div>
+                                    
+                                    <div class="col-md-12 mb-4">
+                                        <label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 12px; margin-left: 15px; display: block;">Select Delivery Zone</label>
+                                        <div style="display: flex; gap: 15px; margin: 0 10px 20px;">
+                                            <div class="zone-selector active" id="zone-usiu" onclick="setDeliveryZone('usiu')">
+                                                <i class="fas fa-university mr-2"></i> Around USIU (Free)
+                                            </div>
+                                            <div class="zone-selector" id="zone-outside" onclick="setDeliveryZone('outside')">
+                                                <i class="fas fa-globe mr-2"></i> Outside USIU (+100/km)
+                                            </div>
+                                        </div>
+                                    </div>
+
 									<div class="col-md-12 mb-4">
-										<label style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Search Delivery Area</label>
+										<label id="search-label" style="font-weight: 700; font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px; margin-left: 15px;">Search Delivery Area</label>
 										<div class="location-search-container" style="position: relative;">
 											<input type="text" id="address" placeholder="e.g. USIU, Roysambu, Total Petrol Station..." required autocomplete="off" style="width: 100%; padding: 15px 110px 15px 25px; border: none; border-radius: 50px; background: #f4f4f4; color: #333; font-weight: 600; outline: none;">
 											<button type="button" class="locate-btn" onclick="locateMe()" title="Use my current location">
@@ -172,10 +205,19 @@
 												<!-- Populated by JS -->
 											</div>
 										</div>
+                                        
+                                        <div id="outside-usiu-info" style="display: none; margin-top: 15px; padding: 15px 20px; background: #fff8f8; border-radius: 15px; border-left: 4px solid #e7252d;">
+                                            <p class="small mb-0" style="color: #e7252d; font-weight: 700;">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i> Pinpoint your location exactly. 
+                                                <span display="block" style="font-weight: 400; color: #666; margin-top: 5px;">A delivery fee of KES 100 per km from USIU applies.</span>
+                                            </p>
+                                        </div>
+
                                         <div id="locationMap"></div>
                                         <input type="hidden" id="lat">
                                         <input type="hidden" id="lng">
-										<small style="color: #666; font-weight: 600; margin-left: 15px; margin-top: 8px; display: block;">
+                                        <input type="hidden" id="delivery_fee_hidden" value="0">
+										<small id="drag-instructions" style="color: #666; font-weight: 600; margin-left: 15px; margin-top: 8px; display: none;">
                                             <i class="fas fa-info-circle mr-1"></i> Drag the red marker to pinpoint your exact door.
                                         </small>
 									</div>
@@ -276,6 +318,11 @@
 							<div id="discount-row" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
 								<span style="font-weight: 700; color: #116940;">Discount Applied</span>
 								<span id="discount-amount" style="font-weight: 700; color: #116940;">-KES 0</span>
+							</div>
+
+                            <div id="delivery-row" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+								<span style="font-weight: 700; color: #e7252d;">Delivery Fee</span>
+								<span id="delivery-fee-display" style="font-weight: 700; color: #e7252d;">KES 0</span>
 							</div>
 
 							<div style="border-top: 2px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -405,12 +452,71 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map, marker, searchTimeout;
-        const defaultPos = [-1.2185, 36.8837]; // Roysambu Center
+        const usiuPos = [-1.2185, 36.8837]; // Ndichu Container
+        let deliveryZone = 'usiu';
+
+        function setDeliveryZone(zone) {
+            deliveryZone = zone;
+            $('.zone-selector').removeClass('active');
+            $(`#zone-${zone}`).addClass('active');
+
+            if (zone === 'usiu') {
+                $('#search-label').text('Search USIU Area');
+                $('#address').attr('placeholder', 'e.g. USIU, Roysambu, Lillian Hostels...');
+                $('#locationMap').hide();
+                $('#outside-usiu-info').hide();
+                $('#drag-instructions').hide();
+                $('#delivery-row').hide();
+                $('#delivery_fee_hidden').val(0);
+                $('#lat').val(usiuPos[0]);
+                $('#lng').val(usiuPos[1]);
+            } else {
+                $('#search-label').text('Search Exact Location');
+                $('#address').attr('placeholder', 'Enter street, building or area name...');
+                $('#outside-usiu-info').show();
+                $('#drag-instructions').show();
+                initCheckoutMap();
+                $('#locationMap').fadeIn();
+            }
+            if(window.renderCartPage) renderCartPage();
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = (lat2-lat1) * Math.PI / 180;
+            const dLon = (lon2-lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function updateDeliveryFee(lat, lng) {
+            if (deliveryZone === 'usiu') return;
+            
+            const dist = calculateDistance(usiuPos[0], usiuPos[1], lat, lng);
+            // Deduct first km or so? User said "any beyond that point... pay extra 100 per km"
+            // Let's assume within 0.5km is free even for outside category, then 100/km
+            let fee = 0;
+            if (dist > 0.6) {
+                fee = Math.round(dist * 100);
+            }
+            
+            $('#delivery_fee_hidden').val(fee);
+            if (fee > 0) {
+                $('#delivery-fee-display').text(`KES ${fee}`);
+                $('#delivery-row').css('display', 'flex');
+            } else {
+                $('#delivery-row').hide();
+            }
+            renderCartPage();
+        }
 
         function initCheckoutMap() {
             if (map) return;
             
-            $("#locationMap").fadeIn();
+            const defaultPos = usiuPos;
             map = L.map('locationMap').setView(defaultPos, 16);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -427,6 +533,7 @@
                 const pos = marker.getLatLng();
                 document.getElementById('lat').value = pos.lat;
                 document.getElementById('lng').value = pos.lng;
+                updateDeliveryFee(pos.lat, pos.lng);
             });
             
             // Initial coords
@@ -452,6 +559,7 @@
                     marker.setLatLng([lat, lng]);
                     document.getElementById('lat').value = lat;
                     document.getElementById('lng').value = lng;
+                    updateDeliveryFee(lat, lng);
                     
                     // Reverse geocode to get name (simple version)
                     fetch(`https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}`)
@@ -481,31 +589,35 @@
                 return;
             }
 
-            searchTimeout = setTimeout(() => {
-                fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=-1.2185&lon=36.8837&limit=5`)
-                    .then(r => r.json())
-                    .then(data => {
-                        const container = $('#location-suggestions').empty();
-                        if (data.features.length > 0) {
-                            data.features.forEach(f => {
-                                const p = f.properties;
-                                const label = [p.name, p.street, p.city].filter(Boolean).join(', ');
-                                container.append(`
-                                    <div class="location-suggestion-item" onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${label.replace(/'/g, "\\'")}')">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <div>
-                                            <div style="font-weight: 700;">${p.name || ''}</div>
-                                            <div style="font-size: 0.75rem; color: #888;">${label}</div>
+            if (deliveryZone === 'outside') {
+                searchTimeout = setTimeout(() => {
+                    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${usiuPos[0]}&lon=${usiuPos[1]}&limit=5`)
+                        .then(r => r.json())
+                        .then(data => {
+                            const container = $('#location-suggestions').empty();
+                            if (data.features.length > 0) {
+                                data.features.forEach(f => {
+                                    const p = f.properties;
+                                    const label = [p.name, p.street, p.city].filter(Boolean).join(', ');
+                                    container.append(`
+                                        <div class="location-suggestion-item" onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${label.replace(/'/g, "\\'")}')">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <div style="font-weight: 700;">${p.name || ''}</div>
+                                                <div style="font-size: 0.75rem; color: #888;">${label}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                `);
-                            });
-                            container.show();
-                        } else {
-                            container.hide();
-                        }
-                    });
-            }, 300);
+                                    `);
+                                });
+                                container.show();
+                            } else {
+                                container.hide();
+                            }
+                        });
+                }, 300);
+            } else {
+                // Inside USIU - use the list logic from pcnc.js (handled by it)
+            }
         });
 
         function selectLocation(lat, lng, label) {
@@ -514,9 +626,12 @@
             document.getElementById('lng').value = lng;
             $('#location-suggestions').hide();
             
-            initCheckoutMap();
-            map.setView([lat, lng], 17);
-            marker.setLatLng([lat, lng]);
+            if (deliveryZone === 'outside') {
+                initCheckoutMap();
+                map.setView([lat, lng], 17);
+                marker.setLatLng([lat, lng]);
+                updateDeliveryFee(lat, lng);
+            }
         }
     </script>
 
