@@ -29,10 +29,16 @@ mongoose
 
 // Health check middleware to warn if DB is down
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api') && !isConnected) {
+  if (req.path.startsWith("/api") && !isConnected) {
     // Attempt reconnect if request comes in and we are disconnected
     if (mongoose.connection.readyState === 1) isConnected = true;
-    else return res.status(500).json({ success: false, message: "Database connection unavailable. Check server logs." });
+    else
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Database connection unavailable. Check server logs.",
+        });
   }
   next();
 });
@@ -91,6 +97,19 @@ const Order = mongoose.model("Order", OrderSchema);
 const Menu = mongoose.model("Menu", MenuSchema);
 const Settings = mongoose.model("Settings", SettingsSchema);
 const OrderLog = mongoose.model("OrderLog", OrderLogSchema);
+
+// Image Storage Schema - for persisting images in MongoDB
+const ImageSchema = new mongoose.Schema({
+  filename: { type: String, required: true, unique: true },
+  originalName: String,
+  mimeType: String,
+  data: String, // base64 encoded image data
+  size: Number,
+  uploadDate: { type: Date, default: Date.now },
+  category: String, // 'menu', 'team', 'rider', 'deal', etc.
+});
+
+const Image = mongoose.model("Image", ImageSchema);
 
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
@@ -151,7 +170,56 @@ const updateOrder = async (orderId, updates) => {
   return await Order.findOneAndUpdate({ id: orderId }, updates, { new: true });
 };
 
+// Image Storage Helpers
+const saveImageToMongoDB = async (file, category = 'general') => {
+  try {
+    const base64Data = fs.readFileSync(file.path, { encoding: 'base64' });
+    const imageDoc = new Image({
+      filename: file.filename,
+      originalName: file.originalname,
+      mimeType: file.mimetype,
+      data: base64Data,
+      size: file.size,
+      category: category
+    });
+    await imageDoc.save();
+    // Delete the file from uploads folder after saving to DB
+    fs.unlinkSync(file.path);
+    return `db-image/${file.filename}`;
+  } catch (e) {
+    console.error('Error saving image to MongoDB:', e);
+    return `uploads/${file.filename}`; // Fallback to file system
+  }
+};
+
+const getImageFromMongoDB = async (filename) => {
+  try {
+    const image = await Image.findOne({ filename });
+    return image;
+  } catch (e) {
+    console.error('Error retrieving image from MongoDB:', e);
+    return null;
+  }
+};
+
 // --- API ROUTES ---
+
+// Serve images from MongoDB
+app.get("/db-image/:filename", async (req, res) => {
+  try {
+    const image = await getImageFromMongoDB(req.params.filename);
+    if (!image) {
+      return res.status(404).send('Image not found');
+    }
+    const buffer = Buffer.from(image.data, 'base64');
+    res.set('Content-Type', image.mimeType);
+    res.set('Content-Length', buffer.length);
+    res.send(buffer);
+  } catch (e) {
+    console.error('Error serving image:', e);
+    res.status(500).send('Error serving image');
+  }
+});
 
 // 1. Menu Items
 app.get("/api/menu", async (req, res) => {
@@ -163,16 +231,24 @@ app.post("/api/validate-promo", async (req, res) => {
   const { code, phone } = req.body;
   const settings = await getSettings();
   const promos = settings.promoCodes || [];
-  
+
   if (phone) {
     const orders = await getOrders();
-    const successfulcount = orders.filter(o => o.phoneNumber === phone && o.paymentStatus === 'Successful').length;
+    const successfulcount = orders.filter(
+      (o) => o.phoneNumber === phone && o.paymentStatus === "Successful"
+    ).length;
     if (successfulcount >= 5) {
-      return res.json({ success: true, discountPercent: 15, message: "Loyalty Discount Applied (15% Off)!" });
+      return res.json({
+        success: true,
+        discountPercent: 15,
+        message: "Loyalty Discount Applied (15% Off)!",
+      });
     }
   }
 
-  const promo = promos.find(p => p.code.toUpperCase() === (code || '').toUpperCase());
+  const promo = promos.find(
+    (p) => p.code.toUpperCase() === (code || "").toUpperCase()
+  );
   if (promo) {
     res.json({ success: true, discountPercent: promo.discount });
   } else {
@@ -180,70 +256,80 @@ app.post("/api/validate-promo", async (req, res) => {
   }
 });
 
-
-
 // Admin Menu Management (with file upload)
-app.post("/api/admin/menu/add", upload.single('imageFile'), async (req, res) => {
-  try {
-    const { name, price, category, tag } = req.body;
-    
-    // Find highest ID to increment
-    const highestItem = await Menu.findOne().sort({ id: -1 });
-    const nextId = highestItem ? highestItem.id + 1 : 1;
+app.post(
+  "/api/admin/menu/add",
+  upload.single("imageFile"),
+  async (req, res) => {
+    try {
+      const { name, price, category, tag } = req.body;
 
-    let imagePath = req.body.image || 'assets/img/products/product-img-1.png';
-    if (req.file) {
-      imagePath = 'uploads/' + req.file.filename;
+      // Find highest ID to increment
+      const highestItem = await Menu.findOne().sort({ id: -1 });
+      const nextId = highestItem ? highestItem.id + 1 : 1;
+
+      let imagePath = req.body.image || "assets/img/products/product-img-1.png";
+      if (req.file) {
+        imagePath = await saveImageToMongoDB(req.file, 'menu');
+      }
+
+      const newItem = new Menu({
+        id: nextId,
+        name,
+        price: parseInt(price),
+        category,
+        image: imagePath,
+        tag,
+      });
+
+      await newItem.save();
+      res.json({ success: true, item: newItem });
+    } catch (e) {
+      console.error("Add Menu Error:", e);
+      res.status(500).json({ success: false, message: e.message });
     }
-
-    const newItem = new Menu({
-      id: nextId,
-      name,
-      price: parseInt(price),
-      category,
-      image: imagePath,
-      tag
-    });
-
-    await newItem.save();
-    res.json({ success: true, item: newItem });
-  } catch (e) {
-    console.error("Add Menu Error:", e);
-    res.status(500).json({ success: false, message: e.message });
   }
-});
+);
 
 // Admin Menu Management - Update
-app.post("/api/admin/menu/update", upload.single('imageFile'), async (req, res) => {
-  try {
-    const { id, name, price, category, tag } = req.body;
-    
-    const updates = {
-      name,
-      price: parseFloat(price),
-      category,
-      tag: tag || ''
-    };
-    if (req.file) updates.image = 'uploads/' + req.file.filename;
-    
-    const updated = await Menu.findOneAndUpdate({ id: parseInt(id) }, updates, { new: true });
-    if (updated) {
-      res.json({ success: true, item: updated });
-    } else {
-      res.status(404).json({ success: false, message: "Item not found" });
+app.post(
+  "/api/admin/menu/update",
+  upload.single("imageFile"),
+  async (req, res) => {
+    try {
+      const { id, name, price, category, tag } = req.body;
+
+      const updates = {
+        name,
+        price: parseFloat(price),
+        category,
+        tag: tag || "",
+      };
+      if (req.file) updates.image = await saveImageToMongoDB(req.file, 'menu');
+
+      const updated = await Menu.findOneAndUpdate(
+        { id: parseInt(id) },
+        updates,
+        { new: true }
+      );
+      if (updated) {
+        res.json({ success: true, item: updated });
+      } else {
+        res.status(404).json({ success: false, message: "Item not found" });
+      }
+    } catch (e) {
+      console.error("Update Menu Error:", e);
+      res.status(500).json({ success: false, message: e.message });
     }
-  } catch (e) {
-    console.error("Update Menu Error:", e);
-    res.status(500).json({ success: false, message: e.message });
   }
-});
+);
 
 // Admin Menu Management - Toggle Availability
 app.post("/api/admin/menu/toggle-availability", async (req, res) => {
   try {
     const { id } = req.body;
     const item = await Menu.findOne({ id: parseInt(id) });
-    
+
     if (item) {
       item.isAvailable = !item.isAvailable;
       await item.save();
@@ -278,7 +364,10 @@ app.get("/api/settings", async (req, res) => {
 app.post("/api/admin/settings/update", async (req, res) => {
   try {
     // Upsert ensures document is created if it doesn't exist
-    const updated = await Settings.findOneAndUpdate({}, req.body, { new: true, upsert: true });
+    const updated = await Settings.findOneAndUpdate({}, req.body, {
+      new: true,
+      upsert: true,
+    });
     res.json({ success: true, settings: updated });
   } catch (e) {
     console.error("Update Settings Error:", e);
@@ -287,86 +376,108 @@ app.post("/api/admin/settings/update", async (req, res) => {
 });
 
 // Media Upload (for deal image, home about video, etc.)
-app.post("/api/admin/settings/upload", upload.single('mediaFile'), (req, res) => {
-  if (req.file) {
-    res.json({ success: true, filePath: 'uploads/' + req.file.filename });
-  } else {
-    res.status(400).json({ success: false, message: "No file uploaded" });
+app.post(
+  "/api/admin/settings/upload",
+  upload.single("mediaFile"),
+  (req, res) => {
+    if (req.file) {
+      res.json({ success: true, filePath: "uploads/" + req.file.filename });
+    } else {
+      res.status(400).json({ success: false, message: "No file uploaded" });
+    }
   }
-});
+);
 
 // Home About Section Update (Video/Image)
-app.post("/api/admin/settings/home-about", upload.fields([{ name: 'videoFile', maxCount: 1 }, { name: 'abtImage', maxCount: 1 }]), async (req, res) => {
+app.post(
+  "/api/admin/settings/home-about",
+  upload.fields([
+    { name: "videoFile", maxCount: 1 },
+    { name: "abtImage", maxCount: 1 },
+  ]),
+  async (req, res) => {
     try {
-        const { title, heading, description, videoLink, isVideoLocal } = req.body;
-        
-        const homeAbout = {
-            title,
-            heading,
-            description,
-            videoLink: videoLink || '',
-            isVideoLocal: isVideoLocal === 'on' || isVideoLocal === 'true' // Checkbox logic
-        };
+      const { title, heading, description, videoLink, isVideoLocal } = req.body;
 
-        // Handle File Uploads
-        if (req.files['videoFile']) {
-            homeAbout.videoLink = 'uploads/' + req.files['videoFile'][0].filename;
-            homeAbout.isVideoLocal = true;
-        }
-        
-        if (req.files['abtImage']) {
-            homeAbout.abtImage = 'uploads/' + req.files['abtImage'][0].filename;
-        } else {
-            // Keep existing image if not provided?
-            // Need to fetch existing first, or UI should send existing path.
-            // Simplified: If not uploaded, we don't overwrite if it wasn't sent.
-            // But here we overwrite 'homeAbout' object in Settings.
-            // Ideally we merge.
-            const current = await getSettings();
-            if (current.homeAbout && current.homeAbout.abtImage) {
-                homeAbout.abtImage = current.homeAbout.abtImage;
-            }
-        }
+      const homeAbout = {
+        title,
+        heading,
+        description,
+        videoLink: videoLink || "",
+        isVideoLocal: isVideoLocal === "on" || isVideoLocal === "true", // Checkbox logic
+      };
 
-        // If no new video file but videoLink is provided, use that.
-        // If neither, preserve existing?
-        if (!process.env.RESET_VIDEO && !homeAbout.videoLink) {
-             const current = await getSettings();
-             if (current.homeAbout && current.homeAbout.videoLink) {
-                 homeAbout.videoLink = current.homeAbout.videoLink;
-                 homeAbout.isVideoLocal = current.homeAbout.isVideoLocal;
-             }
-        }
+      // Handle File Uploads
+      if (req.files["videoFile"]) {
+        homeAbout.videoLink = "uploads/" + req.files["videoFile"][0].filename;
+        homeAbout.isVideoLocal = true;
+      }
 
-        // Update Settings
-        await Settings.findOneAndUpdate({}, { $set: { homeAbout: homeAbout } }, { upsert: true });
-        
-        res.json({ success: true, homeAbout });
+      if (req.files["abtImage"]) {
+        homeAbout.abtImage = "uploads/" + req.files["abtImage"][0].filename;
+      } else {
+        // Keep existing image if not provided?
+        // Need to fetch existing first, or UI should send existing path.
+        // Simplified: If not uploaded, we don't overwrite if it wasn't sent.
+        // But here we overwrite 'homeAbout' object in Settings.
+        // Ideally we merge.
+        const current = await getSettings();
+        if (current.homeAbout && current.homeAbout.abtImage) {
+          homeAbout.abtImage = current.homeAbout.abtImage;
+        }
+      }
+
+      // If no new video file but videoLink is provided, use that.
+      // If neither, preserve existing?
+      if (!process.env.RESET_VIDEO && !homeAbout.videoLink) {
+        const current = await getSettings();
+        if (current.homeAbout && current.homeAbout.videoLink) {
+          homeAbout.videoLink = current.homeAbout.videoLink;
+          homeAbout.isVideoLocal = current.homeAbout.isVideoLocal;
+        }
+      }
+
+      // Update Settings
+      await Settings.findOneAndUpdate(
+        {},
+        { $set: { homeAbout: homeAbout } },
+        { upsert: true }
+      );
+
+      res.json({ success: true, homeAbout });
     } catch (e) {
-        console.error("Home About Error:", e);
-        res.status(500).json({ success: false, message: e.message });
+      console.error("Home About Error:", e);
+      res.status(500).json({ success: false, message: e.message });
     }
-});
+  }
+);
 
 // Team Management
 app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
   try {
-    const { name, role, phone, facebook, twitter, instagram, linkedin } = req.body;
-    
+    const { name, role, phone, facebook, twitter, instagram, linkedin } =
+      req.body;
+
     const newMember = {
       id: Date.now(),
       name,
       role,
-      image: req.file ? 'uploads/' + req.file.filename : 'assets/img/team/team-1.jpg',
-      phone: phone || '',
-      facebook: facebook || '',
-      twitter: twitter || '',
-      instagram: instagram || '',
-      linkedin: linkedin || ''
+      image: req.file
+        ? await saveImageToMongoDB(req.file, 'team')
+        : "assets/img/team/team-1.jpg",
+      phone: phone || "",
+      facebook: facebook || "",
+      twitter: twitter || "",
+      instagram: instagram || "",
+      linkedin: linkedin || "",
     };
 
     // Use upsert to create Settings doc if missing
-    await Settings.findOneAndUpdate({}, { $push: { team: newMember } }, { upsert: true });
+    await Settings.findOneAndUpdate(
+      {},
+      { $push: { team: newMember } },
+      { upsert: true }
+    );
     res.json({ success: true, member: newMember });
   } catch (e) {
     console.error("Add Team Error:", e);
@@ -377,105 +488,140 @@ app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
 app.post("/api/admin/team/delete", async (req, res) => {
   try {
     const { id } = req.body;
-    await Settings.findOneAndUpdate({}, { $pull: { team: { id: parseInt(id) } } });
+    await Settings.findOneAndUpdate(
+      {},
+      { $pull: { team: { id: parseInt(id) } } }
+    );
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
 });
 
-app.post("/api/admin/team/update", upload.single("teamImg"), async (req, res) => {
-  try {
-    const { id, name, role, phone, facebook, twitter, instagram, linkedin } = req.body;
-    const current = await getSettings();
-    const team = current.team || [];
-    const index = team.findIndex((m) => m.id == id);
+app.post(
+  "/api/admin/team/update",
+  upload.single("teamImg"),
+  async (req, res) => {
+    try {
+      const { id, name, role, phone, facebook, twitter, instagram, linkedin } =
+        req.body;
+      const current = await getSettings();
+      const team = current.team || [];
+      const index = team.findIndex((m) => m.id == id);
 
-    if (index !== -1) {
-      const updatedMember = {
-        ...team[index],
-        name,
-        role,
-        phone: phone || team[index].phone || '',
-        facebook: facebook || team[index].facebook || '',
-        twitter: twitter || team[index].twitter || '',
-        instagram: instagram || team[index].instagram || '',
-        linkedin: linkedin || team[index].linkedin || ''
-      };
-      if (req.file) updatedMember.image = "uploads/" + req.file.filename;
+      if (index !== -1) {
+        const updatedMember = {
+          ...team[index],
+          name,
+          role,
+          phone: phone || team[index].phone || "",
+          facebook: facebook || team[index].facebook || "",
+          twitter: twitter || team[index].twitter || "",
+          instagram: instagram || team[index].instagram || "",
+          linkedin: linkedin || team[index].linkedin || "",
+        };
+        if (req.file) updatedMember.image = await saveImageToMongoDB(req.file, 'team');
 
-      await Settings.findOneAndUpdate({ "team.id": parseInt(id) }, { $set: { "team.$": updatedMember } });
-      res.json({ success: true, member: updatedMember });
-    } else {
-      res.status(404).json({ success: false, message: "Member not found" });
+        await Settings.findOneAndUpdate(
+          { "team.id": parseInt(id) },
+          { $set: { "team.$": updatedMember } }
+        );
+        res.json({ success: true, member: updatedMember });
+      } else {
+        res.status(404).json({ success: false, message: "Member not found" });
+      }
+    } catch (e) {
+      res.status(500).json({ success: false, message: e.message });
     }
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
   }
-});
+);
 
 // Rider Management
-app.post("/api/admin/riders/add", upload.single("riderImg"), async (req, res) => {
-  try {
-    const { name, phone, vehicle } = req.body;
+app.post(
+  "/api/admin/riders/add",
+  upload.single("riderImg"),
+  async (req, res) => {
+    try {
+      const { name, phone, vehicle } = req.body;
 
-    const newRider = {
-      id: Date.now().toString(),
-      name,
-      phone,
-      vehicle: vehicle || '',
-      image: req.file ? 'uploads/' + req.file.filename : 'assets/img/team/team-1.jpg'
-    };
+      const newRider = {
+        id: Date.now().toString(),
+        name,
+        phone,
+        vehicle: vehicle || "",
+        image: req.file
+          ? await saveImageToMongoDB(req.file, 'rider')
+          : "assets/img/team/team-1.jpg",
+      };
 
-    await Settings.findOneAndUpdate({}, { $push: { riders: newRider } }, { upsert: true });
-    res.json({ success: true, rider: newRider });
-  } catch (e) {
-    console.error("Add Rider Error:", e);
-    res.status(500).json({ success: false, message: e.message });
+      await Settings.findOneAndUpdate(
+        {},
+        { $push: { riders: newRider } },
+        { upsert: true }
+      );
+      res.json({ success: true, rider: newRider });
+    } catch (e) {
+      console.error("Add Rider Error:", e);
+      res.status(500).json({ success: false, message: e.message });
+    }
   }
-});
+);
 
 app.post("/api/admin/riders/delete", async (req, res) => {
   try {
     const { id } = req.body;
-    await Settings.findOneAndUpdate({}, { $pull: { riders: { id: id.toString() } } });
+    await Settings.findOneAndUpdate(
+      {},
+      { $pull: { riders: { id: id.toString() } } }
+    );
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
 });
 
-app.post("/api/admin/riders/update", upload.single("riderImg"), async (req, res) => {
-  try {
-    const { id, name, phone, vehicle } = req.body;
-    const current = await getSettings();
-    const riders = current.riders || [];
-    const index = riders.findIndex((r) => r.id == id);
+app.post(
+  "/api/admin/riders/update",
+  upload.single("riderImg"),
+  async (req, res) => {
+    try {
+      const { id, name, phone, vehicle } = req.body;
+      const current = await getSettings();
+      const riders = current.riders || [];
+      const index = riders.findIndex((r) => r.id == id);
 
-    if (index !== -1) {
-      const updatedRider = {
-        ...riders[index],
-        name,
-        phone,
-        vehicle: vehicle || riders[index].vehicle || ''
-      };
-      if (req.file) updatedRider.image = "uploads/" + req.file.filename;
+      if (index !== -1) {
+        const updatedRider = {
+          ...riders[index],
+          name,
+          phone,
+          vehicle: vehicle || riders[index].vehicle || "",
+        };
+        if (req.file) updatedRider.image = await saveImageToMongoDB(req.file, 'rider');
 
-      await Settings.findOneAndUpdate({ "riders.id": id.toString() }, { $set: { "riders.$": updatedRider } });
-      res.json({ success: true, rider: updatedRider });
-    } else {
-      res.status(404).json({ success: false, message: "Rider not found" });
+        await Settings.findOneAndUpdate(
+          { "riders.id": id.toString() },
+          { $set: { "riders.$": updatedRider } }
+        );
+        res.json({ success: true, rider: updatedRider });
+      } else {
+        res.status(404).json({ success: false, message: "Rider not found" });
+      }
+    } catch (e) {
+      res.status(500).json({ success: false, message: e.message });
     }
-  } catch (e) {
-    res.status(500).json({ success: false, message: e.message });
   }
-});
+);
 
 // Category Management
 app.post("/api/admin/category/add", async (req, res) => {
   try {
     const { catId, catName } = req.body;
-    await Settings.findOneAndUpdate({}, { $push: { menuCategories: { id: catId, name: catName } } }, { upsert: true });
+    await Settings.findOneAndUpdate(
+      {},
+      { $push: { menuCategories: { id: catId, name: catName } } },
+      { upsert: true }
+    );
     res.json({ success: true, category: { id: catId, name: catName } });
   } catch (e) {
     console.error("Add Category Error:", e);
@@ -486,7 +632,10 @@ app.post("/api/admin/category/add", async (req, res) => {
 app.post("/api/admin/category/delete", async (req, res) => {
   try {
     const { id } = req.body;
-    await Settings.findOneAndUpdate({}, { $pull: { menuCategories: { id: id } } });
+    await Settings.findOneAndUpdate(
+      {},
+      { $pull: { menuCategories: { id: id } } }
+    );
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
@@ -496,7 +645,10 @@ app.post("/api/admin/category/delete", async (req, res) => {
 app.post("/api/admin/category/update", async (req, res) => {
   try {
     const { oldId, catId, catName } = req.body;
-    await Settings.findOneAndUpdate({ "menuCategories.id": oldId }, { $set: { "menuCategories.$": { id: catId, name: catName } } });
+    await Settings.findOneAndUpdate(
+      { "menuCategories.id": oldId },
+      { $set: { "menuCategories.$": { id: catId, name: catName } } }
+    );
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
@@ -507,7 +659,18 @@ app.post("/api/admin/category/update", async (req, res) => {
 app.post("/api/admin/promo/add", async (req, res) => {
   try {
     const { code, discount } = req.body;
-    await Settings.findOneAndUpdate({}, { $push: { promoCodes: { code: code.toUpperCase(), discount: parseInt(discount) } } }, { upsert: true });
+    await Settings.findOneAndUpdate(
+      {},
+      {
+        $push: {
+          promoCodes: {
+            code: code.toUpperCase(),
+            discount: parseInt(discount),
+          },
+        },
+      },
+      { upsert: true }
+    );
     res.json({ success: true });
   } catch (e) {
     console.error("Add Promo Error:", e);
@@ -518,7 +681,10 @@ app.post("/api/admin/promo/add", async (req, res) => {
 app.post("/api/admin/promo/delete", async (req, res) => {
   try {
     const { code } = req.body;
-    await Settings.findOneAndUpdate({}, { $pull: { promoCodes: { code: code } } });
+    await Settings.findOneAndUpdate(
+      {},
+      { $pull: { promoCodes: { code: code } } }
+    );
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
@@ -624,12 +790,10 @@ app.post("/api/order", async (req, res) => {
       credentials.consumerSecret
     );
     if (!token) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to authenticate with M-Pesa",
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to authenticate with M-Pesa",
+      });
     }
 
     const timestamp = new Date()
@@ -685,12 +849,10 @@ app.post("/api/order", async (req, res) => {
           orderId,
         });
       } else {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: stkData.errorMessage || "STK Push failed",
-          });
+        return res.status(400).json({
+          success: false,
+          message: stkData.errorMessage || "STK Push failed",
+        });
       }
     } catch (err) {
       console.error("STK Push Error:", err);
@@ -712,25 +874,35 @@ app.post("/api/order", async (req, res) => {
 app.post("/api/validate-promo", async (req, res) => {
   try {
     const { code } = req.body;
-    if (!code) return res.status(400).json({ success: false, message: "No code provided" });
+    if (!code)
+      return res
+        .status(400)
+        .json({ success: false, message: "No code provided" });
 
     // 1. Check if it's the global "LOYALTY" code (10% off) - Hardcoded legacy or move to DB
     // 2. Check DB Promo Codes
     const settings = await getSettings();
-    const promo = (settings.promoCodes || []).find(p => p.code === code.toUpperCase());
+    const promo = (settings.promoCodes || []).find(
+      (p) => p.code === code.toUpperCase()
+    );
 
     if (promo) {
-      return res.json({ 
-        success: true, 
-        discountPercent: promo.discount, 
-        message: `Code applied! You get ${promo.discount}% off your entire order.` 
+      return res.json({
+        success: true,
+        discountPercent: promo.discount,
+        message: `Code applied! You get ${promo.discount}% off your entire order.`,
       });
     } else {
-      return res.json({ success: false, message: "Invalid or expired promo code" });
+      return res.json({
+        success: false,
+        message: "Invalid or expired promo code",
+      });
     }
   } catch (e) {
     console.error("Promo Error:", e);
-    res.status(500).json({ success: false, message: "Server error checking code" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error checking code" });
   }
 });
 
@@ -793,10 +965,11 @@ const syncOrderLog = async (orderId, updates) => {
   try {
     await OrderLog.findOneAndUpdate(
       { "order.id": orderId },
-      { $set: Object.keys(updates).reduce((acc, key) => {
+      {
+        $set: Object.keys(updates).reduce((acc, key) => {
           acc[`order.${key}`] = updates[key];
           return acc;
-        }, {}) 
+        }, {}),
       }
     );
   } catch (e) {
@@ -821,9 +994,9 @@ app.post("/api/admin/order/update", async (req, res) => {
 app.post("/api/admin/order/delete", async (req, res) => {
   const { orderId } = req.body;
   console.log(`[ADMIN] Request to delete order: ${orderId}`);
-  
+
   // Update log status to "Deleted" before removing from active Orders
-  await syncOrderLog(orderId, { status: 'Deleted (Admin)' });
+  await syncOrderLog(orderId, { status: "Deleted (Admin)" });
 
   const result = await Order.deleteOne({ id: orderId });
   if (result.deletedCount > 0) {
@@ -838,10 +1011,10 @@ app.post("/api/admin/order/delete", async (req, res) => {
 app.get("/api/admin/export", async (req, res) => {
   try {
     const logs = await OrderLog.find().sort({ logDate: -1 });
-    
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
-    
+
     worksheet.columns = [
       { header: "Order ID", key: "id", width: 15 },
       { header: "Date", key: "date", width: 22 },
@@ -851,32 +1024,40 @@ app.get("/api/admin/export", async (req, res) => {
       { header: "Items Ordered", key: "items", width: 40 },
       { header: "Total (KES)", key: "totalAmount", width: 12 },
       { header: "Payment Status", key: "paymentStatus", width: 15 },
-      { header: "Order Status", key: "status", width: 15 }
+      { header: "Order Status", key: "status", width: 15 },
     ];
-    
+
     // Style header
     worksheet.getRow(1).font = { bold: true };
-    
-    logs.forEach(log => {
+
+    logs.forEach((log) => {
       const o = log.order || {};
       // Format items list
-      const itemsStr = (o.items || []).map(i => `${i.quantity}x ${i.name}`).join(", ");
-      
+      const itemsStr = (o.items || [])
+        .map((i) => `${i.quantity}x ${i.name}`)
+        .join(", ");
+
       worksheet.addRow({
         id: o.id,
-        date: o.date ? new Date(o.date).toLocaleString() : '',
+        date: o.date ? new Date(o.date).toLocaleString() : "",
         customerName: o.customerName,
         phoneNumber: o.phoneNumber,
         location: o.location,
         items: itemsStr,
         totalAmount: o.totalAmount,
         paymentStatus: o.paymentStatus,
-        status: o.status
+        status: o.status,
       });
     });
-    
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", `attachment; filename=PCnC_Sales_Report_${Date.now()}.xlsx`);
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=PCnC_Sales_Report_${Date.now()}.xlsx`
+    );
     await workbook.xlsx.write(res);
     res.end();
   } catch (e) {
@@ -884,8 +1065,6 @@ app.get("/api/admin/export", async (req, res) => {
     res.status(500).send("Error exporting data");
   }
 });
-
-
 
 // 5. Admin: Login (Environment Variable Based)
 app.post("/api/admin/login", (req, res) => {
