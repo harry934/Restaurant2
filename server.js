@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_TOKEN = "pcnc-secret-token-2024"; // Re-defining missing token
+// ADMIN_TOKEN defined below in Admin Routes section
 
 // (Security middleware removed)
 
