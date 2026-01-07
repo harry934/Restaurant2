@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 // MongoDB Connection
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/restaurant";
+  process.env.MONGODB_URI || "mongodb+srv://adminn:kenyasbest@cluster0.wwgtbp9.mongodb.net/restaurant?appName=Cluster0";
 
 let isConnected = false;
 mongoose

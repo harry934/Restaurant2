@@ -1703,127 +1703,149 @@
                 const res = await fetch('/api/settings?_=' + new Date().getTime());
                 const data = await res.json();
                 
+                // Helper to safely execute blocks
+                const tryBlock = (fn, name) => {
+                    try { fn(); } catch(e) { console.error(`Error in ${name}:`, e); }
+                };
+
                 // Load Website Core Info
-                const form = $('#settingsForm')[0];
-                if (form) {
-                    const phoneFields = $('#phoneFields');
-                    phoneFields.empty();
-                    const phones = data.supportPhones || (data.supportPhone ? [data.supportPhone] : ['']);
-                    phones.forEach((phone) => {
-                        phoneFields.append(`
-                            <div class="input-group mb-2">
-                                <input type="text" class="form-control" name="supportPhones[]" value="${phone}" placeholder="e.g. 0712345678">
-                                <div class="input-group-append">
-                                    <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                tryBlock(() => {
+                    const form = $('#settingsForm')[0];
+                    if (form) {
+                        const phoneFields = $('#phoneFields');
+                        phoneFields.empty();
+                        const phones = data.supportPhones || (data.supportPhone ? [data.supportPhone] : ['']);
+                        phones.forEach((phone) => {
+                            phoneFields.append(`
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" name="supportPhones[]" value="${phone}" placeholder="e.g. 0712345678">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                                    </div>
                                 </div>
-                            </div>
-                        `);
-                    });
+                            `);
+                        });
 
-                    const emailFields = $('#emailFields');
-                    emailFields.empty();
-                    const emails = data.supportEmails || (data.supportEmail ? [data.supportEmail] : ['']);
-                    emails.forEach((email) => {
-                        emailFields.append(`
-                            <div class="input-group mb-2">
-                                <input type="email" class="form-control" name="supportEmails[]" value="${email}" placeholder="e.g. support@pcnc.com">
-                                <div class="input-group-append">
-                                    <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                        const emailFields = $('#emailFields');
+                        emailFields.empty();
+                        const emails = data.supportEmails || (data.supportEmail ? [data.supportEmail] : ['']);
+                        emails.forEach((email) => {
+                            emailFields.append(`
+                                <div class="input-group mb-2">
+                                    <input type="email" class="form-control" name="supportEmails[]" value="${email}" placeholder="e.g. support@pcnc.com">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-danger" onclick="$(this).closest('.input-group').remove()"><i class="fas fa-times"></i></button>
+                                    </div>
                                 </div>
-                            </div>
-                        `);
-                    });
+                            `);
+                        });
 
-                    if (form.homeTitle) form.homeTitle.value = data.homeTitle || '';
-                    if (form.homeSubtext) form.homeSubtext.value = data.homeSubtext || '';
-                    if (form.aboutText) form.aboutText.value = data.aboutText || '';
-                    $('#globalWhatsappInput').val(data.whatsappNumber || '');
-                }
+                        if (form.homeTitle) form.homeTitle.value = data.homeTitle || '';
+                        if (form.homeSubtext) form.homeSubtext.value = data.homeSubtext || '';
+                        if (form.aboutText) form.aboutText.value = data.aboutText || '';
+                        $('#globalWhatsappInput').val(data.whatsappNumber || '');
+                    }
+                }, "CoreInfo");
 
                 // Load Deal of the Week
-                const df = $('#dealForm')[0];
-                if (df && data.dealOfWeek) {
-                    if (df.title) df.title.value = data.dealOfWeek.title || '';
-                    if (df.subtitle) df.subtitle.value = data.dealOfWeek.subtitle || '';
-                    if (df.description) df.description.value = data.dealOfWeek.description || '';
-                    if (df.image) df.image.value = data.dealOfWeek.image || '';
-                }
+                tryBlock(() => {
+                    const df = $('#dealForm')[0];
+                    if (df && data.dealOfWeek) {
+                        if (df.title) df.title.value = data.dealOfWeek.title || '';
+                        if (df.subtitle) df.subtitle.value = data.dealOfWeek.subtitle || '';
+                        if (df.description) df.description.value = data.dealOfWeek.description || '';
+                        if (df.image) df.image.value = data.dealOfWeek.image || '';
+                    }
+                }, "DealOfWeek");
 
                 // Load Home About
-                const haf = $('#homeAboutForm')[0];
-                if (haf && data.homeAbout) {
-                    if (haf.title) haf.title.value = data.homeAbout.title || '';
-                    if (haf.heading) haf.heading.value = data.homeAbout.heading || '';
-                    if (haf.description) haf.description.value = data.homeAbout.description || '';
-                    if (haf.videoLink) haf.videoLink.value = data.homeAbout.videoLink || '';
-                    if (haf.isVideoLocal) haf.isVideoLocal.checked = data.homeAbout.isVideoLocal || false;
-                    if (haf.abtImage) haf.abtImage.value = data.homeAbout.abtImage || '';
-                }
+                tryBlock(() => {
+                    const haf = $('#homeAboutForm')[0];
+                    if (haf && data.homeAbout) {
+                        if (haf.title) haf.title.value = data.homeAbout.title || '';
+                        if (haf.heading) haf.heading.value = data.homeAbout.heading || '';
+                        if (haf.description) haf.description.value = data.homeAbout.description || '';
+                        if (haf.videoLink) haf.videoLink.value = data.homeAbout.videoLink || '';
+                        if (haf.isVideoLocal) haf.isVideoLocal.checked = data.homeAbout.isVideoLocal || false;
+                        if (haf.abtImage) haf.abtImage.value = data.homeAbout.abtImage || '';
+                    }
+                }, "HomeAbout");
 
                 // Load About Promo
-                const apf = $('#aboutPromoForm')[0];
-                if (apf && data.aboutPromo) {
-                    if (apf.line1) apf.line1.value = data.aboutPromo.line1 || '';
-                    if (apf.line2) apf.line2.value = data.aboutPromo.line2 || '';
-                }
+                 tryBlock(() => {
+                    const apf = $('#aboutPromoForm')[0];
+                    if (apf && data.aboutPromo) {
+                        if (apf.line1) apf.line1.value = data.aboutPromo.line1 || '';
+                        if (apf.line2) apf.line2.value = data.aboutPromo.line2 || '';
+                    }
+                }, "AboutPromo");
 
                 // Load Promos
-                renderPromos(data.promoCodes || []);
+                tryBlock(() => renderPromos(data.promoCodes || []), "Promos");
 
                 // Load Riders
-                allRiders = data.riders || [];
-                renderRiders();
+                tryBlock(() => {
+                    allRiders = data.riders || [];
+                    renderRiders();
+                }, "Riders");
 
                 // Load Team
-                const tbody = $('#teamTableBody').empty();
-                const teamData = data.team || [];
-                if (teamData.length > 0) {
-                    teamData.forEach(m => {
-                        tbody.append(`
-                            <tr>
-                                <td><img src="../${m.image}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"></td>
-                                <td><div class="font-weight-bold">${m.name}</div><small class="text-muted">${m.role}</small></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditTeamMember(${m.id})"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTeamMember(${m.id})"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `);
-                    });
-                } else {
-                    tbody.append('<tr><td colspan="3" class="text-center text-muted">No team members yet</td></tr>');
-                }
+                tryBlock(() => {
+                    const tbody = $('#teamTableBody').empty();
+                    const teamData = data.team || [];
+                    if (teamData.length > 0) {
+                        teamData.forEach(m => {
+                            tbody.append(`
+                                <tr>
+                                    <td><img src="../${m.image}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"></td>
+                                    <td><div class="font-weight-bold">${m.name}</div><small class="text-muted">${m.role}</small></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditTeamMember(${m.id})"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTeamMember(${m.id})"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="3" class="text-center text-muted">No team members yet</td></tr>');
+                    }
+                }, "Team");
 
                 // Load Categories
-                const catBody = $('#categoryTableBody').empty();
-                const catDropdown = $('#addMenuCategoryDropdown');
-                const catData = data.menuCategories || [];
-                
-                if (catData.length > 0) {
-                    if (catDropdown.length > 0) catDropdown.empty();
-                    catData.forEach(cat => {
-                        catBody.append(`
-                            <tr>
-                                <td><code>${cat.id}</code></td>
-                                <td>${cat.name}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditCategory('${cat.id}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory('${cat.id}')"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `);
-                        if (catDropdown.length > 0) catDropdown.append(`<option value="${cat.id}">${cat.name}</option>`);
-                    });
-                } else {
-                    catBody.append('<tr><td colspan="3" class="text-center text-muted">No categories yet</td></tr>');
-                    if (catDropdown.length > 0) {
-                        catDropdown.empty();
-                        catDropdown.append('<option value="">No categories available</option>');
+                tryBlock(() => {
+                    const catBody = $('#categoryTableBody').empty();
+                    const catDropdown = $('#addMenuCategoryDropdown');
+                    const catData = data.menuCategories || [];
+                    
+                    if (catData.length > 0) {
+                        if (catDropdown.length > 0) catDropdown.empty();
+                        catData.forEach(cat => {
+                            catBody.append(`
+                                <tr>
+                                    <td><code>${cat.id}</code></td>
+                                    <td>${cat.name}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditCategory('${cat.id}')"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory('${cat.id}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                            if (catDropdown.length > 0) catDropdown.append(`<option value="${cat.id}">${cat.name}</option>`);
+                        });
+                    } else {
+                        catBody.append('<tr><td colspan="3" class="text-center text-muted">No categories available</td></tr>');
+                        if (catDropdown.length > 0) {
+                            catDropdown.empty();
+                            catDropdown.append('<option value="">No categories available</option>');
+                        }
                     }
-                }
+                }, "Categories");
 
                 if (allOrders.length > 0) renderOrders();
-            } catch (e) { console.error('Error loading settings:', e); }
+            } catch (e) { 
+                console.error('CRITICAL Error loading settings:', e); 
+                alert('Connection to server settings failed. Please check your internet or reload.');
+            }
         }
         
         function addPhoneField() {
