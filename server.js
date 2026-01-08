@@ -56,8 +56,10 @@ const StaffSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
+  profilePhoto: { type: String, default: "" }, // Base64 or path
   role: { type: String, enum: ['super-admin', 'staff'], default: 'staff' },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  isBlocked: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -1275,15 +1277,23 @@ app.get("/api/admin/export", async (req, res) => {
   
   // Staff Signup
   app.post("/api/admin/signup", async (req, res) => {
-    const { username, password, name } = req.body;
+    const { username, password, name, profilePhoto } = req.body;
     try {
       const existing = await Staff.findOne({ username });
       if (existing) return res.json({ success: false, message: "Username already taken." });
       
-      const newStaff = new Staff({ username, password, name, status: 'pending', role: 'staff' });
+      const newStaff = new Staff({ 
+        username, 
+        password, 
+        name, 
+        profilePhoto: profilePhoto || "",
+        status: 'pending', 
+        role: 'staff' 
+      });
       await newStaff.save();
       res.json({ success: true, message: "Application submitted! Wait for Super Admin approval." });
     } catch (e) {
+      console.error("Signup Error:", e);
       res.status(500).json({ success: false, message: "Signup failed." });
     }
   });
@@ -1297,6 +1307,7 @@ app.get("/api/admin/export", async (req, res) => {
       const user = await Staff.findOne({ username, password });
       if (!user) return res.status(401).json({ success: false, message: "Invalid credentials." });
       
+      if (user.isBlocked) return res.status(403).json({ success: false, message: "Your account has been blocked. Contact Super Admin." });
       if (user.status === 'pending') return res.status(403).json({ success: false, message: "Your account is pending approval." });
       if (user.status === 'rejected') return res.status(403).json({ success: false, message: "Your account access has been denied." });
 
@@ -1305,7 +1316,8 @@ app.get("/api/admin/export", async (req, res) => {
         lastActive: now, 
         sessionId, 
         name: user.name, 
-        role: user.role 
+        role: user.role,
+        photo: user.profilePhoto
       };
       
       console.log(`[ADMIN LOGIN] ${user.name} (${user.role}) logged in successfully`);
@@ -1314,7 +1326,8 @@ app.get("/api/admin/export", async (req, res) => {
         token: ADMIN_TOKEN,
         staffName: user.name,
         role: user.role,
-        sessionId: sessionId
+        sessionId: sessionId,
+        profilePhoto: user.profilePhoto
       });
     } catch (e) {
       res.status(500).json({ success: false, message: "Server error during login." });
@@ -1332,12 +1345,23 @@ app.get("/api/admin/export", async (req, res) => {
 
   app.post("/api/admin/staff/action", authMiddleware, async (req, res) => {
     if (req.staffRole !== 'super-admin') return res.status(403).json({ success: false });
-    const { username, action } = req.body; // action: 'approved' | 'rejected' | 'delete'
+    const { username, action } = req.body; // action: 'approved' | 'rejected' | 'delete' | 'block' | 'unblock'
     
     try {
       if (action === 'delete') {
         await Staff.deleteOne({ username });
         delete activeAdminSessions[username];
+        return res.json({ success: true });
+      }
+      
+      if (action === 'block') {
+        await Staff.updateOne({ username }, { isBlocked: true });
+        delete activeAdminSessions[username];
+        return res.json({ success: true });
+      }
+
+      if (action === 'unblock') {
+        await Staff.updateOne({ username }, { isBlocked: false });
         return res.json({ success: true });
       }
       

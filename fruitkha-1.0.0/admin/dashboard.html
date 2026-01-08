@@ -261,8 +261,13 @@
         
         <!-- Welcome Section -->
         <div id="adminNameDisplay" style="background: rgba(231, 37, 45, 0.1); padding: 15px; border-radius: 16px; margin-bottom: 20px; display: none; border-left: 4px solid #e7252d;">
-            <div style="font-size: 0.7rem; text-transform: uppercase; color: #999; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px;">Welcome back,</div>
-            <div id="adminNameText" style="color: #fff; font-weight: 800; font-size: 1.1rem;"></div>
+            <div class="d-flex align-items-center">
+                <img id="adminProfilePhoto" src="../assets/img/products/default-avatar.png" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 2px solid #e7252d; background: white;">
+                <div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: #999; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px;">Welcome back,</div>
+                    <div id="adminNameText" style="color: #fff; font-weight: 800; font-size: 1.1rem;"></div>
+                </div>
+            </div>
         </div>
         
         <!-- Active Staff Status (Authorized Admins Only) -->
@@ -310,7 +315,11 @@
                     <div id="clockTime" style="font-size: 1.8rem; font-weight: 800; color: white; font-family: 'Inter', monospace; letter-spacing: 1px;">--:--:--</div>
                     <div id="clockDate" style="font-size: 0.7rem; color: rgba(255,255,255,0.9); font-weight: 600; margin-top: 2px;">Loading...</div>
                 </div>
-                <div class="d-flex">
+                <div class="d-flex align-items-center">
+                    <div class="custom-control custom-switch mr-4" id="viewerModeWrapper" style="display: none; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid #eee;">
+                        <input type="checkbox" class="custom-control-input" id="managementModeToggle" onchange="toggleManagementMode()">
+                        <label class="custom-control-label font-weight-bold text-muted" for="managementModeToggle" style="font-size: 0.8rem; cursor: pointer;">MANAGEMENT MODE</label>
+                    </div>
                     <button class="btn btn-outline-success mr-2 shadow-sm" style="border-radius: 12px;" onclick="downloadReport()">
                         <i class="fas fa-file-excel mr-2"></i> Daily Report
                     </button>
@@ -448,11 +457,10 @@
                     <table class="table mb-0">
                         <thead style="background: #fafafa;">
                             <tr>
-                                <th>Name</th>
-                                <th>Username</th>
+                                <th>Staff Details</th>
                                 <th>Status</th>
                                 <th>Applied Date</th>
-                                <th class="text-right">Actions</th>
+                                <th class="text-right">Admin Actions</th>
                             </tr>
                         </thead>
                         <tbody id="staffTable">
@@ -1173,9 +1181,14 @@
             document.getElementById('adminNameDisplay').style.display = 'block';
             document.getElementById('adminNameText').innerText = currentSession.staffName;
             
+            if (currentSession.profilePhoto) {
+                document.getElementById('adminProfilePhoto').src = currentSession.profilePhoto;
+            }
+            
             // If super-admin, show all links
             if (currentSession.role === 'super-admin') {
                 document.getElementById('restrictedNav').style.display = 'block';
+                document.getElementById('viewerModeWrapper').style.display = 'block';
             }
         }
 
@@ -1293,8 +1306,15 @@
         let allRiders = [];
         let currentView = 'dashboard';
         let lastKnownOrderId = null;
+        let isManagementMode = false; // Default for super-admins
         let salesChartInstance = null;
         let categoryChartInstance = null;
+
+        function toggleManagementMode() {
+            isManagementMode = document.getElementById('managementModeToggle').checked;
+            showNotification('Mode Updated', isManagementMode ? 'Order Management Enabled' : 'Viewer Mode Activated', 'info');
+            renderOrders();
+        }
         let customerChartInstance = null;
 
         function switchView(view) {
@@ -1405,17 +1425,40 @@
                     const tbody = $('#staffTable').empty();
                     data.staff.forEach(s => {
                         const statusClass = s.status === 'approved' ? 'badge-success' : (s.status === 'rejected' ? 'badge-danger' : 'badge-warning');
+                        const photo = s.profilePhoto || '../assets/img/products/default-avatar.png';
+                        const isBlocked = s.isBlocked || false;
+                        
+                        let actions = '';
+                        if (s.status === 'pending') {
+                            actions = `
+                                <button class="btn btn-sm btn-outline-success" onclick="handleStaffAction('${s.username}', 'approved')" title="Approve"><i class="fas fa-check"></i></button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="handleStaffAction('${s.username}', 'rejected')" title="Reject"><i class="fas fa-times"></i></button>
+                            `;
+                        } else {
+                            actions = `
+                                <button class="btn btn-sm btn-outline-${isBlocked ? 'info' : 'secondary'}" onclick="handleStaffAction('${s.username}', '${isBlocked ? 'unblock' : 'block'}')" title="${isBlocked ? 'Unblock' : 'Block'} User">
+                                    <i class="fas fa-${isBlocked ? 'unlock' : 'user-lock'}"></i>
+                                </button>
+                            `;
+                        }
+
                         tbody.append(`
                             <tr>
-                                <td class="font-weight-bold">${s.name}</td>
-                                <td><code>${s.username}</code></td>
-                                <td><span class="badge ${statusClass}">${s.status.toUpperCase()}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="${photo}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 2px solid ${isBlocked ? '#6c757d' : '#e7252d'}; background: white;">
+                                        <div>
+                                            <div class="font-weight-bold" style="font-size: 0.95rem;">${s.name} ${isBlocked ? '<span class="badge badge-secondary ml-1">BLOCKED</span>' : ''}</div>
+                                            <div class="small text-muted">@${s.username}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge ${statusClass}" style="padding: 6px 12px; border-radius: 20px;">${s.status.toUpperCase()}</span></td>
                                 <td class="small text-muted">${new Date(s.createdAt).toLocaleDateString()}</td>
                                 <td class="text-right">
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-success" onclick="handleStaffAction('${s.username}', 'approved')" title="Approve"><i class="fas fa-check"></i></button>
-                                        <button class="btn btn-sm btn-outline-warning" onclick="handleStaffAction('${s.username}', 'rejected')" title="Reject"><i class="fas fa-times"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="handleStaffAction('${s.username}', 'delete')" title="Delete"><i class="fas fa-trash"></i></button>
+                                        ${actions}
+                                        <button class="btn btn-sm btn-outline-danger" onclick="handleStaffAction('${s.username}', 'delete')" title="Delete Record"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -1659,11 +1702,18 @@
             if (currentView === 'history') filtered = allOrders.filter(o => o.status === 'Completed');
 
             const tbody = $('#ordersTable').empty();
+            const canManage = currentSession.role === 'staff' || isManagementMode;
+
             filtered.forEach(o => {
                 const statusMap = { 'New': 'bg-new', 'Preparing': 'bg-preparing', 'Out for Delivery': 'bg-shipping', 'Completed': 'bg-completed' };
                 const items = o.items.map(i => `<strong>${i.quantity}</strong>x ${i.name}`).join('<br>');
-                const payStatus = o.paymentStatus === 'Successful' ? '<span class="text-success font-weight-bold">PAID</span>' : 
-                    `<button class="btn btn-sm btn-outline-success py-0" onclick="updateOrder('${o.id}', {paymentStatus:'Successful'})">Mark Paid</button>`;
+                
+                let payStatus = '';
+                if (o.paymentStatus === 'Successful') {
+                    payStatus = '<span class="text-success font-weight-bold">PAID</span>';
+                } else {
+                    payStatus = `<button class="btn btn-sm btn-outline-success py-0" onclick="updateOrder('${o.id}', {paymentStatus:'Successful'})" ${!canManage ? 'disabled' : ''}>Mark Paid</button>`;
+                }
 
                 let rowClass = '';
                 if (o.status === 'New') rowClass = 'row-new';
@@ -1673,9 +1723,9 @@
 
                 const riderOptions = allRiders.map(r => `<option value="${r.id}" ${o.assignedRiderId === r.id ? 'selected' : ''}>${r.name}</option>`).join('');
                 const riderSelect = `
-                    <div class="mt-2">
+                    <div class="mt-2" style="${!canManage ? 'opacity: 0.6; pointer-events: none;' : ''}">
                         <label class="small font-weight-bold mb-0" style="font-size: 0.65rem; color: #888; text-transform: uppercase;">Assign Rider:</label>
-                        <select class="form-control form-control-sm py-0" onchange="updateOrder('${o.id}', {assignedRiderId: this.value})" style="font-size: 0.75rem; height: 28px; border-radius: 6px;">
+                        <select class="form-control form-control-sm py-0" onchange="updateOrder('${o.id}', {assignedRiderId: this.value})" style="font-size: 0.75rem; height: 28px; border-radius: 6px;" ${!canManage ? 'disabled' : ''}>
                             <option value="">-- No Rider --</option>
                             ${riderOptions}
                         </select>
@@ -1686,7 +1736,7 @@
                     <tr class="${rowClass}">
                         <td class="small font-weight-bold">#${o.id.slice(-6).toUpperCase()}</td>
                         <td class="customer-info">
-                            <div class="font-weight-bold">${o.customerName}</div>
+                            <div class="font-weight-bold" style="font-size: 0.9rem;">${o.customerName}</div>
                             <small class="d-block text-muted">
                                 <i class="fas fa-map-marker-alt mr-1"></i>${o.location}
                                 ${o.lat ? `
@@ -1704,7 +1754,7 @@
                                 </div>
                             ` : '<div class="mt-2 small text-muted font-italic" style="font-size: 0.7rem;">None</div>'}
                             <div class="mt-2">
-                                <button class="btn btn-sm btn-outline-info py-0" style="font-size: 0.65rem;" onclick="promptETA('${o.id}', '${o.estimatedTime || ''}')"><i class="fas fa-clock mr-1"></i> ${o.estimatedTime ? 'ETA: ' + o.estimatedTime : 'Set ETA'}</button>
+                                <button class="btn btn-sm btn-outline-info py-0" style="font-size: 0.65rem;" onclick="promptETA('${o.id}', '${o.estimatedTime || ''}')" ${!canManage ? 'disabled' : ''}><i class="fas fa-clock mr-1"></i> ${o.estimatedTime ? 'ETA: ' + o.estimatedTime : 'Set ETA'}</button>
                             </div>
                         </td>
                         <td class="small">${items}</td>
@@ -1718,7 +1768,7 @@
                         <td>${payStatus}</td>
                         <td><span class="status-badge ${statusMap[o.status]}">${o.status}</span></td>
                         <td>
-                            <div class="d-flex">
+                            <div class="d-flex" style="${!canManage ? 'opacity: 0.4; pointer-events: none;' : ''}">
                                 <button title="Kitchen Prep" class="btn-action btn-prep" onclick="updateOrder('${o.id}', {status:'Preparing'})"><i class="fas fa-fire"></i></button>
                                 <button title="Send Delivery" class="btn-action btn-ship" onclick="updateOrder('${o.id}', {status:'Out for Delivery'})"><i class="fas fa-truck"></i></button>
                                 <button title="Done & Print" class="btn-action btn-done" onclick="updateOrder('${o.id}', {status:'Completed'}); setTimeout(() => printReceipt('${o.id}'), 500);"><i class="fas fa-check"></i></button>
@@ -1726,6 +1776,7 @@
                                 <button title="Edit Order" class="btn-action btn-edit" onclick="openEditOrder('${o.id}')"><i class="fas fa-edit"></i></button>
                                 <button title="Delete Record" class="btn-action btn-delete" onclick="deleteOrder('${o.id}')"><i class="fas fa-trash"></i></button>
                             </div>
+                            ${!canManage ? '<div class="small text-muted text-center mt-1"><i class="fas fa-eye mr-1"></i>Viewer Mode</div>' : ''}
                         </td>
                     </tr>
                 `);

@@ -3,178 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCnC | Staff Login</title>
+    <title>PCnC | HQ Security Portal</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
+        :root {
+            --pcnc-red: #e7252d;
+            --pcnc-dark: #1a1a1a;
+            --glass: rgba(255, 255, 255, 0.9);
+        }
         body { 
-            background-color: #f8f9fa; 
-            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            font-family: 'Outfit', sans-serif;
             height: 100vh; 
             display: flex; 
             align-items: center; 
             justify-content: center;
-            background-image: radial-gradient(#e7252d11 1px, transparent 1px);
-            background-size: 20px 20px;
+            overflow: hidden;
         }
+        
+        /* Animated Background Gradients */
+        .aurora {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            filter: blur(100px);
+            opacity: 0.4;
+        }
+        .aurora-1 { width: 400px; height: 400px; background: var(--pcnc-red); top: -100px; right: -100px; border-radius: 50%; animation: drift 15s infinite alternate; }
+        .aurora-2 { width: 500px; height: 500px; background: #c71f27; bottom: -150px; left: -150px; border-radius: 50%; animation: drift 20s infinite alternate-reverse; }
+        
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(50px, 50px) scale(1.1); }
+        }
+
         .login-box { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 24px; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.05); 
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 50px 40px; 
+            border-radius: 32px; 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5); 
             width: 100%; 
-            max-width: 420px; 
-            border: 1px solid #f0f0f0;
+            max-width: 460px; 
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
         }
-        .logo-area { text-align: center; margin-bottom: 30px; }
-        .logo-area img { max-height: 80px; }
+        
+        .logo-area { text-align: center; margin-bottom: 35px; }
+        .logo-area img { max-height: 90px; filter: drop-shadow(0 10px 20px rgba(231, 37, 45, 0.3)); }
+        
+        .nav-pills { background: #eee; padding: 6px; border-radius: 16px; border: 1px solid #ddd; }
+        .nav-pills .nav-link { 
+            color: #666; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; 
+            letter-spacing: 1px; border-radius: 12px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-pills .nav-link.active { background: var(--pcnc-red); color: white; box-shadow: 0 8px 15px rgba(231, 37, 45, 0.3); }
+
+        .form-group label { 
+            font-weight: 700; color: #444; font-size: 0.75rem; 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+        }
+        
         .form-control {
-            border-radius: 12px;
-            padding: 12px 15px;
-            border: 1px solid #eee;
-            background: #fafafa;
-            font-size: 0.95rem;
+            border-radius: 14px; padding: 14px 18px; border: 2px solid #eee;
+            background: #fbfbfb; font-size: 1rem; transition: 0.3s;
         }
         .form-control:focus {
-            box-shadow: 0 0 0 4px rgba(231, 37, 45, 0.1);
-            border-color: #e7252d;
-            background: #fff;
+            border-color: var(--pcnc-red); background: #fff; box-shadow: 0 0 0 5px rgba(231, 37, 45, 0.1);
         }
-        label { font-weight: 600; font-size: 0.85rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        
         .btn-orange { 
-            background-color: #e7252d; 
-            color: white; 
-            border: none; 
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            margin-top: 10px;
+            background: linear-gradient(135deg, var(--pcnc-red) 0%, #c71f27 100%); 
+            color: white; border: none; padding: 16px; border-radius: 16px;
+            font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.4s transform, 0.4s box-shadow; margin-top: 15px;
         }
-        .btn-orange:hover { 
-            background-color: #1a1a1a; 
-            color: white; 
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .admin-footer { margin-top: 30px; font-size: 0.8rem; color: #aaa; text-align: center; }
+        .btn-orange:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(231, 37, 45, 0.4); color: white; }
+        
+        .custom-file-label { border-radius: 14px; padding: 12px 18px; border: 2px solid #eee; height: auto; }
+        .custom-file-label::after { border-radius: 0 12px 12px 0; padding: 12px 18px; height: auto; background: #f0f0f0; }
 
-        /* Mobile Responsive Styles */
-        @media only screen and (max-width: 575px) {
-            body {
-                padding: 20px;
-            }
-
-            .login-box {
-                padding: 30px 25px;
-                max-width: 100%;
-            }
-
-            .logo-area img {
-                max-height: 60px;
-            }
-
-            .logo-area h4 {
-                font-size: 1.3rem;
-            }
-
-            .form-control {
-                font-size: 16px; /* Prevents zoom on iOS */
-            }
-
-            .btn-orange {
-                padding: 12px;
-                font-size: 14px;
-            }
+        .admin-footer { margin-top: 40px; font-size: 0.75rem; color: #888; text-align: center; font-weight: 500; }
+        
+        #previewArea img {
+            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--pcnc-red); margin: 0 auto 15px; display: block;
         }
     </style>
 </head>
 <body>
-    <div class="login-box animate__animated animate__fadeInUp">
+    <div class="aurora"><div class="aurora-1"></div><div class="aurora-2"></div></div>
+
+    <div class="login-box animate__animated animate__fadeIn">
         <div class="logo-area">
             <img src="../assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo">
-            <h4 class="mt-3 font-weight-bold">Security Portal</h4>
-            <p class="text-muted small">HQ Command Center Access</p>
+            <h4 class="mt-3 font-weight-bold" style="letter-spacing: -0.5px; color: var(--pcnc-dark);">HQ Security Portal</h4>
+            <p class="text-muted small">Restricted access for authorized personnel</p>
         </div>
 
-        <!-- Tab Controls -->
-        <ul class="nav nav-pills nav-justified mb-4" id="pills-tab" role="tablist" style="background: #f8f9fa; padding: 5px; border-radius: 12px;">
-            <li class="nav-item">
-                <a class="nav-link active" id="pills-login-tab" data-toggle="pill" href="#pills-login" role="tab" style="border-radius: 8px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Sign In</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="pills-signup-tab" data-toggle="pill" href="#pills-signup" role="tab" style="border-radius: 8px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Apply</a>
-            </li>
+        <ul class="nav nav-pills nav-justified mb-4" id="pills-tab" role="tablist">
+            <li class="nav-item"><a class="nav-link active" id="pills-login-tab" data-toggle="pill" href="#pills-login" role="tab">Sign In</a></li>
+            <li class="nav-item"><a class="nav-link" id="pills-signup-tab" data-toggle="pill" href="#pills-signup" role="tab">Apply</a></li>
         </ul>
 
         <div class="tab-content" id="pills-tabContent">
-            <!-- Login Tab -->
+            <!-- Login -->
             <div class="tab-pane fade show active" id="pills-login" role="tabpanel">
                 <form id="loginForm">
                     <div class="form-group mb-4">
-                        <label>User ID</label>
-                        <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+                        <label><i class="fas fa-user-shield mr-2"></i>Staff ID</label>
+                        <input type="text" class="form-control" id="username" placeholder="Username" required>
                     </div>
                     <div class="form-group mb-4">
-                        <label>Access Key</label>
+                        <label><i class="fas fa-key mr-2"></i>Access Key</label>
                         <input type="password" class="form-control" id="password" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="btn btn-orange btn-block" id="loginBtn">Authorize Access</button>
-                    <div id="loginError" class="text-danger mt-3 text-center small font-weight-bold" style="display:none;"></div>
+                    <button type="submit" class="btn btn-orange btn-block" id="loginBtn">Authorize System</button>
+                    <div id="loginError" class="text-danger mt-3 text-center small font-weight-bold animate__animated animate__shakeX" style="display:none;"></div>
                 </form>
             </div>
 
-            <!-- Signup Tab -->
+            <!-- Signup -->
             <div class="tab-pane fade" id="pills-signup" role="tabpanel">
                 <form id="signupForm">
-                    <div class="form-group mb-3">
-                        <label>Full Name</label>
-                        <input type="text" class="form-control" id="signupName" placeholder="E.g. Jane Doe" required>
+                    <div id="previewArea" style="display:none;">
+                        <img src="" id="photoPreview">
                     </div>
                     <div class="form-group mb-3">
-                        <label>Staff ID (Username)</label>
-                        <input type="text" class="form-control" id="signupUsername" placeholder="Choose a username" required>
+                        <label>Display Name</label>
+                        <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Preferred User ID</label>
+                        <input type="text" class="form-control" id="signupUsername" placeholder="e.g. chef_john" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Security Key</label>
+                        <input type="password" class="form-control" id="signupPassword" placeholder="Strong password" required>
                     </div>
                     <div class="form-group mb-4">
-                        <label>Access Key (Password)</label>
-                        <input type="password" class="form-control" id="signupPassword" placeholder="••••••••" required>
+                        <label>Identification Photo</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="signupPhoto" accept="image/*">
+                            <label class="custom-file-label" id="photoLabel">Choose image</label>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-dark btn-block" id="signupBtn" style="border-radius: 12px; padding: 14px; font-weight: 800; text-transform: uppercase;">Submit Application</button>
+                    <button type="submit" class="btn btn-dark btn-block" id="signupBtn" style="border-radius: 16px; padding: 16px; font-weight: 800; text-transform: uppercase;">Submit Application</button>
                     <div id="signupMsg" class="mt-3 text-center small font-weight-bold"></div>
                 </form>
             </div>
         </div>
 
         <div class="admin-footer">
-            &copy; 2026 Pizza Chick n Crust | Security Portal
+            &copy; 2026 Pizza Chick n Crust | HQ Operations Port
         </div>
     </div>
 
     <script src="../assets/js/jquery-1.11.3.min.js"></script>
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script>
-        // Session Manager
         const SessionManager = {
-            getAllSessions() {
-                const sessions = localStorage.getItem('adminSessions');
-                return sessions ? JSON.parse(sessions) : {};
+            getAllSessions() { const s = localStorage.getItem('adminSessions'); return s ? JSON.parse(s) : {}; },
+            saveSession(id, data) {
+                const s = this.getAllSessions();
+                s[id] = { ...data, loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() };
+                localStorage.setItem('adminSessions', JSON.stringify(s));
             },
-            saveSession(sessionId, sessionData) {
-                const sessions = this.getAllSessions();
-                sessions[sessionId] = {
-                    ...sessionData,
-                    loginTime: new Date().toISOString(),
-                    lastActivity: new Date().toISOString()
-                };
-                localStorage.setItem('adminSessions', JSON.stringify(sessions));
-                return sessionId;
-            },
-            setActiveSession(sessionId) {
-                sessionStorage.setItem('currentSessionId', sessionId);
-            }
+            setActiveSession(id) { sessionStorage.setItem('currentSessionId', id); }
         };
+
+        // File to Base64
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Photo Preview
+        document.getElementById('signupPhoto').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('photoLabel').innerText = file.name;
+                const base64 = await toBase64(file);
+                document.getElementById('photoPreview').src = base64;
+                document.getElementById('previewArea').style.display = 'block';
+            }
+        });
 
         // Login Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -182,9 +202,11 @@
             const btn = document.getElementById('loginBtn');
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const err = document.getElementById('loginError');
 
-            btn.innerText = 'Verifying...';
+            btn.innerText = 'Verifying HQ...';
             btn.disabled = true;
+            err.style.display = 'none';
 
             try {
                 const res = await fetch('/api/admin/login', {
@@ -198,21 +220,19 @@
                         token: data.token,
                         username: username,
                         staffName: data.staffName,
-                        role: data.role
+                        role: data.role,
+                        profilePhoto: data.profilePhoto
                     });
                     SessionManager.setActiveSession(data.sessionId);
                     window.location.href = 'dashboard.html';
                 } else {
-                    const error = document.getElementById('loginError');
-                    error.innerText = data.message || 'Invalid Credentials';
-                    error.style.display = 'block';
-                    btn.innerText = 'Authorize Access';
+                    err.innerText = data.message || 'Access Denied';
+                    err.style.display = 'block';
+                    btn.innerText = 'Authorize System';
                     btn.disabled = false;
                 }
             } catch (err) {
-                console.error(err);
-                btn.innerText = 'Authorize Access';
-                btn.disabled = false;
+                btn.innerText = 'Authorize System'; btn.disabled = false;
             }
         });
 
@@ -221,13 +241,21 @@
             e.preventDefault();
             const btn = document.getElementById('signupBtn');
             const msg = document.getElementById('signupMsg');
+            const photoInput = document.getElementById('signupPhoto');
+            
+            let profilePhoto = "";
+            if (photoInput.files[0]) {
+                profilePhoto = await toBase64(photoInput.files[0]);
+            }
+
             const data = {
                 name: document.getElementById('signupName').value,
                 username: document.getElementById('signupUsername').value,
-                password: document.getElementById('signupPassword').value
+                password: document.getElementById('signupPassword').value,
+                profilePhoto: profilePhoto
             };
 
-            btn.innerText = 'Submitting...';
+            btn.innerText = 'Sending Application...';
             btn.disabled = true;
 
             try {
@@ -242,16 +270,14 @@
                 
                 if (result.success) {
                     document.getElementById('signupForm').reset();
+                    document.getElementById('previewArea').style.display = 'none';
                     setTimeout(() => { $('#pills-login-tab').tab('show'); }, 3000);
                 }
                 btn.innerText = 'Submit Application';
                 btn.disabled = false;
             } catch (err) {
-                console.error(err);
-                msg.innerText = 'Server connection failed';
-                msg.className = 'mt-3 text-center small font-weight-bold text-danger';
-                btn.innerText = 'Submit Application';
-                btn.disabled = false;
+                msg.innerText = 'Server error'; msg.className = 'text-danger';
+                btn.innerText = 'Submit Application'; btn.disabled = false;
             }
         });
     </script>
