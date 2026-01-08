@@ -324,7 +324,7 @@ const authMiddleware = async (req, res, next) => {
       activeAdminSessions[username].lastActive = now;
       req.staffName = activeSession.name;
       req.staffRole = activeSession.role;
-      req.username = username;
+      req.staffUsername = username;
     }
     next();
   } else {
