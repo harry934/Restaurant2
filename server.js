@@ -272,11 +272,15 @@ const authMiddleware = (req, res, next) => {
 // Admin Logout Route
 app.post("/api/admin/logout", (req, res) => {
   const { username, sessionId } = req.body;
-  if (username && activeAdminSessions[username] && activeAdminSessions[username].sessionId === sessionId) {
-    delete activeAdminSessions[username];
-    console.log(`[ADMIN LOGOUT] ${username} session cleared`);
+  if (username && activeAdminSessions[username]) {
+    // If sessionId matches or if it's a forced logout from the mismo user
+    if (activeAdminSessions[username].sessionId === sessionId) {
+      delete activeAdminSessions[username];
+      console.log(`[ADMIN LOGOUT] ${username} session cleared successfully`);
+      return res.json({ success: true, message: "Logged out" });
+    }
   }
-  res.json({ success: true });
+  res.json({ success: true, message: "Session already gone or mismatch" });
 });
 
 // Get Active Admin status for the whole system

@@ -1206,17 +1206,22 @@
         // Update Active Sessions Display (Strictly 2 Admins - Fetched from Server)
         async function updateActiveSessionsDisplay() {
             try {
-                const res = await adminFetch('/api/admin/active-sessions');
-                const data = await res.json();
+                // Cache busting query to ensure we get fresh state
+                const res = await adminFetch(`/api/admin/active-sessions?t=${Date.now()}`);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
+                const data = await res.json();
+                console.log("[STATUS UPDATE] Online from server:", data.onlineAdmins);
                 if (data.success) {
                     const onlineAdmins = data.onlineAdmins || [];
+                    // Force names to uppercase for consistent matching
+                    const onlineAdminsUpper = onlineAdmins.map(n => n.toUpperCase());
                     
                     const admin1Name = "JOHN WAINAINA";
                     const admin2Name = "HARRY MOKAYA";
                     
-                    const isAdmin1Online = onlineAdmins.includes(admin1Name);
-                    const isAdmin2Online = onlineAdmins.includes(admin2Name);
+                    const isAdmin1Online = onlineAdminsUpper.includes(admin1Name);
+                    const isAdmin2Online = onlineAdminsUpper.includes(admin2Name);
 
                     let html = `
                         <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -1239,7 +1244,8 @@
                     document.getElementById('activeSessionsDisplay').style.display = 'block';
                 }
             } catch (e) {
-                console.error("Failed to update active sessions:", e);
+                console.error("Authorized Access Status Update Error:", e);
+                // If the display exists but failed to update, don't hide it, just let it be stale for this tick
             }
         }
 
@@ -1379,7 +1385,6 @@
 
         async function loadData() {
             try {
-                updateActiveSessionsDisplay();
                 // Fetch both orders and settings to keep rider list fresh for dropdowns
                 const [ordersRes, settingsRes] = await Promise.all([
                     adminFetch('/api/admin/orders'),
@@ -2124,8 +2129,8 @@
                 tryBlock(() => {
                     const container = $('#staffLoginsContainer').empty();
                     const staff = data.staffLogins || [
-                        { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
-                        { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+                        { id: 1, username: "admin1", password: "admin123", name: "JOHN WAINAINA" },
+                        { id: 2, username: "admin2", password: "pcnc2026", name: "HARRY MOKAYA" }
                     ];
                     staff.forEach((s) => {
                         container.append(`
