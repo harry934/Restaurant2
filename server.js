@@ -56,6 +56,8 @@ const StaffSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
+  email: { type: String, default: "" },
+  phone: { type: String, default: "" },
   profilePhoto: { type: String, default: "" }, // Base64 or path
   role: { type: String, enum: ['super-admin', 'staff'], default: 'staff' },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
@@ -1328,8 +1330,11 @@ app.get("/api/admin/export", async (req, res) => {
         token: ADMIN_TOKEN,
         staffName: user.name,
         role: user.role,
-        sessionId: sessionId,
-        profilePhoto: user.profilePhoto
+        profilePhoto: user.profilePhoto,
+        username: user.username,
+        email: user.email || "",
+        phone: user.phone || "",
+        sessionId
       });
     } catch (e) {
       res.status(500).json({ success: false, message: "Server error during login." });
@@ -1377,28 +1382,45 @@ app.get("/api/admin/export", async (req, res) => {
 
   // Profile Management for Admin/Staff
   app.post("/api/admin/profile/update", authMiddleware, async (req, res) => {
-    const { name, password, profilePhoto } = req.body;
-    const username = req.staffUsername;
+    const { name, username, password, profilePhoto, email, phone } = req.body;
+    const oldUsername = req.staffUsername;
     
     try {
-      const user = await Staff.findOne({ username });
+      const user = await Staff.findOne({ username: oldUsername });
       if (!user) return res.status(404).json({ success: false, message: 'User not found' });
       
+      // If updating username, check for duplicates
+      if (username && username !== oldUsername) {
+        const existing = await Staff.findOne({ username });
+        if (existing) return res.status(400).json({ success: false, message: 'Username already taken' });
+        
+        // Update active session key if username changes
+        if (activeAdminSessions[oldUsername]) {
+          activeAdminSessions[username] = activeAdminSessions[oldUsername];
+          delete activeAdminSessions[oldUsername];
+        }
+        user.username = username;
+      }
+
       if (name) user.name = name;
-      if (password) user.password = password; // Will be hashed by pre-save hook
+      if (password) user.password = password;
       if (profilePhoto) user.profilePhoto = profilePhoto;
+      if (email !== undefined) user.email = email;
+      if (phone !== undefined) user.phone = phone;
       
       await user.save();
       
-      // If password changed, maybe force re-login? 
-      // For now just return success
       res.json({ 
         success: true, 
         message: 'Profile updated successfully',
         staffName: user.name,
-        profilePhoto: user.profilePhoto
+        username: user.username,
+        profilePhoto: user.profilePhoto,
+        email: user.email,
+        phone: user.phone
       });
     } catch (e) {
+      console.error(e);
       res.status(500).json({ success: false, message: 'Server error during update' });
     }
   });
