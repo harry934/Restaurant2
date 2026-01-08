@@ -63,7 +63,15 @@
         .btn-done { background: #28a74522; color: #28a745; }
 
         .view-section { display: none; }
-        .view-section.active { display: block; }
+        .view-section.active { 
+            display: block; 
+            animation: fadeInSoft 0.4s ease-out;
+        }
+        
+        @keyframes fadeInSoft {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         
         /* Distinctive row coloring based on status */
         tr.row-new { background-color: rgba(0, 123, 255, 0.04) !important; border-left: 4px solid #007bff; }
@@ -292,6 +300,7 @@
                 <a onclick="switchView('staff')" data-view="staff"><i class="fas fa-users-cog"></i> Staff Applications</a>
                 <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
             </div>
+            <a onclick="switchView('profile')" data-view="profile"><i class="fas fa-user-circle"></i> My Profile</a>
         </nav>
         
         <div class="mt-auto pt-3">
@@ -467,6 +476,74 @@
                             <!-- Populated via JS -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Profile View -->
+        <div id="profile-section" class="view-section">
+            <div class="header-top mb-4">
+                <div>
+                    <h2 class="font-weight-bold">My Profile & Security</h2>
+                    <p class="text-muted small mb-0">Manage your personal information and identification</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card order-card p-4 border-0 shadow-sm">
+                        <form id="profileUpdateForm">
+                            <div class="text-center mb-4">
+                                <div class="position-relative d-inline-block">
+                                    <img id="profileCurrentPhoto" src="../assets/img/products/default-avatar.png" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #e7252d; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                                    <label for="profilePhotoInput" style="position: absolute; bottom: 0; right: 0; background: #e7252d; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #fff; transition: 0.3s;" title="Change Photo">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
+                                    <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+                                </div>
+                                <h4 class="mt-3 mb-0 font-weight-bold" id="profileDisplayName">Staff Member</h4>
+                                <p class="text-muted small" id="profileDisplayUsername">@username</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="small font-weight-bold">Full Display Name</label>
+                                <input type="text" id="updateName" class="form-control" style="border-radius: 12px; padding: 12px 18px;" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="small font-weight-bold">Change Access Key (Leave blank to keep current)</label>
+                                <input type="password" id="updatePassword" class="form-control" style="border-radius: 12px; padding: 12px 18px;" placeholder="••••••••">
+                            </div>
+
+                            <div class="alert alert-info py-2 px-3 small" style="border-radius: 10px; border: none; background: #e7f3ff; color: #004085;">
+                                <i class="fas fa-info-circle mr-2"></i> Security Tip: Your user ID cannot be changed once approved.
+                            </div>
+
+                            <button type="submit" class="btn btn-dark btn-block py-3 mt-3" style="border-radius: 14px; font-weight: 800; letter-spacing: 1px;">
+                                <i class="fas fa-save mr-2"></i> UPDATE PROFILE
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card order-card p-4 border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); color: white;">
+                        <h5 class="font-weight-bold mb-4">Account Metadata</h5>
+                        <div class="mb-4">
+                            <div class="text-muted small text-uppercase font-weight-bold mb-1">Access Level</div>
+                            <div style="font-size: 1.1rem; font-weight: 700;" id="metaRole">STAFF OPERATIONS</div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="text-muted small text-uppercase font-weight-bold mb-1">Login Identity</div>
+                            <div style="font-size: 1.1rem; font-weight: 700;" id="metaUsername">@unknown</div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="text-muted small text-uppercase font-weight-bold mb-1">Current Active Session</div>
+                            <div class="badge badge-success px-3 py-2" style="border-radius: 50px;">SECURE & ENCRYPTED</div>
+                        </div>
+                        <div class="mt-auto">
+                            <img src="../assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" style="max-height: 40px; opacity: 0.5;">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1183,7 +1260,17 @@
             
             if (currentSession.profilePhoto) {
                 document.getElementById('adminProfilePhoto').src = currentSession.profilePhoto;
+                if (document.getElementById('profileCurrentPhoto')) {
+                    document.getElementById('profileCurrentPhoto').src = currentSession.profilePhoto;
+                }
             }
+
+            // Sync Profile section
+            document.getElementById('profileDisplayName').innerText = currentSession.staffName;
+            document.getElementById('profileDisplayUsername').innerText = '@' + currentSession.username;
+            document.getElementById('updateName').value = currentSession.staffName;
+            document.getElementById('metaRole').innerText = currentSession.role === 'super-admin' ? 'SYSTEM SUPER-ADMIN' : 'RESTAURANT STAFF';
+            document.getElementById('metaUsername').innerText = '@' + currentSession.username;
             
             // If super-admin, show all links
             if (currentSession.role === 'super-admin') {
@@ -1514,6 +1601,76 @@
 
 
 
+
+        // Profile Update Handler
+        const profilePhotoInput = document.getElementById('profilePhotoInput');
+        if (profilePhotoInput) {
+            profilePhotoInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        document.getElementById('profileCurrentPhoto').src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        const profileForm = document.getElementById('profileUpdateForm');
+        if (profileForm) {
+            profileForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('updateName').value;
+                const password = document.getElementById('updatePassword').value;
+                const photoInput = document.getElementById('profilePhotoInput');
+                
+                let profilePhoto = null;
+                if (photoInput.files[0]) {
+                    profilePhoto = await new Promise(resolve => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => resolve(ev.target.result);
+                        reader.readAsDataURL(photoInput.files[0]);
+                    });
+                }
+
+                try {
+                    const res = await adminFetch('/api/admin/profile/update', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, password, profilePhoto })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showNotification('Success', 'Profile updated successfully', 'success');
+                        
+                        // Update current session locally
+                        const sess = SessionManager.getCurrentSession();
+                        const sessId = SessionManager.getCurrentSessionId();
+                        const allSess = SessionManager.getAllSessions();
+                        
+                        sess.staffName = data.staffName;
+                        if (data.profilePhoto) sess.profilePhoto = data.profilePhoto;
+                        
+                        allSess[sessId] = sess;
+                        localStorage.setItem('adminSessions', JSON.stringify(allSess));
+                        
+                        // Reflect changes in UI
+                        document.getElementById('adminNameText').innerText = data.staffName;
+                        document.getElementById('profileDisplayName').innerText = data.staffName;
+                        if (data.profilePhoto) {
+                            document.getElementById('adminProfilePhoto').src = data.profilePhoto;
+                            document.getElementById('profileCurrentPhoto').src = data.profilePhoto;
+                        }
+
+                        if (password) {
+                            showNotification('Security', 'Password changed. Sign out and back in for full effect.', 'info');
+                        }
+                    }
+                } catch (err) {
+                    showNotification('Error', 'Failed to update profile', 'error');
+                }
+            };
+        }
 
         async function loadData() {
             try {

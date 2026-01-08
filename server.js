@@ -159,9 +159,11 @@ async function seedSuperAdmin() {
       }
     }
 
-    // 2. Seed Pre-defined Staff (if configured)
+    // 2. Seed Pre-defined Staff (if configured AND NO OTHER STAFF EXIST)
+    // This allows the initial setup to have a staff member, but if deleted, they stay deleted.
+    const staffCount = await Staff.countDocuments({ role: 'staff' });
     const existingStaff2 = await Staff.findOne({ username: staff2User });
-    if (!existingStaff2) {
+    if (staffCount === 0 && !existingStaff2) {
       const worker = new Staff({
         username: staff2User,
         password: staff2Pass,
@@ -170,7 +172,7 @@ async function seedSuperAdmin() {
         status: 'approved'
       });
       await worker.save();
-      console.log(`[SEED] Pre-defined Staff ${staff2Name} created.`);
+      console.log(`[SEED] Initial Staff ${staff2Name} created.`);
     }
   } catch (err) {
     console.error("[SEED] Error seeding admins:", err);
@@ -1372,6 +1374,34 @@ app.get("/api/admin/export", async (req, res) => {
     } catch (e) { res.status(500).json({ success: false }); }
   });
 
+
+  // Profile Management for Admin/Staff
+  app.post("/api/admin/profile/update", authMiddleware, async (req, res) => {
+    const { name, password, profilePhoto } = req.body;
+    const username = req.staffUsername;
+    
+    try {
+      const user = await Staff.findOne({ username });
+      if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+      
+      if (name) user.name = name;
+      if (password) user.password = password; // Will be hashed by pre-save hook
+      if (profilePhoto) user.profilePhoto = profilePhoto;
+      
+      await user.save();
+      
+      // If password changed, maybe force re-login? 
+      // For now just return success
+      res.json({ 
+        success: true, 
+        message: 'Profile updated successfully',
+        staffName: user.name,
+        profilePhoto: user.profilePhoto
+      });
+    } catch (e) {
+      res.status(500).json({ success: false, message: 'Server error during update' });
+    }
+  });
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
