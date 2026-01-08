@@ -1193,6 +1193,7 @@ app.post("/api/admin/login", async (req, res) => {
       return res.json({
         success: true,
         token: ADMIN_TOKEN,
+        staffName: staffAccount.name
       });
     }
   }
