@@ -11,6 +11,21 @@ const mongoose = require("mongoose");
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Track active admin sessions
+const activeAdminSessions = {}; 
+const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes inactivity timeout
+
+// Cleanup stale sessions every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const username in activeAdminSessions) {
+    if (now - activeAdminSessions[username].lastActive > SESSION_TIMEOUT) {
+      delete activeAdminSessions[username];
+      console.log(`[SESSION CLEANUP] Removed stale session for ${username}`);
+    }
+  }
+}, 5 * 60 * 1000);
 // ADMIN_TOKEN defined below in Admin Routes section
 
 // (Security middleware removed)
@@ -228,14 +243,41 @@ const authMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const queryToken = req.query.token;
   const staffName = req.headers["x-staff-name"];
+  const sessionId = req.headers["x-admin-session-id"];
+  const username = req.headers["x-admin-username"];
 
   if (authHeader === `Bearer ${ADMIN_TOKEN}` || queryToken === ADMIN_TOKEN) {
+    // Session validation
+    if (username && sessionId) {
+      const activeSession = activeAdminSessions[username];
+      const now = Date.now();
+      
+      if (!activeSession || activeSession.sessionId !== sessionId || (now - activeSession.lastActive > SESSION_TIMEOUT)) {
+        // If Harry is logged in elsewhere, or session expired, block it.
+        // We only allow one active session per Harry.
+        return res.status(401).json({ success: false, message: "Session expired or active on another device." });
+      }
+      
+      // Update activity
+      activeAdminSessions[username].lastActive = now;
+    }
+
     req.staffName = staffName || "Unknown Staff";
     next();
   } else {
     res.status(401).json({ success: false, message: "Unauthorized Access" });
   }
 };
+
+// Admin Logout Route
+app.post("/api/admin/logout", (req, res) => {
+  const { username, sessionId } = req.body;
+  if (username && activeAdminSessions[username] && activeAdminSessions[username].sessionId === sessionId) {
+    delete activeAdminSessions[username];
+    console.log(`[ADMIN LOGOUT] ${username} session cleared`);
+  }
+  res.json({ success: true });
+});
 
 // --- API ROUTES ---
 
@@ -1152,50 +1194,68 @@ app.post("/api/admin/login", async (req, res) => {
   const admin2Pass = process.env.ADMIN2_PASS;
   const admin2Name = process.env.ADMIN2_NAME || "Admin2";
 
-  // Check if credentials match Admin 1
+  // Session Enforcement Logic
+  const now = Date.now();
+  
+  // Check Admin 1
   if (admin1User && admin1Pass && username === admin1User && password === admin1Pass) {
+    if (activeAdminSessions[username] && (now - activeAdminSessions[username].lastActive < SESSION_TIMEOUT)) {
+       return res.status(403).json({ success: false, message: "User is already logged in on another device. Logout there first." });
+    }
+    
+    const sessionId = Math.random().toString(36).substring(2, 15);
+    activeAdminSessions[username] = { lastActive: now, sessionId, name: admin1Name };
+    
     console.log(`[ADMIN LOGIN] ${admin1Name} authorized as ${username}`);
     return res.json({
       success: true,
       token: ADMIN_TOKEN,
-      staffName: admin1Name
+      staffName: admin1Name,
+      sessionId: sessionId
     });
   }
 
-  // Check if credentials match Admin 2
+  // Check Admin 2
   if (admin2User && admin2Pass && username === admin2User && password === admin2Pass) {
+    if (activeAdminSessions[username] && (now - activeAdminSessions[username].lastActive < SESSION_TIMEOUT)) {
+       return res.status(403).json({ success: false, message: "User is already logged in on another device. Logout there first." });
+    }
+    
+    const sessionId = Math.random().toString(36).substring(2, 15);
+    activeAdminSessions[username] = { lastActive: now, sessionId, name: admin2Name };
+
     console.log(`[ADMIN LOGIN] ${admin2Name} authorized as ${username}`);
     return res.json({
       success: true,
       token: ADMIN_TOKEN,
-      staffName: admin2Name
+      staffName: admin2Name,
+      sessionId: sessionId
     });
   }
 
-  // Fallback: Check database staff logins (if staffName is provided)
-  if (staffName) {
-    if (staffName[0] !== staffName[0].toUpperCase()) {
-      return res.status(400).json({
-        success: false,
-        message: "Staff name must start with a capital letter",
-      });
+  // Fallback: Check database staff logins
+  const settings = await getSettings();
+  const staffLogins = settings.staffLogins || [];
+
+  const staffAccount = staffLogins.find(
+    (s) => s.username === username && s.password === password
+  );
+
+  if (staffAccount) {
+    if (activeAdminSessions[username] && (now - activeAdminSessions[username].lastActive < SESSION_TIMEOUT)) {
+       return res.status(403).json({ success: false, message: "User is already logged in on another device. Logout there first." });
     }
 
-    const settings = await getSettings();
-    const staffLogins = settings.staffLogins || [];
+    const sessionId = Math.random().toString(36).substring(2, 15);
+    activeAdminSessions[username] = { lastActive: now, sessionId, name: staffAccount.name };
 
-    const staffAccount = staffLogins.find(
-      (s) => s.username === username && s.password === password && s.name === staffName
-    );
-
-    if (staffAccount) {
-      console.log(`[ADMIN LOGIN] ${staffName} authorized as ${username}`);
-      return res.json({
-        success: true,
-        token: ADMIN_TOKEN,
-        staffName: staffAccount.name
-      });
-    }
+    console.log(`[ADMIN LOGIN] ${staffAccount.name} authorized as ${username}`);
+    return res.json({
+      success: true,
+      token: ADMIN_TOKEN,
+      staffName: staffAccount.name,
+      sessionId: sessionId
+    });
   }
 
   // If nothing matched

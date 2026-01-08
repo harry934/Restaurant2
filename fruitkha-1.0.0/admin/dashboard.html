@@ -271,15 +271,20 @@
             <div id="activeSessionsList" style="font-size: 0.75rem; color: #555;"></div>
         </div>
         
-        <nav id="sidebarNav">
+        <nav id="sidebarNav" class="flex-grow-1">
             <a onclick="switchView('dashboard')" class="active" data-view="dashboard"><i class="fas fa-home"></i> Command Center</a>
             <a onclick="switchView('active')" data-view="active"><i class="fas fa-clock"></i> Active Orders</a>
             <a onclick="switchView('analytics')" data-view="analytics"><i class="fas fa-chart-bar"></i> Sales Analytics</a>
             <a onclick="switchView('history')" data-view="history"><i class="fas fa-history"></i> Order History</a>
             <a onclick="switchView('menu')" data-view="menu"><i class="fas fa-utensils"></i> Menu Items</a>
             <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
-            <a onclick="logout()" class="logout"><i class="fas fa-power-off"></i> System Logout</a>
         </nav>
+        
+        <div class="mt-auto pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+            <a onclick="logout()" class="logout" style="color: #ff4d4d !important; margin-bottom: 0; padding: 15px 18px;">
+                <i class="fas fa-power-off"></i> System Logout
+            </a>
+        </div>
     </div>
 
     <div class="main-content">
@@ -1130,10 +1135,23 @@
             document.getElementById('adminNameText').innerText = currentSession.staffName;
         }
 
-        // Logout function - Only logs out current session
-        function logout() {
+        // Logout function - Notifies server and clears local session
+        async function logout() {
             const sessionId = SessionManager.getCurrentSessionId();
-            if (sessionId) {
+            const session = SessionManager.getCurrentSession();
+            
+            if (sessionId && session) {
+                try {
+                    await fetch('/api/admin/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            username: session.username, 
+                            sessionId: sessionId 
+                        })
+                    });
+                } catch (e) { console.error("Logout notification failed", e); }
+                
                 SessionManager.removeSession(sessionId);
             }
             window.location.href = 'index.html';
@@ -1151,7 +1169,9 @@
             
             const defaultHeaders = {
                 'Authorization': `Bearer ${session.token}`,
-                'X-Staff-Name': session.staffName || 'Admin'
+                'X-Staff-Name': session.staffName || 'Admin',
+                'X-Admin-Session-Id': SessionManager.getCurrentSessionId(),
+                'X-Admin-Username': session.username
             };
             
             // Don't override content-type if it's already set or if it's FormData
