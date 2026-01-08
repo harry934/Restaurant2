@@ -1078,7 +1078,7 @@
             
             // Get current session ID
             getCurrentSessionId() {
-                return localStorage.getItem('currentSessionId');
+                return sessionStorage.getItem('currentSessionId');
             },
             
             // Get current session data
@@ -1105,9 +1105,9 @@
                 delete sessions[sessionId];
                 localStorage.setItem('adminSessions', JSON.stringify(sessions));
                 
-                // If this was the current session, clear it
+                // If this was the current session, clear it from sessionStorage
                 if (this.getCurrentSessionId() === sessionId) {
-                    localStorage.removeItem('currentSessionId');
+                    sessionStorage.removeItem('currentSessionId');
                 }
             },
             
@@ -1330,16 +1330,7 @@
         setInterval(updateClock, 1000);
         updateClock(); // Initial call
 
-        // Display Admin Name
-        const adminName = localStorage.getItem('adminName') || localStorage.getItem('staffName');
-        if (adminName) {
-            const displayDiv = document.getElementById('adminNameDisplay');
-            const nameText = document.getElementById('adminNameText');
-            if (displayDiv && nameText) {
-                nameText.textContent = adminName;
-                displayDiv.style.display = 'block';
-            }
-        }
+
 
 
         async function loadData() {
