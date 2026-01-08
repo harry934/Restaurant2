@@ -255,20 +255,24 @@
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
 
-    <div class="sidebar d-flex flex-column">
+    <div class="sidebar d-flex flex-column" style="overflow-y: auto;">
         <h4>PCNC <span>HQ</span></h4>
-        <div id="adminNameDisplay" style="background: rgba(231, 37, 45, 0.1); padding: 12px; border-radius: 12px; margin-bottom: 20px; display: none;">
-            <div style="font-size: 0.7rem; text-transform: uppercase; color: #999; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px;">Welcome</div>
-            <div id="adminNameText" style="color: #e7252d; font-weight: 800; font-size: 0.95rem;"></div>
+        
+        <!-- Welcome Section -->
+        <div id="adminNameDisplay" style="background: rgba(231, 37, 45, 0.1); padding: 15px; border-radius: 16px; margin-bottom: 20px; display: none; border-left: 4px solid #e7252d;">
+            <div style="font-size: 0.7rem; text-transform: uppercase; color: #999; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px;">Welcome back,</div>
+            <div id="adminNameText" style="color: #fff; font-weight: 800; font-size: 1.1rem;"></div>
         </div>
         
-        <!-- Active Sessions Display -->
-        <div id="activeSessionsDisplay" style="background: rgba(40, 167, 69, 0.1); padding: 10px; border-radius: 12px; margin-bottom: 15px; display: none;">
-            <div style="font-size: 0.65rem; text-transform: uppercase; color: #28a745; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center;">
-                <i class="fas fa-users" style="margin-right: 6px;"></i>
-                Active Staff
+        <!-- Active Staff Status (Authorized Admins Only) -->
+        <div id="activeSessionsDisplay" style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 16px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 0.65rem; text-transform: uppercase; color: #666; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center;">
+                <i class="fas fa-shield-alt" style="margin-right: 8px; color: #28a745;"></i>
+                Authorized Access
             </div>
-            <div id="activeSessionsList" style="font-size: 0.75rem; color: #555;"></div>
+            <div id="activeSessionsList">
+                <!-- Will be populated with Online/Offline status -->
+            </div>
         </div>
         
         <nav id="sidebarNav" class="flex-grow-1">
@@ -280,11 +284,12 @@
             <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
         </nav>
         
-        <div class="mt-auto pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
-            <a onclick="logout()" class="logout" style="color: #ff4d4d !important; margin-bottom: 0; padding: 15px 18px;">
-                <i class="fas fa-power-off"></i> System Logout
-            </a>
+        <div class="mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+            <button onclick="logout()" class="btn btn-danger btn-block py-3" style="border-radius: 14px; font-weight: 800; background: #ff4d4d; border: none; box-shadow: 0 10px 20px rgba(255, 77, 77, 0.2);">
+                <i class="fas fa-power-off mr-2"></i> SYSTEM LOGOUT
+            </button>
         </div>
+    </div>
     </div>
 
     <div class="main-content">
@@ -1197,29 +1202,45 @@
             return res;
         }
 
-        // Update Active Sessions Display
+        // Update Active Sessions Display (Strictly 2 Admins)
         function updateActiveSessionsDisplay() {
             const sessions = SessionManager.getAllSessions();
-            const sessionCount = Object.keys(sessions).length;
+            const sessionValues = Object.values(sessions);
             
-            if (sessionCount > 1) {
-                const activeAdmins = Object.values(sessions).map(s => {
-                    const isCurrentSession = s.username === currentSession.username && s.staffName === currentSession.staffName;
-                    const icon = isCurrentSession ? '👤' : '👥';
-                    return `<div style="padding: 4px 0; display: flex; align-items: center;">
-                        <span style="margin-right: 6px;">${icon}</span>
-                        <span style="font-weight: ${isCurrentSession ? '700' : '500'}; color: ${isCurrentSession ? '#28a745' : '#666'};">
-                            ${s.staffName}${isCurrentSession ? ' (You)' : ''}
-                        </span>
-                    </div>`;
-                }).join('');
-                
-                document.getElementById('activeSessionsList').innerHTML = activeAdmins;
-                document.getElementById('activeSessionsDisplay').style.display = 'block';
-            } else {
-                document.getElementById('activeSessionsDisplay').style.display = 'none';
-            }
+            // We'll define the two primary admin labels
+            const admin1Name = "Harry Mokaya"; // Primary Admin
+            const admin2Name = "Authorized Admin"; // Second Admin
+            
+            // Check if they are currently online
+            const isAdmin1Online = sessionValues.some(s => s.staffName === admin1Name);
+            const isAdmin2Online = sessionValues.some(s => s.staffName === admin2Name || (s.staffName !== admin1Name && s.staffName !== 'Admin'));
+            
+            // Find secondary admin name if logged in
+            const secondaryAdmin = sessionValues.find(s => s.staffName !== admin1Name);
+            const secondaryDisplayName = secondaryAdmin ? secondaryAdmin.staffName : admin2Name;
+
+            let html = `
+                <div style="padding: 8px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${isAdmin1Online ? '#28a745' : '#555'}; margin-right: 12px; box-shadow: ${isAdmin1Online ? '0 0 10px #28a745' : 'none'};"></div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 700; color: ${isAdmin1Online ? '#fff' : '#666'}; font-size: 0.8rem;">${admin1Name}</div>
+                        <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#666'}; text-transform: uppercase; font-weight: 800;">${isAdmin1Online ? 'Online' : 'Offline'}</div>
+                    </div>
+                </div>
+                <div style="padding: 8px 0; display: flex; align-items: center;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#555'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 10px #28a745' : 'none'};"></div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#666'}; font-size: 0.8rem;">${secondaryDisplayName}</div>
+                        <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#666'}; text-transform: uppercase; font-weight: 800;">${isAdmin2Online ? 'Online' : 'Offline'}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('activeSessionsList').innerHTML = html;
+            document.getElementById('activeSessionsDisplay').style.display = 'block';
         }
+
+
 
         let allOrders = [];
         let allRiders = [];
@@ -1355,6 +1376,7 @@
 
         async function loadData() {
             try {
+                updateActiveSessionsDisplay();
                 // Fetch both orders and settings to keep rider list fresh for dropdowns
                 const [ordersRes, settingsRes] = await Promise.all([
                     adminFetch('/api/admin/orders'),
