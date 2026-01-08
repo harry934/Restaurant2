@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="pcnc_github_banner.png" width="100%" alt="PCnC Banner">
-
 # 🍕 Pizza Chick n Crust (PCnC)
 
 ### _A Premium Full-Stack E-Commerce Ecosystem for Modern Food Delivery_
@@ -24,7 +22,7 @@ Designed specifically for the USIU-A community, it seamlessly blends gourmet aes
 
 ## 💎 The Premium Experience
 
-### � Seamless User Journey
+###  Seamless User Journey
 
 - ✨ **Natural Search Engine**: Intelligent location-aware search that prioritizes local landmarks (USIU Hostels) with an automatic global fallback for distant areas.
 - 🗺️ **Precision Delivery Maps**: Integrated Leaflet.js map with a confirmation pinpoint system. Marker-dragging triggers real-time delivery fee recalculations.
@@ -60,7 +58,7 @@ graph TD
 
 ---
 
-## �️ Installation & Setup
+##  Installation & Setup
 
 ### 📋 Prerequisites
 
