@@ -100,6 +100,11 @@
         </div>
         <form id="loginForm">
             <div class="form-group mb-4">
+                <label>Staff Name</label>
+                <input type="text" class="form-control" id="staffName" placeholder="Your Name (e.g. Anthony)" required>
+                <small class="text-muted" style="font-size: 10px;">Must start with a capital letter</small>
+            </div>
+            <div class="form-group mb-4">
                 <label>User ID</label>
                 <input type="text" class="form-control" id="username" placeholder="Enter username" required>
             </div>
@@ -121,25 +126,32 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
+            const staffName = document.getElementById('staffName').value;
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
+            if (!staffName || staffName[0] !== staffName[0].toUpperCase()) {
+                document.getElementById('error').innerText = 'Staff name must start with a capital letter';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+
             btn.innerText = 'Verifying...';
             btn.disabled = true;
 
             try {
-                // In a real app we'd use process.env.VITE_API_URL or similar, here we use absolute for local
                 const res = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username, password, staffName })
                 });
                 const data = await res.json();
                 if (data.success) {
                     localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('staffName', staffName);
                     window.location.href = 'dashboard.html';
                 } else {
-                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').innerText = data.message || 'Invalid Credentials';
                     btn.innerText = 'Authorize Access';
                     btn.disabled = false;
                 }

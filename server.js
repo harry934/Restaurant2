@@ -17,7 +17,8 @@ const PORT = process.env.PORT || 3000;
 
 // MongoDB Connection
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb+srv://adminn:kenyasbest@cluster0.wwgtbp9.mongodb.net/restaurant?appName=Cluster0";
+  process.env.MONGODB_URI ||
+  "mongodb+srv://adminn:kenyasbest@cluster0.wwgtbp9.mongodb.net/restaurant?appName=Cluster0";
 
 let isConnected = false;
 mongoose
@@ -148,10 +149,10 @@ const getMenu = async () => {
 const getSettings = async () => {
   let settings = await Settings.findOne();
   if (!settings) {
-    settings = new Settings({ 
-        supportPhone: "0112601334",
-        restaurantLat: -1.2200414264779664,
-        restaurantLng: 36.87814128003106
+    settings = new Settings({
+      supportPhone: "0112601334",
+      restaurantLat: -1.2200414264779664,
+      restaurantLng: 36.87814128003106,
     });
     await settings.save();
   }
@@ -172,23 +173,23 @@ const updateOrder = async (orderId, updates) => {
 };
 
 // Image Storage Helpers
-const saveImageToMongoDB = async (file, category = 'general') => {
+const saveImageToMongoDB = async (file, category = "general") => {
   try {
-    const base64Data = fs.readFileSync(file.path, { encoding: 'base64' });
+    const base64Data = fs.readFileSync(file.path, { encoding: "base64" });
     const imageDoc = new Image({
       filename: file.filename,
       originalName: file.originalname,
       mimeType: file.mimetype,
       data: base64Data,
       size: file.size,
-      category: category
+      category: category,
     });
     await imageDoc.save();
     // Delete the file from uploads folder after saving to DB
     fs.unlinkSync(file.path);
     return `db-image/${file.filename}`;
   } catch (e) {
-    console.error('Error saving image to MongoDB:', e);
+    console.error("Error saving image to MongoDB:", e);
     return `uploads/${file.filename}`; // Fallback to file system
   }
 };
@@ -198,8 +199,24 @@ const getImageFromMongoDB = async (filename) => {
     const image = await Image.findOne({ filename });
     return image;
   } catch (e) {
-    console.error('Error retrieving image from MongoDB:', e);
+    console.error("Error retrieving image from MongoDB:", e);
     return null;
+  }
+};
+
+// --- ADMIN SECURITY ---
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "pcnc-secret-token-123";
+
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const queryToken = req.query.token;
+  const staffName = req.headers["x-staff-name"];
+
+  if (authHeader === `Bearer ${ADMIN_TOKEN}` || queryToken === ADMIN_TOKEN) {
+    req.staffName = staffName || "Unknown Staff";
+    next();
+  } else {
+    res.status(401).json({ success: false, message: "Unauthorized Access" });
   }
 };
 
@@ -210,15 +227,15 @@ app.get("/db-image/:filename", async (req, res) => {
   try {
     const image = await getImageFromMongoDB(req.params.filename);
     if (!image) {
-      return res.status(404).send('Image not found');
+      return res.status(404).send("Image not found");
     }
-    const buffer = Buffer.from(image.data, 'base64');
-    res.set('Content-Type', image.mimeType);
-    res.set('Content-Length', buffer.length);
+    const buffer = Buffer.from(image.data, "base64");
+    res.set("Content-Type", image.mimeType);
+    res.set("Content-Length", buffer.length);
     res.send(buffer);
   } catch (e) {
-    console.error('Error serving image:', e);
-    res.status(500).send('Error serving image');
+    console.error("Error serving image:", e);
+    res.status(500).send("Error serving image");
   }
 });
 
@@ -260,9 +277,11 @@ app.post("/api/validate-promo", async (req, res) => {
 // Admin Menu Management (with file upload)
 app.post(
   "/api/admin/menu/add",
+  authMiddleware,
   upload.single("imageFile"),
   async (req, res) => {
     try {
+      console.log(`[ADMIN ACTION] ${req.staffName} adding menu item`);
       const { name, price, category, tag } = req.body;
 
       // Find highest ID to increment
@@ -271,7 +290,7 @@ app.post(
 
       let imagePath = req.body.image || "assets/img/products/product-img-1.png";
       if (req.file) {
-        imagePath = await saveImageToMongoDB(req.file, 'menu');
+        imagePath = await saveImageToMongoDB(req.file, "menu");
       }
 
       const newItem = new Menu({
@@ -295,9 +314,11 @@ app.post(
 // Admin Menu Management - Update
 app.post(
   "/api/admin/menu/update",
+  authMiddleware,
   upload.single("imageFile"),
   async (req, res) => {
     try {
+      console.log(`[ADMIN ACTION] ${req.staffName} updating menu item ${req.body.id}`);
       const { id, name, price, category, tag } = req.body;
 
       const updates = {
@@ -306,7 +327,7 @@ app.post(
         category,
         tag: tag || "",
       };
-      if (req.file) updates.image = await saveImageToMongoDB(req.file, 'menu');
+      if (req.file) updates.image = await saveImageToMongoDB(req.file, "menu");
 
       const updated = await Menu.findOneAndUpdate(
         { id: parseInt(id) },
@@ -326,9 +347,10 @@ app.post(
 );
 
 // Admin Menu Management - Toggle Availability
-app.post("/api/admin/menu/toggle-availability", async (req, res) => {
+app.post("/api/admin/menu/toggle-availability", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} toggling availability of item ${id}`);
     const item = await Menu.findOne({ id: parseInt(id) });
 
     if (item) {
@@ -343,9 +365,10 @@ app.post("/api/admin/menu/toggle-availability", async (req, res) => {
   }
 });
 
-app.post("/api/admin/menu/delete", async (req, res) => {
+app.post("/api/admin/menu/delete", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} deleting menu item ${id}`);
     await Menu.deleteOne({ id: parseInt(id) });
     res.json({ success: true });
   } catch (e) {
@@ -362,8 +385,9 @@ app.get("/api/settings", async (req, res) => {
   }
 });
 
-app.post("/api/admin/settings/update", async (req, res) => {
+app.post("/api/admin/settings/update", authMiddleware, async (req, res) => {
   try {
+    console.log(`[ADMIN ACTION] ${req.staffName} updating system settings`);
     // Upsert ensures document is created if it doesn't exist
     const updated = await Settings.findOneAndUpdate({}, req.body, {
       new: true,
@@ -380,11 +404,13 @@ app.post("/api/admin/settings/update", async (req, res) => {
 // Media Upload (for deal image, etc.)
 app.post(
   "/api/admin/settings/upload",
+  authMiddleware,
   upload.single("mediaFile"),
   async (req, res) => {
     if (req.file) {
       try {
-        const dbPath = await saveImageToMongoDB(req.file, 'settings');
+        console.log(`[ADMIN ACTION] ${req.staffName} uploading setting media`);
+        const dbPath = await saveImageToMongoDB(req.file, "settings");
         res.json({ success: true, filePath: dbPath });
       } catch (e) {
         res.status(500).json({ success: false, message: e.message });
@@ -398,12 +424,14 @@ app.post(
 // Home About Section Update (Video/Image)
 app.post(
   "/api/admin/settings/home-about",
+  authMiddleware,
   upload.fields([
     { name: "videoFile", maxCount: 1 },
     { name: "abtImage", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
+      console.log(`[ADMIN ACTION] ${req.staffName} updating Home About section`);
       const { title, heading, description, videoLink, isVideoLocal } = req.body;
 
       const homeAbout = {
@@ -417,12 +445,18 @@ app.post(
       // Handle File Uploads
       if (req.files["videoFile"]) {
         // Warning: MongoDB Document size limit is 16MB. Large videos will fail.
-        homeAbout.videoLink = await saveImageToMongoDB(req.files["videoFile"][0], 'home-video');
+        homeAbout.videoLink = await saveImageToMongoDB(
+          req.files["videoFile"][0],
+          "home-video"
+        );
         homeAbout.isVideoLocal = true;
       }
 
       if (req.files["abtImage"]) {
-        homeAbout.abtImage = await saveImageToMongoDB(req.files["abtImage"][0], 'home-image');
+        homeAbout.abtImage = await saveImageToMongoDB(
+          req.files["abtImage"][0],
+          "home-image"
+        );
       } else {
         const current = await getSettings();
         if (current.homeAbout && current.homeAbout.abtImage) {
@@ -454,8 +488,9 @@ app.post(
 );
 
 // Team Management
-app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
+app.post("/api/admin/team/add", authMiddleware, upload.single("teamImg"), async (req, res) => {
   try {
+    console.log(`[ADMIN ACTION] ${req.staffName} adding team member`);
     const { name, role, phone, facebook, twitter, instagram, linkedin } =
       req.body;
 
@@ -464,7 +499,7 @@ app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
       name,
       role,
       image: req.file
-        ? await saveImageToMongoDB(req.file, 'team')
+        ? await saveImageToMongoDB(req.file, "team")
         : "assets/img/team/team-1.jpg",
       phone: phone || "",
       facebook: facebook || "",
@@ -487,9 +522,10 @@ app.post("/api/admin/team/add", upload.single("teamImg"), async (req, res) => {
   }
 });
 
-app.post("/api/admin/team/delete", async (req, res) => {
+app.post("/api/admin/team/delete", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} deleting team member ${id}`);
     await Settings.findOneAndUpdate(
       {},
       { $pull: { team: { id: parseInt(id) } } }
@@ -502,11 +538,13 @@ app.post("/api/admin/team/delete", async (req, res) => {
 
 app.post(
   "/api/admin/team/update",
+  authMiddleware,
   upload.single("teamImg"),
   async (req, res) => {
     try {
       const { id, name, role, phone, facebook, twitter, instagram, linkedin } =
         req.body;
+      console.log(`[ADMIN ACTION] ${req.staffName} updating team member ${id}`);
       const current = await getSettings();
       const team = current.team || [];
       const index = team.findIndex((m) => m.id == id);
@@ -522,7 +560,8 @@ app.post(
           instagram: instagram || team[index].instagram || "",
           linkedin: linkedin || team[index].linkedin || "",
         };
-        if (req.file) updatedMember.image = await saveImageToMongoDB(req.file, 'team');
+        if (req.file)
+          updatedMember.image = await saveImageToMongoDB(req.file, "team");
 
         await Settings.findOneAndUpdate(
           { "team.id": parseInt(id) },
@@ -541,10 +580,12 @@ app.post(
 // Rider Management
 app.post(
   "/api/admin/riders/add",
+  authMiddleware,
   upload.single("riderImg"),
   async (req, res) => {
     try {
       const { name, phone, vehicle } = req.body;
+      console.log(`[ADMIN ACTION] ${req.staffName} adding rider ${name}`);
 
       const newRider = {
         id: Date.now().toString(),
@@ -552,7 +593,7 @@ app.post(
         phone,
         vehicle: vehicle || "",
         image: req.file
-          ? await saveImageToMongoDB(req.file, 'rider')
+          ? await saveImageToMongoDB(req.file, "rider")
           : "assets/img/team/team-1.jpg",
       };
 
@@ -569,9 +610,10 @@ app.post(
   }
 );
 
-app.post("/api/admin/riders/delete", async (req, res) => {
+app.post("/api/admin/riders/delete", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} deleting rider ${id}`);
     await Settings.findOneAndUpdate(
       {},
       { $pull: { riders: { id: id.toString() } } }
@@ -584,10 +626,12 @@ app.post("/api/admin/riders/delete", async (req, res) => {
 
 app.post(
   "/api/admin/riders/update",
+  authMiddleware,
   upload.single("riderImg"),
   async (req, res) => {
     try {
       const { id, name, phone, vehicle } = req.body;
+      console.log(`[ADMIN ACTION] ${req.staffName} updating rider ${id}`);
       const current = await getSettings();
       const riders = current.riders || [];
       const index = riders.findIndex((r) => r.id == id);
@@ -599,7 +643,8 @@ app.post(
           phone,
           vehicle: vehicle || riders[index].vehicle || "",
         };
-        if (req.file) updatedRider.image = await saveImageToMongoDB(req.file, 'rider');
+        if (req.file)
+          updatedRider.image = await saveImageToMongoDB(req.file, "rider");
 
         await Settings.findOneAndUpdate(
           { "riders.id": id.toString() },
@@ -616,9 +661,10 @@ app.post(
 );
 
 // Category Management
-app.post("/api/admin/category/add", async (req, res) => {
+app.post("/api/admin/category/add", authMiddleware, async (req, res) => {
   try {
     const { catId, catName } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} adding category ${catName}`);
     const settings = await getSettings();
     await Settings.findByIdAndUpdate(
       settings._id,
@@ -632,9 +678,10 @@ app.post("/api/admin/category/add", async (req, res) => {
   }
 });
 
-app.post("/api/admin/category/delete", async (req, res) => {
+app.post("/api/admin/category/delete", authMiddleware, async (req, res) => {
   try {
     const { id } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} deleting category ${id}`);
     await Settings.findOneAndUpdate(
       {},
       { $pull: { menuCategories: { id: id } } }
@@ -645,9 +692,10 @@ app.post("/api/admin/category/delete", async (req, res) => {
   }
 });
 
-app.post("/api/admin/category/update", async (req, res) => {
+app.post("/api/admin/category/update", authMiddleware, async (req, res) => {
   try {
     const { oldId, catId, catName } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} updating category ${oldId}`);
     await Settings.findOneAndUpdate(
       { "menuCategories.id": oldId },
       { $set: { "menuCategories.$": { id: catId, name: catName } } }
@@ -659,9 +707,10 @@ app.post("/api/admin/category/update", async (req, res) => {
 });
 
 // Promo Management
-app.post("/api/admin/promo/add", async (req, res) => {
+app.post("/api/admin/promo/add", authMiddleware, async (req, res) => {
   try {
     const { code, discount } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} adding promo code ${code}`);
     await Settings.findOneAndUpdate(
       {},
       {
@@ -681,9 +730,10 @@ app.post("/api/admin/promo/add", async (req, res) => {
   }
 });
 
-app.post("/api/admin/promo/delete", async (req, res) => {
+app.post("/api/admin/promo/delete", authMiddleware, async (req, res) => {
   try {
     const { code } = req.body;
+    console.log(`[ADMIN ACTION] ${req.staffName} deleting promo code ${code}`);
     await Settings.findOneAndUpdate(
       {},
       { $pull: { promoCodes: { code: code } } }
@@ -950,18 +1000,7 @@ app.get("/api/order/:id", async (req, res) => {
 });
 
 // --- ADMIN ROUTES ---
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "pcnc-secret-token-123";
-
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const queryToken = req.query.token;
-
-  if (authHeader === `Bearer ${ADMIN_TOKEN}` || queryToken === ADMIN_TOKEN) {
-    next();
-  } else {
-    res.status(401).json({ success: false, message: "Unauthorized Access" });
-  }
-};
+// authMiddleware moved higher up for global usage across admin routes.
 
 // 3. Admin: Get Orders
 app.get("/api/admin/orders", authMiddleware, async (req, res) => {
@@ -972,16 +1011,20 @@ app.get("/api/admin/orders", authMiddleware, async (req, res) => {
 });
 
 // Helper to sync changes to OrderLog
-const syncOrderLog = async (orderId, updates) => {
+const syncOrderLog = async (orderId, updates, staffName) => {
   try {
+    const setQuery = Object.keys(updates).reduce((acc, key) => {
+      acc[`order.${key}`] = updates[key];
+      return acc;
+    }, {});
+
+    if (staffName) {
+      setQuery["order.updatedBy"] = staffName;
+    }
+
     await OrderLog.findOneAndUpdate(
       { "order.id": orderId },
-      {
-        $set: Object.keys(updates).reduce((acc, key) => {
-          acc[`order.${key}`] = updates[key];
-          return acc;
-        }, {}),
-      }
+      { $set: setQuery }
     );
   } catch (e) {
     console.error("Failed to sync OrderLog:", e);
@@ -989,12 +1032,12 @@ const syncOrderLog = async (orderId, updates) => {
 };
 
 // 4. Admin: Update Order Status or Payment
-app.post("/api/admin/order/update", async (req, res) => {
+app.post("/api/admin/order/update", authMiddleware, async (req, res) => {
   const { orderId, ...rest } = req.body;
 
   const updated = await updateOrder(orderId, rest);
   if (updated) {
-    await syncOrderLog(orderId, rest); // Keep log in sync
+    await syncOrderLog(orderId, rest, req.staffName); // Keep log in sync
     res.json({ success: true, order: updated });
   } else {
     res.status(404).json({ success: false, message: "Order not found" });
@@ -1002,12 +1045,14 @@ app.post("/api/admin/order/update", async (req, res) => {
 });
 
 // Admin: Delete Order
-app.post("/api/admin/order/delete", async (req, res) => {
+app.post("/api/admin/order/delete", authMiddleware, async (req, res) => {
   const { orderId } = req.body;
-  console.log(`[ADMIN] Request to delete order: ${orderId}`);
+  console.log(
+    `[ADMIN] Request to delete order: ${orderId} by ${req.staffName}`
+  );
 
   // Update log status to "Deleted" before removing from active Orders
-  await syncOrderLog(orderId, { status: "Deleted (Admin)" });
+  await syncOrderLog(orderId, { status: "Deleted (Admin)" }, req.staffName);
 
   const result = await Order.deleteOne({ id: orderId });
   if (result.deletedCount > 0) {
@@ -1079,11 +1124,27 @@ app.get("/api/admin/export", async (req, res) => {
 
 // 5. Admin: Login (Environment Variable Based)
 app.post("/api/admin/login", (req, res) => {
-  const { username, password } = req.body;
-  const secureUser = process.env.ADMIN_USER || "admin";
-  const securePass = process.env.ADMIN_PASS || "admin123";
+  const { username, password, staffName } = req.body;
 
-  if (username === secureUser && password === securePass) {
+  if (!staffName || staffName[0] !== staffName[0].toUpperCase()) {
+    return res.status(400).json({
+      success: false,
+      message: "Staff name must start with a capital letter",
+    });
+  }
+
+  // Two Permitted Logins (Environment Variable Based)
+  const secureUser1 = process.env.ADMIN_USER_1 || "admin1";
+  const securePass1 = process.env.ADMIN_PASS_1 || "admin123";
+  const secureUser2 = process.env.ADMIN_USER_2 || "admin2";
+  const securePass2 = process.env.ADMIN_PASS_2 || "pcnc2026";
+
+  const isValid =
+    (username === secureUser1 && password === securePass1) ||
+    (username === secureUser2 && password === securePass2);
+
+  if (isValid) {
+    console.log(`[ADMIN LOGIN] ${staffName} authorized as ${username}`);
     res.json({
       success: true,
       token: ADMIN_TOKEN,

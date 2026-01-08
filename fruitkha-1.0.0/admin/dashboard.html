@@ -1055,8 +1055,10 @@
 
         async function adminFetch(url, options = {}) {
             const token = localStorage.getItem('adminToken');
+            const staffName = localStorage.getItem('staffName');
             const defaultHeaders = {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'X-Staff-Name': staffName || 'Admin'
             };
             
             // Don't override content-type if it's already set or if it's FormData
