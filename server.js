@@ -1139,33 +1139,66 @@ app.get("/api/admin/export", async (req, res) => {
   }
 });
 
-// 5. Admin: Login (Editable Settings Based)
+// 5. Admin: Login (Environment Variables + Database)
 app.post("/api/admin/login", async (req, res) => {
   const { username, password, staffName } = req.body;
 
-  if (!staffName || staffName[0] !== staffName[0].toUpperCase()) {
-    return res.status(400).json({
-      success: false,
-      message: "Staff name must start with a capital letter",
-    });
-  }
+  // Check environment variable admins first (for Railway/Render deployment)
+  const admin1User = process.env.ADMIN1_USER;
+  const admin1Pass = process.env.ADMIN1_PASS;
+  const admin1Name = process.env.ADMIN1_NAME || "Admin1";
+  
+  const admin2User = process.env.ADMIN2_USER;
+  const admin2Pass = process.env.ADMIN2_PASS;
+  const admin2Name = process.env.ADMIN2_NAME || "Admin2";
 
-  const settings = await getSettings();
-  const staffLogins = settings.staffLogins || [];
-
-  const staffAccount = staffLogins.find(
-    (s) => s.username === username && s.password === password && s.name === staffName
-  );
-
-  if (staffAccount) {
-    console.log(`[ADMIN LOGIN] ${staffName} authorized as ${username}`);
-    res.json({
+  // Check if credentials match Admin 1
+  if (admin1User && admin1Pass && username === admin1User && password === admin1Pass) {
+    console.log(`[ADMIN LOGIN] ${admin1Name} authorized as ${username}`);
+    return res.json({
       success: true,
       token: ADMIN_TOKEN,
+      staffName: admin1Name
     });
-  } else {
-    res.status(401).json({ success: false, message: "Invalid credentials or staff name" });
   }
+
+  // Check if credentials match Admin 2
+  if (admin2User && admin2Pass && username === admin2User && password === admin2Pass) {
+    console.log(`[ADMIN LOGIN] ${admin2Name} authorized as ${username}`);
+    return res.json({
+      success: true,
+      token: ADMIN_TOKEN,
+      staffName: admin2Name
+    });
+  }
+
+  // Fallback: Check database staff logins (if staffName is provided)
+  if (staffName) {
+    if (staffName[0] !== staffName[0].toUpperCase()) {
+      return res.status(400).json({
+        success: false,
+        message: "Staff name must start with a capital letter",
+      });
+    }
+
+    const settings = await getSettings();
+    const staffLogins = settings.staffLogins || [];
+
+    const staffAccount = staffLogins.find(
+      (s) => s.username === username && s.password === password && s.name === staffName
+    );
+
+    if (staffAccount) {
+      console.log(`[ADMIN LOGIN] ${staffName} authorized as ${username}`);
+      return res.json({
+        success: true,
+        token: ADMIN_TOKEN,
+      });
+    }
+  }
+
+  // If nothing matched
+  res.status(401).json({ success: false, message: "Invalid credentials" });
 });
 
 app.listen(PORT, () => {
