@@ -118,6 +118,37 @@
     </div>
 
     <script>
+        // Session Manager - Allows multiple admins to be logged in simultaneously
+        const SessionManager = {
+            // Generate unique session ID
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            },
+            
+            // Get all active sessions
+            getAllSessions() {
+                const sessions = localStorage.getItem('adminSessions');
+                return sessions ? JSON.parse(sessions) : {};
+            },
+            
+            // Save a new session
+            saveSession(sessionId, sessionData) {
+                const sessions = this.getAllSessions();
+                sessions[sessionId] = {
+                    ...sessionData,
+                    loginTime: new Date().toISOString(),
+                    lastActivity: new Date().toISOString()
+                };
+                localStorage.setItem('adminSessions', JSON.stringify(sessions));
+                return sessionId;
+            },
+            
+            // Set current active session
+            setActiveSession(sessionId) {
+                localStorage.setItem('currentSessionId', sessionId);
+            }
+        };
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
@@ -135,10 +166,21 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    sessionStorage.setItem('adminToken', data.token);
-                    // Store admin name from server response
+                    // Create a new session for this admin
+                    const sessionId = SessionManager.generateSessionId();
                     const displayName = data.staffName || username;
-                    sessionStorage.setItem('adminName', displayName);
+                    
+                    // Save session data
+                    SessionManager.saveSession(sessionId, {
+                        token: data.token,
+                        username: username,
+                        staffName: displayName
+                    });
+                    
+                    // Set as active session
+                    SessionManager.setActiveSession(sessionId);
+                    
+                    // Redirect to dashboard
                     window.location.href = 'dashboard.html';
                 } else {
                     document.getElementById('error').innerText = data.message || 'Invalid Credentials';

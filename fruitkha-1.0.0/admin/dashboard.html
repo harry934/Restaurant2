@@ -261,6 +261,16 @@
             <div style="font-size: 0.7rem; text-transform: uppercase; color: #999; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px;">Welcome</div>
             <div id="adminNameText" style="color: #e7252d; font-weight: 800; font-size: 0.95rem;"></div>
         </div>
+        
+        <!-- Active Sessions Display -->
+        <div id="activeSessionsDisplay" style="background: rgba(40, 167, 69, 0.1); padding: 10px; border-radius: 12px; margin-bottom: 15px; display: none;">
+            <div style="font-size: 0.65rem; text-transform: uppercase; color: #28a745; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center;">
+                <i class="fas fa-users" style="margin-right: 6px;"></i>
+                Active Staff
+            </div>
+            <div id="activeSessionsList" style="font-size: 0.75rem; color: #555;"></div>
+        </div>
+        
         <nav id="sidebarNav">
             <a onclick="switchView('dashboard')" class="active" data-view="dashboard"><i class="fas fa-home"></i> Command Center</a>
             <a onclick="switchView('active')" data-view="active"><i class="fas fa-clock"></i> Active Orders</a>
@@ -1058,18 +1068,90 @@
     <script src="../assets/js/jquery-1.11.3.min.js"></script>
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script>
-        // Auth Check
-        const adminToken = localStorage.getItem('adminToken');
-        if (!adminToken) {
+        // Session Manager - Allows multiple admins to be logged in simultaneously
+        const SessionManager = {
+            // Get all active sessions
+            getAllSessions() {
+                const sessions = localStorage.getItem('adminSessions');
+                return sessions ? JSON.parse(sessions) : {};
+            },
+            
+            // Get current session ID
+            getCurrentSessionId() {
+                return localStorage.getItem('currentSessionId');
+            },
+            
+            // Get current session data
+            getCurrentSession() {
+                const sessionId = this.getCurrentSessionId();
+                if (!sessionId) return null;
+                
+                const sessions = this.getAllSessions();
+                return sessions[sessionId] || null;
+            },
+            
+            // Update session activity
+            updateActivity(sessionId) {
+                const sessions = this.getAllSessions();
+                if (sessions[sessionId]) {
+                    sessions[sessionId].lastActivity = new Date().toISOString();
+                    localStorage.setItem('adminSessions', JSON.stringify(sessions));
+                }
+            },
+            
+            // Remove a specific session (logout)
+            removeSession(sessionId) {
+                const sessions = this.getAllSessions();
+                delete sessions[sessionId];
+                localStorage.setItem('adminSessions', JSON.stringify(sessions));
+                
+                // If this was the current session, clear it
+                if (this.getCurrentSessionId() === sessionId) {
+                    localStorage.removeItem('currentSessionId');
+                }
+            },
+            
+            // Get all active admin names (for display)
+            getActiveAdmins() {
+                const sessions = this.getAllSessions();
+                return Object.values(sessions).map(s => s.staffName);
+            }
+        };
+
+        // Auth Check - Verify current session exists
+        const currentSession = SessionManager.getCurrentSession();
+        if (!currentSession) {
+            window.location.href = 'index.html';
+        }
+
+        // Display admin name
+        if (currentSession && currentSession.staffName) {
+            document.getElementById('adminNameDisplay').style.display = 'block';
+            document.getElementById('adminNameText').innerText = currentSession.staffName;
+        }
+
+        // Logout function - Only logs out current session
+        function logout() {
+            const sessionId = SessionManager.getCurrentSessionId();
+            if (sessionId) {
+                SessionManager.removeSession(sessionId);
+            }
             window.location.href = 'index.html';
         }
 
         async function adminFetch(url, options = {}) {
-            const token = localStorage.getItem('adminToken');
-            const staffName = localStorage.getItem('staffName');
+            const session = SessionManager.getCurrentSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                throw new Error('No active session');
+            }
+            
+            // Update activity timestamp
+            SessionManager.updateActivity(SessionManager.getCurrentSessionId());
+            
             const defaultHeaders = {
-                'Authorization': `Bearer ${token}`,
-                'X-Staff-Name': staffName || 'Admin'
+                'Authorization': `Bearer ${session.token}`,
+                'X-Staff-Name': session.staffName || 'Admin'
             };
             
             // Don't override content-type if it's already set or if it's FormData
@@ -1087,11 +1169,36 @@
 
             const res = await fetch(url, mergedOptions);
             if (res.status === 401) {
-                localStorage.removeItem('adminToken');
+                // Only remove current session on auth failure
+                SessionManager.removeSession(SessionManager.getCurrentSessionId());
                 window.location.href = 'index.html';
                 throw new Error('Unauthorized');
             }
             return res;
+        }
+
+        // Update Active Sessions Display
+        function updateActiveSessionsDisplay() {
+            const sessions = SessionManager.getAllSessions();
+            const sessionCount = Object.keys(sessions).length;
+            
+            if (sessionCount > 1) {
+                const activeAdmins = Object.values(sessions).map(s => {
+                    const isCurrentSession = s.username === currentSession.username && s.staffName === currentSession.staffName;
+                    const icon = isCurrentSession ? '👤' : '👥';
+                    return `<div style="padding: 4px 0; display: flex; align-items: center;">
+                        <span style="margin-right: 6px;">${icon}</span>
+                        <span style="font-weight: ${isCurrentSession ? '700' : '500'}; color: ${isCurrentSession ? '#28a745' : '#666'};">
+                            ${s.staffName}${isCurrentSession ? ' (You)' : ''}
+                        </span>
+                    </div>`;
+                }).join('');
+                
+                document.getElementById('activeSessionsList').innerHTML = activeAdmins;
+                document.getElementById('activeSessionsDisplay').style.display = 'block';
+            } else {
+                document.getElementById('activeSessionsDisplay').style.display = 'none';
+            }
         }
 
         let allOrders = [];
@@ -2484,6 +2591,10 @@
 
         setInterval(loadData, 10000);
         loadData();
+        
+        // Update active sessions display on load and every 5 seconds
+        updateActiveSessionsDisplay();
+        setInterval(updateActiveSessionsDisplay, 5000);
     </script>
 </body>
 </html>

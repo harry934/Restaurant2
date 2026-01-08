@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Manager Test - PCnC Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e7252d;
+            border-bottom: 3px solid #e7252d;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+        .session-card {
+            background: #f9f9f9;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .current-session {
+            border-left-color: #e7252d;
+            background: #fff5f5;
+        }
+        .btn {
+            background: #e7252d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background: #c71f27;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Admin Session Manager - Test Console</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ About This Tool</strong><br>
+            This page helps you test and manage admin sessions for the PCnC dashboard. You can view all active sessions, create test sessions, and verify that the multi-session system works correctly.
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Sessions</div>
+                <div class="stat-value" id="totalSessions">0</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-label">Current Session</div>
+                <div class="stat-value" id="hasCurrentSession">❌</div>
+            </div>
+        </div>
+
+        <h2>📋 Active Sessions</h2>
+        <div id="sessionsList"></div>
+
+        <h2>🛠️ Actions</h2>
+        <button class="btn" onclick="createTestSession()">➕ Create Test Session</button>
+        <button class="btn btn-secondary" onclick="refreshSessions()">🔄 Refresh Display</button>
+        <button class="btn btn-danger" onclick="clearAllSessions()">🗑️ Clear All Sessions</button>
+
+        <h2>🧪 Test Scenarios</h2>
+        <div class="warning-box">
+            <strong>⚠️ Testing Instructions</strong><br>
+            1. Click "Create Test Session" to simulate multiple admin logins<br>
+            2. Open the admin dashboard in a new tab to see the session manager in action<br>
+            3. Try logging out from one tab and verify other tabs remain active<br>
+            4. Use "Clear All Sessions" to reset and start fresh
+        </div>
+
+        <h2>📊 Session Details</h2>
+        <div id="sessionDetails"></div>
+    </div>
+
+    <script>
+        // Session Manager (same as in admin dashboard)
+        const SessionManager = {
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            },
+            
+            getAllSessions() {
+                const sessions = localStorage.getItem('adminSessions');
+                return sessions ? JSON.parse(sessions) : {};
+            },
+            
+            getCurrentSessionId() {
+                return localStorage.getItem('currentSessionId');
+            },
+            
+            getCurrentSession() {
+                const sessionId = this.getCurrentSessionId();
+                if (!sessionId) return null;
+                const sessions = this.getAllSessions();
+                return sessions[sessionId] || null;
+            },
+            
+            saveSession(sessionId, sessionData) {
+                const sessions = this.getAllSessions();
+                sessions[sessionId] = {
+                    ...sessionData,
+                    loginTime: new Date().toISOString(),
+                    lastActivity: new Date().toISOString()
+                };
+                localStorage.setItem('adminSessions', JSON.stringify(sessions));
+                return sessionId;
+            },
+            
+            setActiveSession(sessionId) {
+                localStorage.setItem('currentSessionId', sessionId);
+            },
+            
+            removeSession(sessionId) {
+                const sessions = this.getAllSessions();
+                delete sessions[sessionId];
+                localStorage.setItem('adminSessions', JSON.stringify(sessions));
+                
+                if (this.getCurrentSessionId() === sessionId) {
+                    localStorage.removeItem('currentSessionId');
+                }
+            }
+        };
+
+        function createTestSession() {
+            const names = ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Williams', 'Charlie Brown'];
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            
+            const sessionId = SessionManager.generateSessionId();
+            SessionManager.saveSession(sessionId, {
+                token: 'test-token-' + Date.now(),
+                username: 'test_' + Math.random().toString(36).substr(2, 5),
+                staffName: randomName
+            });
+            
+            alert(`✅ Created test session for ${randomName}`);
+            refreshSessions();
+        }
+
+        function refreshSessions() {
+            const sessions = SessionManager.getAllSessions();
+            const currentSessionId = SessionManager.getCurrentSessionId();
+            const sessionCount = Object.keys(sessions).length;
+            
+            // Update stats
+            document.getElementById('totalSessions').textContent = sessionCount;
+            document.getElementById('hasCurrentSession').textContent = currentSessionId ? '✅' : '❌';
+            
+            // Display sessions
+            const sessionsList = document.getElementById('sessionsList');
+            if (sessionCount === 0) {
+                sessionsList.innerHTML = '<div class="info-box">No active sessions. Create a test session or login to the admin dashboard.</div>';
+            } else {
+                sessionsList.innerHTML = Object.entries(sessions).map(([id, session]) => {
+                    const isCurrent = id === currentSessionId;
+                    const loginTime = new Date(session.loginTime).toLocaleString();
+                    const lastActivity = new Date(session.lastActivity).toLocaleString();
+                    
+                    return `
+                        <div class="session-card ${isCurrent ? 'current-session' : ''}">
+                            <strong>${session.staffName}</strong> ${isCurrent ? '(Current Session)' : ''}<br>
+                            <small>
+                                Username: <code>${session.username}</code><br>
+                                Session ID: <code>${id}</code><br>
+                                Login: ${loginTime}<br>
+                                Last Activity: ${lastActivity}
+                            </small><br>
+                            <button class="btn btn-danger" style="margin-top: 10px; padding: 8px 16px; font-size: 0.85rem;" 
+                                    onclick="removeSession('${id}')">
+                                Remove Session
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Display detailed JSON
+            document.getElementById('sessionDetails').innerHTML = `
+                <pre style="background: #f4f4f4; padding: 15px; border-radius: 8px; overflow-x: auto;">
+${JSON.stringify(sessions, null, 2)}
+                </pre>
+            `;
+        }
+
+        function removeSession(sessionId) {
+            if (confirm('Are you sure you want to remove this session?')) {
+                SessionManager.removeSession(sessionId);
+                refreshSessions();
+            }
+        }
+
+        function clearAllSessions() {
+            if (confirm('⚠️ This will remove ALL sessions. Are you sure?')) {
+                localStorage.removeItem('adminSessions');
+                localStorage.removeItem('currentSessionId');
+                alert('✅ All sessions cleared!');
+                refreshSessions();
+            }
+        }
+
+        // Initial load
+        refreshSessions();
+        
+        // Auto-refresh every 5 seconds
+        setInterval(refreshSessions, 5000);
+    </script>
+</body>
+</html>
