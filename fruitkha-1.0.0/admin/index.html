@@ -159,10 +159,20 @@
                         <label>Security Key</label>
                         <input type="password" class="form-control" id="signupPassword" placeholder="Strong password" required>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Contact Email</label>
+                            <input type="email" class="form-control" id="signupEmail" placeholder="name@pcnc.com" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Phone Number</label>
+                            <input type="text" class="form-control" id="signupPhone" placeholder="0712 345 678" required>
+                        </div>
+                    </div>
                     <div class="form-group mb-4">
                         <label>Identification Photo</label>
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="signupPhoto" accept="image/*">
+                            <input type="file" class="custom-file-input" id="signupPhoto" accept="image/*" required>
                             <label class="custom-file-label" id="photoLabel">Choose image</label>
                         </div>
                     </div>
@@ -267,6 +277,8 @@
                 name: document.getElementById('signupName').value,
                 username: document.getElementById('signupUsername').value,
                 password: document.getElementById('signupPassword').value,
+                email: document.getElementById('signupEmail').value,
+                phone: document.getElementById('signupPhone').value,
                 profilePhoto: profilePhoto
             };
 

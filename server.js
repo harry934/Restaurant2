@@ -1281,7 +1281,7 @@ app.get("/api/admin/export", async (req, res) => {
   
   // Staff Signup
   app.post("/api/admin/signup", async (req, res) => {
-    const { username, password, name, profilePhoto } = req.body;
+    const { username, password, name, profilePhoto, email, phone } = req.body;
     try {
       const existing = await Staff.findOne({ username });
       if (existing) return res.json({ success: false, message: "Username already taken." });
@@ -1290,6 +1290,8 @@ app.get("/api/admin/export", async (req, res) => {
         username, 
         password, 
         name, 
+        email: email || "",
+        phone: phone || "",
         profilePhoto: profilePhoto || "",
         status: 'pending', 
         role: 'staff' 

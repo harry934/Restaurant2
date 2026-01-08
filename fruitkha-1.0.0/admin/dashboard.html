@@ -300,7 +300,6 @@
                 <a onclick="switchView('staff')" data-view="staff"><i class="fas fa-users-cog"></i> Staff Applications</a>
                 <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
             </div>
-            <a onclick="switchView('profile')" data-view="profile"><i class="fas fa-user-circle"></i> My Profile</a>
         </nav>
         
         <div class="mt-auto pt-3">
@@ -466,8 +465,9 @@
                     <table class="table mb-0">
                         <thead style="background: #fafafa;">
                             <tr>
-                                <th>Staff Details</th>
-                                <th>Status</th>
+                                <th>Staff Identification</th>
+                                <th>Contact Information</th>
+                                <th>Access Status</th>
                                 <th>Applied Date</th>
                                 <th class="text-right">Admin Actions</th>
                             </tr>
@@ -480,108 +480,6 @@
             </div>
         </div>
 
-        <!-- My Profile View -->
-        <div id="profile-section" class="view-section">
-            <div class="header-top mb-4">
-                <div>
-                    <h2 class="font-weight-bold">Command Personnel Profile</h2>
-                    <p class="text-muted small mb-0">Manage your operational identity and communication channels</p>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-5">
-                    <div class="card order-card p-4 border-0 shadow-sm text-center">
-                        <div class="position-relative d-inline-block mx-auto mb-4">
-                            <img id="profileCurrentPhoto" src="../assets/img/products/default-avatar.png" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid #e7252d; background: #fff; box-shadow: 0 15px 35px rgba(231, 37, 45, 0.2);">
-                            <label for="profilePhotoInput" style="position: absolute; bottom: 5px; right: 5px; background: #e7252d; color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 4px solid #fff; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" title="Change Personnel Photo">
-                                <i class="fas fa-camera"></i>
-                            </label>
-                            <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
-                        </div>
-                        <h3 class="font-weight-bold mb-1" id="profileDisplayName">Personnel Name</h3>
-                        <p class="text-danger font-weight-bold small mb-3" id="profileDisplayRole">OPERATIONS OFFICER</p>
-                        
-                        <div class="d-flex justify-content-center gap-3 mt-2" style="gap: 15px;">
-                            <div class="p-3 bg-light rounded-pill flex-grow-1 border">
-                                <i class="fas fa-id-badge text-muted mb-1 d-block"></i>
-                                <div class="small font-weight-bold" id="profileDisplayUsername">@userid</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card order-card mt-4 p-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); color: white;">
-                        <h5 class="font-weight-bold mb-4 text-uppercase small letter-spacing-1" style="color: #e7252d;">System Identification</h5>
-                        <div class="mb-4">
-                            <div class="text-muted small text-uppercase font-weight-bold mb-1">Authorization Level</div>
-                            <div style="font-size: 1.1rem; font-weight: 700;" id="metaRole">STAFF OPERATIONS</div>
-                        </div>
-                        <div class="mb-4">
-                            <div class="text-muted small text-uppercase font-weight-bold mb-1">Network Identity</div>
-                            <div style="font-size: 1.1rem; font-weight: 700;" id="metaUsername">@unknown</div>
-                        </div>
-                        <div class="mt-auto pt-4 border-top border-secondary">
-                            <div class="d-flex align-items-center">
-                                <img src="../assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" style="max-height: 35px; margin-right: 15px;">
-                                <div class="small text-muted font-italic">Enabling Secure Operations since 2026</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-7">
-                    <div class="card order-card p-4 border-0 shadow-sm">
-                        <h5 class="font-weight-bold mb-4"><i class="fas fa-user-edit text-danger mr-2"></i> Personnel Record Updates</h5>
-                        <form id="profileUpdateForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">Full Operational Name</label>
-                                        <input type="text" id="updateName" class="form-control" style="border-radius: 12px; padding: 12px 18px;" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">Official User ID (Username)</label>
-                                        <input type="text" id="updateUsername" class="form-control" style="border-radius: 12px; padding: 12px 18px;" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">Contact Email Address</label>
-                                        <input type="email" id="updateEmail" class="form-control" style="border-radius: 12px; padding: 12px 18px;" placeholder="name@pcnc.com">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">Personnel Phone Number</label>
-                                        <input type="text" id="updatePhone" class="form-control" style="border-radius: 12px; padding: 12px 18px;" placeholder="0712 345 678">
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="small font-weight-bold">New Security Access Key (Leave blank to keep current)</label>
-                                        <input type="password" id="updatePassword" class="form-control" style="border-radius: 12px; padding: 12px 18px;" placeholder="••••••••">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="alert alert-warning py-3 px-4 small mt-2" style="border-radius: 14px; border: none; background: #fff9e6; color: #856404;">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-exclamation-triangle mr-3 fa-lg"></i>
-                                    <div><strong>SECURITY NOTICE:</strong> Changing your User ID or Password will require a session re-authentication. Your current login will remain active locally, but credentials must match HQ records.</div>
-                                </div>
-                            </div>
-
-                            <div class="text-right mt-4">
-                                <button type="submit" class="btn btn-danger btn-block py-3" style="border-radius: 16px; font-weight: 800; letter-spacing: 1.5px; box-shadow: 0 10px 20px rgba(231, 37, 45, 0.2);">
-                                    <i class="fas fa-shield-alt mr-2"></i> LEGITIMIZE PERSONNEL UPDATES
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- System Settings View -->
@@ -785,6 +683,7 @@
                                     <tr>
                                         <th>Photo</th>
                                         <th>Name / Role</th>
+                                        <th>Contact No.</th>
                                         <th class="text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -1301,17 +1200,6 @@
                 }
             }
 
-            // Sync Profile section
-            document.getElementById('profileDisplayName').innerText = currentSession.staffName;
-            document.getElementById('profileDisplayRole').innerText = currentSession.role === 'super-admin' ? 'SYSTEM SUPER-ADMIN' : 'RESTAURANT STAFF';
-            document.getElementById('profileDisplayUsername').innerText = '@' + currentSession.username;
-            document.getElementById('updateName').value = currentSession.staffName;
-            document.getElementById('updateUsername').value = currentSession.username;
-            document.getElementById('updateEmail').value = currentSession.email || "";
-            document.getElementById('updatePhone').value = currentSession.phone || "";
-            document.getElementById('metaRole').innerText = currentSession.role === 'super-admin' ? 'SYSTEM SUPER-ADMIN' : 'RESTAURANT STAFF';
-            document.getElementById('metaUsername').innerText = '@' + currentSession.username;
-            
             // If super-admin, show all links
             if (currentSession.role === 'super-admin') {
                 document.getElementById('restrictedNav').style.display = 'block';
@@ -1575,19 +1463,23 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="${photo}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 2px solid ${isBlocked ? '#6c757d' : '#e7252d'}; background: white;">
+                                        <img src="${photo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 3px solid ${isBlocked ? '#6c757d' : '#e7252d'}; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                                         <div>
-                                            <div class="font-weight-bold" style="font-size: 0.95rem;">${s.name} ${isBlocked ? '<span class="badge badge-secondary ml-1">BLOCKED</span>' : ''}</div>
-                                            <div class="small text-muted">@${s.username}</div>
+                                            <div class="font-weight-bold" style="font-size: 1rem; color: #1a1a1a;">${s.name} ${isBlocked ? '<span class="badge badge-secondary ml-1" style="font-size: 0.6rem;">BLOCKED</span>' : ''}</div>
+                                            <div class="small text-danger font-weight-bold" style="letter-spacing: 0.5px;">@${s.username}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge ${statusClass}" style="padding: 6px 12px; border-radius: 20px;">${s.status.toUpperCase()}</span></td>
-                                <td class="small text-muted">${new Date(s.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                    <div class="small mb-1"><i class="fas fa-envelope text-muted mr-2" style="width: 14px;"></i> ${s.email || '<span class="text-muted font-italic">No Email</span>'}</div>
+                                    <div class="small"><i class="fas fa-phone text-muted mr-2" style="width: 14px;"></i> ${s.phone || '<span class="text-muted font-italic">No Phone</span>'}</div>
+                                </td>
+                                <td><span class="badge ${statusClass}" style="padding: 8px 14px; border-radius: 50px; font-weight: 700; letter-spacing: 0.5px;">${s.status.toUpperCase()}</span></td>
+                                <td class="small text-muted font-weight-bold">${new Date(s.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td class="text-right">
-                                    <div class="btn-group">
+                                    <div class="btn-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
                                         ${actions}
-                                        <button class="btn btn-sm btn-outline-danger" onclick="handleStaffAction('${s.username}', 'delete')" title="Delete Record"><i class="fas fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-light text-danger" onclick="handleStaffAction('${s.username}', 'delete')" title="Permanent Delete"><i class="fas fa-trash-alt"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -1644,84 +1536,7 @@
 
 
 
-        // Profile Update Handler
-        const profilePhotoInput = document.getElementById('profilePhotoInput');
-        if (profilePhotoInput) {
-            profilePhotoInput.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        document.getElementById('profileCurrentPhoto').src = event.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-        }
 
-        const profileForm = document.getElementById('profileUpdateForm');
-        if (profileForm) {
-            profileForm.onsubmit = async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('updateName').value;
-                const username = document.getElementById('updateUsername').value;
-                const email = document.getElementById('updateEmail').value;
-                const phone = document.getElementById('updatePhone').value;
-                const password = document.getElementById('updatePassword').value;
-                const photoInput = document.getElementById('profilePhotoInput');
-                
-                let profilePhoto = null;
-                if (photoInput.files[0]) {
-                    profilePhoto = await new Promise(resolve => {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => resolve(ev.target.result);
-                        reader.readAsDataURL(photoInput.files[0]);
-                    });
-                }
-
-                try {
-                    const res = await adminFetch('/api/admin/profile/update', {
-                        method: 'POST',
-                        body: JSON.stringify({ name, username, password, profilePhoto, email, phone })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showNotification('Success', 'Profile updated successfully', 'success');
-                        
-                        // Update current session locally
-                        const sessId = SessionManager.getCurrentSessionId();
-                        const allSess = SessionManager.getAllSessions();
-                        const sess = allSess[sessId];
-                        
-                        sess.staffName = data.staffName;
-                        sess.username = data.username;
-                        sess.email = data.email;
-                        sess.phone = data.phone;
-                        if (data.profilePhoto) sess.profilePhoto = data.profilePhoto;
-                        
-                        localStorage.setItem('adminSessions', JSON.stringify(allSess));
-                        
-                        // Reflect changes in UI
-                        document.getElementById('adminNameText').innerText = data.staffName;
-                        document.getElementById('profileDisplayName').innerText = data.staffName;
-                        document.getElementById('profileDisplayUsername').innerText = '@' + data.username;
-                        document.getElementById('metaUsername').innerText = '@' + data.username;
-                        if (data.profilePhoto) {
-                            document.getElementById('adminProfilePhoto').src = data.profilePhoto;
-                            document.getElementById('profileCurrentPhoto').src = data.profilePhoto;
-                        }
-
-                        if (password || (data.username !== currentSession.username)) {
-                            showNotification('Security', 'Credentials changed. You may need to verify your ID on next login.', 'info');
-                        }
-                    } else {
-                        showNotification('Error', data.message || 'Update failed', 'error');
-                    }
-                } catch (err) {
-                    showNotification('Error', 'Failed to communicate with HQ', 'error');
-                }
-            };
-        }
 
         async function loadData() {
             try {
@@ -2429,11 +2244,14 @@
                         teamData.forEach(m => {
                             tbody.append(`
                                 <tr>
-                                    <td><img src="../${m.image}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"></td>
-                                    <td><div class="font-weight-bold">${m.name}</div><small class="text-muted">${m.role}</small></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditTeamMember(${m.id})"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTeamMember(${m.id})"><i class="fas fa-trash"></i></button>
+                                    <td><img src="../${m.image}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;"></td>
+                                    <td><div class="font-weight-bold" style="color: #1a1a1a;">${m.name}</div><small class="text-danger font-weight-bold" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px;">${m.role}</small></td>
+                                    <td class="small font-weight-bold">${m.phone || '<span class="text-muted font-italic">No Phone Recorded</span>'}</td>
+                                    <td class="text-right">
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-light text-primary" onclick="openEditTeamMember(${m.id})"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-sm btn-light text-danger" onclick="deleteTeamMember(${m.id})"><i class="fas fa-trash"></i></button>
+                                        </div>
                                     </td>
                                 </tr>
                             `);
