@@ -418,6 +418,7 @@
                         <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('marketing', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-ad mr-2"></i> Marketing & Deals</button>
                         <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('team', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-users mr-2"></i> Internal Team</button>
                         <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('categories', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-tags mr-2"></i> Menu Flavors</button>
+                        <button class="btn btn-outline-dark px-4 py-2 settings-nav-btn" onclick="showSettingsTab('staff', this)" style="border-radius: 10px; font-weight: 700;"><i class="fas fa-user-shield mr-2"></i> Staff Access</button>
                     </div>
                 </div>
             </div>
@@ -629,6 +630,24 @@
                                 <tbody id="categoryTableBody"></tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- STAFF ACCESS -->
+                <div class="col-lg-12 settings-tab-content d-none" id="tab-staff">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-4"><i class="fas fa-user-shield text-danger mr-2"></i> Admin Staff Access Accounts</h5>
+                        <div class="alert alert-warning small mb-4">
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Only two people are authorized to access this Command Center. Changes below take effect immediately.
+                        </div>
+                        <form id="staffSettingsForm">
+                            <div class="row" id="staffLoginsContainer">
+                                <!-- Populated via JS -->
+                            </div>
+                            <div class="text-right mt-3">
+                                <button type="submit" class="btn btn-danger px-5 py-3" style="border-radius: 12px; font-weight: 800;">SAVE ACCESS PERMISSIONS</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -1879,7 +1898,7 @@
                                 <tr>
                                     <td><code>${cat.id}</code></td>
                                     <td>${cat.name}</td>
-                                    <td>
+                                    <td class="text-right">
                                         <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditCategory('${cat.id}')"><i class="fas fa-edit"></i></button>
                                         <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory('${cat.id}')"><i class="fas fa-trash"></i></button>
                                     </td>
@@ -1895,6 +1914,42 @@
                         }
                     }
                 }, "Categories");
+
+                // Load Staff Accounts
+                tryBlock(() => {
+                    const container = $('#staffLoginsContainer').empty();
+                    const staff = data.staffLogins || [
+                        { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
+                        { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+                    ];
+                    staff.forEach((s) => {
+                        container.append(`
+                            <div class="col-md-6 mb-3">
+                                <div class="p-4 border rounded shadow-sm" style="background: #fdfdfd; border-radius: 15px !important;">
+                                    <h6 class="font-weight-bold mb-3 text-danger"><i class="fas fa-user-lock mr-2"></i> Account ${s.id} Access</h6>
+                                    <div class="form-group">
+                                        <label class="small font-weight-bold">Assigned Staff Name</label>
+                                        <input type="text" name="staff${s.id}_name" class="form-control" value="${s.name}" placeholder="e.g. Anthony" required>
+                                        <small class="text-muted">Must start with a capital letter</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="small font-weight-bold">Internal Username</label>
+                                        <input type="text" name="staff${s.id}_user" class="form-control" value="${s.username}" required>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">Access Key (Password)</label>
+                                        <div class="input-group">
+                                            <input type="password" name="staff${s.id}_pass" class="form-control" value="${s.password}" required>
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="this.parentElement.previousElementSibling.type = this.parentElement.previousElementSibling.type === 'password' ? 'text' : 'password'"><i class="fas fa-eye"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }, "StaffLogins");
 
                 if (allOrders.length > 0) renderOrders();
             } catch (e) { 
@@ -2329,6 +2384,40 @@
                     toggleMobileMenu();
                 }
             });
+        });
+
+        $('#staffSettingsForm').submit(async (e) => {
+            e.preventDefault();
+            const btn = $(e.target).find('button[type="submit"]');
+            btn.text('Saving Securely...').prop('disabled', true);
+            
+            const staff1 = {
+                id: 1,
+                username: $('[name="staff1_user"]').val(),
+                password: $('[name="staff1_pass"]').val(),
+                name: $('[name="staff1_name"]').val()
+            };
+            const staff2 = {
+                id: 2,
+                username: $('[name="staff2_user"]').val(),
+                password: $('[name="staff2_pass"]').val(),
+                name: $('[name="staff2_name"]').val()
+            };
+
+            try {
+                const res = await adminFetch('/api/admin/settings/update', {
+                    method: 'POST',
+                    body: JSON.stringify({ staffLogins: [staff1, staff2] })
+                });
+                if (res.ok) {
+                    showNotification('Security Updated', 'Staff access permissions saved', 'success');
+                }
+            } catch (e) {
+                console.error(e);
+                showNotification('Error', 'Failed to update security settings', 'error');
+            } finally {
+                btn.text('SAVE ACCESS PERMISSIONS').prop('disabled', false);
+            }
         });
 
         setInterval(loadData, 10000);

@@ -80,6 +80,13 @@ const SettingsSchema = new mongoose.Schema(
     whatsappNumber: String,
     restaurantLat: { type: Number, default: -1.2200414264779664 },
     restaurantLng: { type: Number, default: 36.87814128003106 },
+    staffLogins: {
+      type: Array,
+      default: [
+        { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
+        { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+      ]
+    }
   },
   { strict: false }
 );
@@ -153,7 +160,17 @@ const getSettings = async () => {
       supportPhone: "0112601334",
       restaurantLat: -1.2200414264779664,
       restaurantLng: 36.87814128003106,
+      staffLogins: [
+        { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
+        { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+      ]
     });
+    await settings.save();
+  } else if (!settings.staffLogins || settings.staffLogins.length === 0) {
+    settings.staffLogins = [
+      { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
+      { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+    ];
     await settings.save();
   }
   return settings;
@@ -1122,8 +1139,8 @@ app.get("/api/admin/export", async (req, res) => {
   }
 });
 
-// 5. Admin: Login (Environment Variable Based)
-app.post("/api/admin/login", (req, res) => {
+// 5. Admin: Login (Editable Settings Based)
+app.post("/api/admin/login", async (req, res) => {
   const { username, password, staffName } = req.body;
 
   if (!staffName || staffName[0] !== staffName[0].toUpperCase()) {
@@ -1133,24 +1150,21 @@ app.post("/api/admin/login", (req, res) => {
     });
   }
 
-  // Two Permitted Logins (Environment Variable Based)
-  const secureUser1 = process.env.ADMIN_USER_1 || "admin1";
-  const securePass1 = process.env.ADMIN_PASS_1 || "admin123";
-  const secureUser2 = process.env.ADMIN_USER_2 || "admin2";
-  const securePass2 = process.env.ADMIN_PASS_2 || "pcnc2026";
+  const settings = await getSettings();
+  const staffLogins = settings.staffLogins || [];
 
-  const isValid =
-    (username === secureUser1 && password === securePass1) ||
-    (username === secureUser2 && password === securePass2);
+  const staffAccount = staffLogins.find(
+    (s) => s.username === username && s.password === password && s.name === staffName
+  );
 
-  if (isValid) {
+  if (staffAccount) {
     console.log(`[ADMIN LOGIN] ${staffName} authorized as ${username}`);
     res.json({
       success: true,
       token: ADMIN_TOKEN,
     });
   } else {
-    res.status(401).json({ success: false, message: "Invalid credentials" });
+    res.status(401).json({ success: false, message: "Invalid credentials or staff name" });
   }
 });
 
