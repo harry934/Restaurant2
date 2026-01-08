@@ -1211,17 +1211,18 @@
                 if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
                 const data = await res.json();
-                console.log("[STATUS UPDATE] Online from server:", data.onlineAdmins);
+                
                 if (data.success) {
-                    const onlineAdmins = data.onlineAdmins || [];
-                    // Force names to uppercase for consistent matching
-                    const onlineAdminsUpper = onlineAdmins.map(n => n.toUpperCase());
+                    const onlineAdmins = (data.onlineAdmins || []).map(n => n.trim().toUpperCase());
                     
                     const admin1Name = "JOHN WAINAINA";
                     const admin2Name = "HARRY MOKAYA";
                     
-                    const isAdmin1Online = onlineAdminsUpper.includes(admin1Name);
-                    const isAdmin2Online = onlineAdminsUpper.includes(admin2Name);
+                    const isAdmin1Online = onlineAdmins.includes(admin1Name);
+                    const isAdmin2Online = onlineAdmins.includes(admin2Name);
+
+                    const now = new Date();
+                    const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                     let html = `
                         <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -1231,12 +1232,15 @@
                                 <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin1Online ? 'Active Online' : 'System Offline'}</div>
                             </div>
                         </div>
-                        <div style="padding: 10px 0; display: flex; align-items: center;">
+                        <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 12px #28a745' : 'none'};"></div>
                             <div style="flex-grow: 1;">
                                 <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin2Name}</div>
                                 <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin2Online ? 'Active Online' : 'System Offline'}</div>
                             </div>
+                        </div>
+                        <div style="padding-top: 10px; font-size: 0.55rem; color: #555; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                            <i class="fas fa-heartbeat" style="color: #e7252d; margin-right: 4px;"></i> Live Sync: ${timestamp}
                         </div>
                     `;
                     
@@ -1245,7 +1249,6 @@
                 }
             } catch (e) {
                 console.error("Authorized Access Status Update Error:", e);
-                // If the display exists but failed to update, don't hide it, just let it be stale for this tick
             }
         }
 

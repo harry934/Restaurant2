@@ -12,6 +12,20 @@ const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Consolidated Admin Configuration 
+const ADMIN_CONFIG = {
+  admin1: {
+    username: process.env.ADMIN1_USER || "admin1",
+    password: process.env.ADMIN1_PASS || "admin123",
+    name: process.env.ADMIN1_NAME || "JOHN WAINAINA"
+  },
+  admin2: {
+    username: process.env.ADMIN2_USER || "admin2",
+    password: process.env.ADMIN2_PASS || "pcnc2026",
+    name: process.env.ADMIN2_NAME || "HARRY MOKAYA"
+  }
+};
+
 // Track active admin sessions
 const activeAdminSessions = {}; 
 const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes inactivity timeout
@@ -21,11 +35,12 @@ setInterval(() => {
   const now = Date.now();
   for (const username in activeAdminSessions) {
     if (now - activeAdminSessions[username].lastActive > SESSION_TIMEOUT) {
+      const staffName = activeAdminSessions[username].name;
       delete activeAdminSessions[username];
-      console.log(`[SESSION CLEANUP] Removed stale session for ${username}`);
+      console.log(`[SESSION CLEANUP] Removed stale session for ${staffName} (${username})`);
     }
   }
-}, 5 * 60 * 1000);
+}, 3 * 60 * 1000); // More frequent cleanup (3 mins)
 // ADMIN_TOKEN defined below in Admin Routes section
 
 // (Security middleware removed)
@@ -269,24 +284,47 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// Admin Logout Route
+// Admin Logout Route - Extremely robust to clear sessions
 app.post("/api/admin/logout", (req, res) => {
   const { username, sessionId } = req.body;
+  let cleared = false;
+  
+  // 1. Try clearing by username index
   if (username && activeAdminSessions[username]) {
-    // If sessionId matches or if it's a forced logout from the mismo user
     if (activeAdminSessions[username].sessionId === sessionId) {
+      console.log(`[ADMIN LOGOUT] Explicit logout for ${activeAdminSessions[username].name}`);
       delete activeAdminSessions[username];
-      console.log(`[ADMIN LOGOUT] ${username} session cleared successfully`);
-      return res.json({ success: true, message: "Logged out" });
+      cleared = true;
     }
   }
-  res.json({ success: true, message: "Session already gone or mismatch" });
+  
+  // 2. Fallback: Search all sessions for this sessionId (in case username index mismatch)
+  if (!cleared && sessionId) {
+    for (const user in activeAdminSessions) {
+      if (activeAdminSessions[user].sessionId === sessionId) {
+        console.log(`[ADMIN LOGOUT] SessionID match logout for ${activeAdminSessions[user].name}`);
+        delete activeAdminSessions[user];
+        cleared = true;
+        break;
+      }
+    }
+  }
+
+  res.json({ success: true, cleared });
 });
 
-// Get Active Admin status for the whole system
+// Get Active Admin status for the whole system (Robust mapping)
 app.get("/api/admin/active-sessions", authMiddleware, (req, res) => {
-  const onlineAdmins = Object.values(activeAdminSessions).map(s => s.name);
-  res.json({ success: true, onlineAdmins });
+  // We explicitly return the status of our two configured admins
+  const sessions = Object.values(activeAdminSessions);
+  const onlineNames = sessions.map(s => s.name.toUpperCase());
+  
+  res.json({ 
+    success: true, 
+    onlineAdmins: onlineNames,
+    // Add timestamps to prove live data
+    serverTime: new Date().toISOString()
+  });
 });
 
 // --- API ROUTES ---
@@ -1191,54 +1229,29 @@ app.get("/api/admin/export", async (req, res) => {
   }
 });
 
-  // 5. Admin: Login (Environment Variables ONLY for strict security)
+  // 5. Admin: Login (Using Consolidated Config)
   app.post("/api/admin/login", async (req, res) => {
     const { username, password } = req.body;
-  
-    // Check environment variable admins first (for Railway/Render deployment)
-    const admin1User = process.env.ADMIN1_USER || "admin1";
-    const admin1Pass = process.env.ADMIN1_PASS || "admin123";
-    const admin1Name = process.env.ADMIN1_NAME || "JOHN WAINAINA";
-    
-    const admin2User = process.env.ADMIN2_USER || "admin2";
-    const admin2Pass = process.env.ADMIN2_PASS || "pcnc2026";
-    const admin2Name = process.env.ADMIN2_NAME || "HARRY MOKAYA";
-  
-    // Session Enforcement Logic
     const now = Date.now();
-    
-    // Check Admin 1
-    if (username === admin1User && password === admin1Pass) {
-      // Session Replacement Logic (Takeover)
-      const sessionId = Math.random().toString(36).substring(2, 15);
-      activeAdminSessions[username] = { lastActive: now, sessionId, name: admin1Name };
-      
-      console.log(`[ADMIN LOGIN] ${admin1Name} authorized as ${username} (Session Takeover)`);
-      return res.json({
-        success: true,
-        token: ADMIN_TOKEN,
-        staffName: admin1Name,
-        sessionId: sessionId
-      });
+  
+    // Check Configured Admins
+    for (const key in ADMIN_CONFIG) {
+      const config = ADMIN_CONFIG[key];
+      if (username === config.username && password === config.password) {
+        const sessionId = Math.random().toString(36).substring(2, 15);
+        activeAdminSessions[username] = { lastActive: now, sessionId, name: config.name };
+        
+        console.log(`[ADMIN LOGIN] ${config.name} logged in successfully`);
+        return res.json({
+          success: true,
+          token: ADMIN_TOKEN,
+          staffName: config.name,
+          sessionId: sessionId
+        });
+      }
     }
   
-    // Check Admin 2
-    if (username === admin2User && password === admin2Pass) {
-      // Session Replacement Logic (Takeover)
-      const sessionId = Math.random().toString(36).substring(2, 15);
-      activeAdminSessions[username] = { lastActive: now, sessionId, name: admin2Name };
-  
-      console.log(`[ADMIN LOGIN] ${admin2Name} authorized as ${username} (Session Takeover)`);
-      return res.json({
-        success: true,
-        token: ADMIN_TOKEN,
-        staffName: admin2Name,
-        sessionId: sessionId
-      });
-    }
-  
-    // If nothing matched
-    res.status(401).json({ success: false, message: "Unauthorized. Access denied." });
+    res.status(401).json({ success: false, message: "Unauthorized Access. Check credentials." });
   });
 
 
