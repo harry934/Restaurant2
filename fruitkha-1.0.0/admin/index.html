@@ -100,9 +100,9 @@
         </div>
         <form id="loginForm">
             <div class="form-group mb-4">
-                <label>Staff Name</label>
-                <input type="text" class="form-control" id="staffName" placeholder="Your Name (e.g. Anthony)" required>
-                <small class="text-muted" style="font-size: 10px;">Must start with a capital letter</small>
+                <label>Staff Name <span class="text-muted" style="font-size: 0.7rem; text-transform: none;">(Optional)</span></label>
+                <input type="text" class="form-control" id="staffName" placeholder="Your Name (e.g. Anthony)">
+                <small class="text-muted" style="font-size: 10px;">Leave empty if using environment admin account</small>
             </div>
             <div class="form-group mb-4">
                 <label>User ID</label>
@@ -126,11 +126,12 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
-            const staffName = document.getElementById('staffName').value;
+            const staffName = document.getElementById('staffName').value.trim();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            if (!staffName || staffName[0] !== staffName[0].toUpperCase()) {
+            // Staff name is now optional (for environment variable admins)
+            if (staffName && staffName[0] !== staffName[0].toUpperCase()) {
                 document.getElementById('error').innerText = 'Staff name must start with a capital letter';
                 document.getElementById('error').style.display = 'block';
                 return;
@@ -148,10 +149,13 @@
                 const data = await res.json();
                 if (data.success) {
                     localStorage.setItem('adminToken', data.token);
-                    localStorage.setItem('staffName', staffName);
+                    // Store admin name from server (for env admins) or use provided staffName
+                    const displayName = data.staffName || staffName || username;
+                    localStorage.setItem('adminName', displayName);
                     window.location.href = 'dashboard.html';
                 } else {
                     document.getElementById('error').innerText = data.message || 'Invalid Credentials';
+                    document.getElementById('error').style.display = 'block';
                     btn.innerText = 'Authorize Access';
                     btn.disabled = false;
                 }

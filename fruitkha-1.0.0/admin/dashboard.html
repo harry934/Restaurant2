@@ -280,6 +280,11 @@
                     <h2 id="viewTitle">Live Operations</h2>
                     <p class="text-muted small mb-0" id="viewSubtitle">Real-time order tracking & kitchen management</p>
                 </div>
+                <div id="realtimeClock" style="background: linear-gradient(135deg, #e7252d 0%, #c71f27 100%); padding: 15px 25px; border-radius: 16px; box-shadow: 0 8px 20px rgba(231, 37, 45, 0.25); text-align: center; min-width: 200px;">
+                    <div style="font-size: 0.65rem; text-transform: uppercase; color: rgba(255,255,255,0.8); font-weight: 600; letter-spacing: 1.5px; margin-bottom: 4px;">Current Time</div>
+                    <div id="clockTime" style="font-size: 1.8rem; font-weight: 800; color: white; font-family: 'Inter', monospace; letter-spacing: 1px;">--:--:--</div>
+                    <div id="clockDate" style="font-size: 0.7rem; color: rgba(255,255,255,0.9); font-weight: 600; margin-top: 2px;">Loading...</div>
+                </div>
                 <div class="d-flex">
                     <button class="btn btn-outline-success mr-2 shadow-sm" style="border-radius: 12px;" onclick="downloadReport()">
                         <i class="fas fa-file-excel mr-2"></i> Daily Report
@@ -1165,6 +1170,71 @@
             loadData();
         }
 
+        // Order Age Calculation
+        function getOrderAge(orderDate) {
+            const now = new Date();
+            const orderTime = new Date(orderDate);
+            const diffMs = now - orderTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays}d ago`;
+        }
+
+        // Order Age Badge Color (green = fresh, yellow = moderate, red = old)
+        function getOrderAgeBadgeColor(orderDate) {
+            const diffMins = Math.floor((new Date() - new Date(orderDate)) / 60000);
+            if (diffMins < 15) return '#28a745'; // Green - Fresh
+            if (diffMins < 30) return '#ffc107'; // Yellow - Moderate
+            if (diffMins < 60) return '#ff9800'; // Orange - Getting old
+            return '#dc3545'; // Red - Very old
+        }
+
+        // Update order ages every minute
+        setInterval(() => {
+            document.querySelectorAll('.order-age').forEach(el => {
+                const orderDate = el.getAttribute('data-date');
+                const badge = el.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = getOrderAge(orderDate);
+                    badge.style.background = getOrderAgeBadgeColor(orderDate);
+                }
+            });
+        }, 60000); // Update every minute
+
+        // Real-time Clock
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            
+            const clockTime = document.getElementById('clockTime');
+            const clockDate = document.getElementById('clockDate');
+            
+            if (clockTime) clockTime.textContent = now.toLocaleTimeString('en-US', timeOptions);
+            if (clockDate) clockDate.textContent = now.toLocaleDateString('en-US', dateOptions);
+        }
+        
+        // Update clock every second
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+
+        // Display Admin Name
+        const adminName = localStorage.getItem('adminName') || localStorage.getItem('staffName');
+        if (adminName) {
+            const displayDiv = document.getElementById('adminNameDisplay');
+            const nameText = document.getElementById('adminNameText');
+            if (displayDiv && nameText) {
+                nameText.textContent = adminName;
+                displayDiv.style.display = 'block';
+            }
+        }
+
+
         async function loadData() {
             try {
                 // Fetch both orders and settings to keep rider list fresh for dropdowns
@@ -1402,7 +1472,12 @@
                         </td>
                         <td class="small">${items}</td>
                         <td class="font-weight-bold">KES ${o.totalAmount}</td>
-                        <td class="small text-muted">${new Date(o.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                        <td class="small">
+                            <div class="text-muted">${new Date(o.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                            <div class="order-age" data-date="${o.date}" style="margin-top: 4px;">
+                                <span class="badge" style="background: ${getOrderAgeBadgeColor(o.date)}; color: white; font-size: 0.65rem; padding: 4px 8px; border-radius: 8px; font-weight: 700;">${getOrderAge(o.date)}</span>
+                            </div>
+                        </td>
                         <td>${payStatus}</td>
                         <td><span class="status-badge ${statusMap[o.status]}">${o.status}</span></td>
                         <td>
