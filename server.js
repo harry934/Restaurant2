@@ -130,10 +130,15 @@ async function seedSuperAdmin() {
   const superPass = process.env.ADMIN1_PASS || "admin123";
   const superName = process.env.ADMIN1_NAME || "JOHN WAINAINA";
 
+  const staff2User = process.env.ADMIN2_USER || "admin2";
+  const staff2Pass = process.env.ADMIN2_PASS || "pcnc2026";
+  const staff2Name = process.env.ADMIN2_NAME || "HARRY MOKAYA";
+
   try {
-    const existing = await Staff.findOne({ username: superUser });
-    if (!existing) {
-      const boss = new Staff({
+    // 1. Seed or Update Super Admin
+    let boss = await Staff.findOne({ username: superUser });
+    if (!boss) {
+      boss = new Staff({
         username: superUser,
         password: superPass,
         name: superName,
@@ -142,9 +147,31 @@ async function seedSuperAdmin() {
       });
       await boss.save();
       console.log(`[SEED] Super Admin ${superName} created.`);
+    } else {
+      // Force role and status if he exists but is restricted
+      if (boss.role !== 'super-admin' || boss.status !== 'approved') {
+        boss.role = 'super-admin';
+        boss.status = 'approved';
+        await boss.save();
+        console.log(`[SEED] Super Admin ${superName} role restored.`);
+      }
+    }
+
+    // 2. Seed Pre-defined Staff (if configured)
+    const existingStaff2 = await Staff.findOne({ username: staff2User });
+    if (!existingStaff2) {
+      const worker = new Staff({
+        username: staff2User,
+        password: staff2Pass,
+        name: staff2Name,
+        role: 'staff',
+        status: 'approved'
+      });
+      await worker.save();
+      console.log(`[SEED] Pre-defined Staff ${staff2Name} created.`);
     }
   } catch (err) {
-    console.error("[SEED] Error seeding super admin:", err);
+    console.error("[SEED] Error seeding admins:", err);
   }
 }
 
