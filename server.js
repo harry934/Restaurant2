@@ -1188,11 +1188,11 @@ app.get("/api/admin/export", async (req, res) => {
     // Check environment variable admins first (for Railway/Render deployment)
     const admin1User = process.env.ADMIN1_USER || "admin1";
     const admin1Pass = process.env.ADMIN1_PASS || "admin123";
-    const admin1Name = process.env.ADMIN1_NAME || "Harry Mokaya";
+    const admin1Name = process.env.ADMIN1_NAME || "HARRY MOKAYA";
     
     const admin2User = process.env.ADMIN2_USER || "admin2";
-    const admin2Pass = process.env.ADMIN2_PASS || "Admin 2";
-    const admin2Name = process.env.ADMIN2_NAME || "Authorized Admin";
+    const admin2Pass = process.env.ADMIN2_PASS || "pcnc2026";
+    const admin2Name = process.env.ADMIN2_NAME || "JOHN WAINAINA";
   
     // Session Enforcement Logic
     const now = Date.now();

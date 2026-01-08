@@ -38,7 +38,8 @@
         }
         .sidebar a i { margin-right: 15px; font-size: 1.1rem; }
         .sidebar a:hover, .sidebar a.active { color: white; background: rgba(231, 37, 45, 0.15); color: #e7252d; }
-        .sidebar a.logout { margin-top: auto; color: #f44336; }
+        .sidebar a.logout { color: #888; margin-top: 10px; font-weight: 500; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); border-radius: 0; }
+        .sidebar a.logout:hover { color: #fff; background: transparent; }
 
         .main-content { margin-left: 260px; padding: 40px; transition: margin-left 0.3s ease; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
@@ -284,10 +285,10 @@
             <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
         </nav>
         
-        <div class="mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
-            <button onclick="logout()" class="btn btn-danger btn-block py-3" style="border-radius: 14px; font-weight: 800; background: #ff4d4d; border: none; box-shadow: 0 10px 20px rgba(255, 77, 77, 0.2);">
-                <i class="fas fa-power-off mr-2"></i> SYSTEM LOGOUT
-            </button>
+        <div class="mt-auto pt-3">
+            <a onclick="logout()" class="logout">
+                <i class="fas fa-power-off"></i> Sign Out of System
+            </a>
         </div>
     </div>
     </div>
@@ -1208,30 +1209,27 @@
             const sessionValues = Object.values(sessions);
             
             // We'll define the two primary admin labels
-            const admin1Name = "Harry Mokaya"; // Primary Admin
-            const admin2Name = "Authorized Admin"; // Second Admin
+            // We'll define the two primary authorized admin names
+            const admin1Name = "HARRY MOKAYA";
+            const admin2Name = "JOHN WAINAINA";
             
             // Check if they are currently online
             const isAdmin1Online = sessionValues.some(s => s.staffName === admin1Name);
-            const isAdmin2Online = sessionValues.some(s => s.staffName === admin2Name || (s.staffName !== admin1Name && s.staffName !== 'Admin'));
-            
-            // Find secondary admin name if logged in
-            const secondaryAdmin = sessionValues.find(s => s.staffName !== admin1Name);
-            const secondaryDisplayName = secondaryAdmin ? secondaryAdmin.staffName : admin2Name;
+            const isAdmin2Online = sessionValues.some(s => s.staffName === admin2Name);
 
             let html = `
-                <div style="padding: 8px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${isAdmin1Online ? '#28a745' : '#555'}; margin-right: 12px; box-shadow: ${isAdmin1Online ? '0 0 10px #28a745' : 'none'};"></div>
+                <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin1Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin1Online ? '0 0 12px #28a745' : 'none'};"></div>
                     <div style="flex-grow: 1;">
-                        <div style="font-weight: 700; color: ${isAdmin1Online ? '#fff' : '#666'}; font-size: 0.8rem;">${admin1Name}</div>
-                        <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#666'}; text-transform: uppercase; font-weight: 800;">${isAdmin1Online ? 'Online' : 'Offline'}</div>
+                        <div style="font-weight: 700; color: ${isAdmin1Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin1Name}</div>
+                        <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin1Online ? 'Active Online' : 'System Offline'}</div>
                     </div>
                 </div>
-                <div style="padding: 8px 0; display: flex; align-items: center;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#555'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 10px #28a745' : 'none'};"></div>
+                <div style="padding: 10px 0; display: flex; align-items: center;">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 12px #28a745' : 'none'};"></div>
                     <div style="flex-grow: 1;">
-                        <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#666'}; font-size: 0.8rem;">${secondaryDisplayName}</div>
-                        <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#666'}; text-transform: uppercase; font-weight: 800;">${isAdmin2Online ? 'Online' : 'Offline'}</div>
+                        <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin2Name}</div>
+                        <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin2Online ? 'Active Online' : 'System Offline'}</div>
                     </div>
                 </div>
             `;
