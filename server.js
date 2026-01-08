@@ -279,6 +279,12 @@ app.post("/api/admin/logout", (req, res) => {
   res.json({ success: true });
 });
 
+// Get Active Admin status for the whole system
+app.get("/api/admin/active-sessions", authMiddleware, (req, res) => {
+  const onlineAdmins = Object.values(activeAdminSessions).map(s => s.name);
+  res.json({ success: true, onlineAdmins });
+});
+
 // --- API ROUTES ---
 
 // Serve images from MongoDB

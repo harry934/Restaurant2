@@ -1203,39 +1203,44 @@
             return res;
         }
 
-        // Update Active Sessions Display (Strictly 2 Admins)
-        function updateActiveSessionsDisplay() {
-            const sessions = SessionManager.getAllSessions();
-            const sessionValues = Object.values(sessions);
-            
-            // We'll define the two primary admin labels
-            // We'll define the two primary authorized admin names
-            const admin1Name = "HARRY MOKAYA";
-            const admin2Name = "JOHN WAINAINA";
-            
-            // Check if they are currently online
-            const isAdmin1Online = sessionValues.some(s => s.staffName === admin1Name);
-            const isAdmin2Online = sessionValues.some(s => s.staffName === admin2Name);
+        // Update Active Sessions Display (Strictly 2 Admins - Fetched from Server)
+        async function updateActiveSessionsDisplay() {
+            try {
+                const res = await adminFetch('/api/admin/active-sessions');
+                const data = await res.json();
+                
+                if (data.success) {
+                    const onlineAdmins = data.onlineAdmins || [];
+                    
+                    const admin1Name = "HARRY MOKAYA";
+                    const admin2Name = "JOHN WAINAINA";
+                    
+                    const isAdmin1Online = onlineAdmins.includes(admin1Name);
+                    const isAdmin2Online = onlineAdmins.includes(admin2Name);
 
-            let html = `
-                <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin1Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin1Online ? '0 0 12px #28a745' : 'none'};"></div>
-                    <div style="flex-grow: 1;">
-                        <div style="font-weight: 700; color: ${isAdmin1Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin1Name}</div>
-                        <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin1Online ? 'Active Online' : 'System Offline'}</div>
-                    </div>
-                </div>
-                <div style="padding: 10px 0; display: flex; align-items: center;">
-                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 12px #28a745' : 'none'};"></div>
-                    <div style="flex-grow: 1;">
-                        <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin2Name}</div>
-                        <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin2Online ? 'Active Online' : 'System Offline'}</div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('activeSessionsList').innerHTML = html;
-            document.getElementById('activeSessionsDisplay').style.display = 'block';
+                    let html = `
+                        <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin1Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin1Online ? '0 0 12px #28a745' : 'none'};"></div>
+                            <div style="flex-grow: 1;">
+                                <div style="font-weight: 700; color: ${isAdmin1Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin1Name}</div>
+                                <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin1Online ? 'Active Online' : 'System Offline'}</div>
+                            </div>
+                        </div>
+                        <div style="padding: 10px 0; display: flex; align-items: center;">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 12px #28a745' : 'none'};"></div>
+                            <div style="flex-grow: 1;">
+                                <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin2Name}</div>
+                                <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin2Online ? 'Active Online' : 'System Offline'}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('activeSessionsList').innerHTML = html;
+                    document.getElementById('activeSessionsDisplay').style.display = 'block';
+                }
+            } catch (e) {
+                console.error("Failed to update active sessions:", e);
+            }
         }
 
 
