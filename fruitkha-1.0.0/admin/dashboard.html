@@ -1212,8 +1212,8 @@
                 if (data.success) {
                     const onlineAdmins = data.onlineAdmins || [];
                     
-                    const admin1Name = "HARRY MOKAYA";
-                    const admin2Name = "JOHN WAINAINA";
+                    const admin1Name = "JOHN WAINAINA";
+                    const admin2Name = "HARRY MOKAYA";
                     
                     const isAdmin1Online = onlineAdmins.includes(admin1Name);
                     const isAdmin2Online = onlineAdmins.includes(admin2Name);
@@ -2628,9 +2628,9 @@
         setInterval(loadData, 10000);
         loadData();
         
-        // Update active sessions display on load and every 5 seconds
+        // Update active sessions display on load and every 3 seconds
         updateActiveSessionsDisplay();
-        setInterval(updateActiveSessionsDisplay, 5000);
+        setInterval(updateActiveSessionsDisplay, 3000);
     </script>
 </body>
 </html>

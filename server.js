@@ -1194,25 +1194,22 @@ app.get("/api/admin/export", async (req, res) => {
     // Check environment variable admins first (for Railway/Render deployment)
     const admin1User = process.env.ADMIN1_USER || "admin1";
     const admin1Pass = process.env.ADMIN1_PASS || "admin123";
-    const admin1Name = process.env.ADMIN1_NAME || "HARRY MOKAYA";
+    const admin1Name = process.env.ADMIN1_NAME || "JOHN WAINAINA";
     
     const admin2User = process.env.ADMIN2_USER || "admin2";
     const admin2Pass = process.env.ADMIN2_PASS || "pcnc2026";
-    const admin2Name = process.env.ADMIN2_NAME || "JOHN WAINAINA";
+    const admin2Name = process.env.ADMIN2_NAME || "HARRY MOKAYA";
   
     // Session Enforcement Logic
     const now = Date.now();
     
     // Check Admin 1
     if (username === admin1User && password === admin1Pass) {
-      if (activeAdminSessions[username] && (now - activeAdminSessions[username].lastActive < SESSION_TIMEOUT)) {
-         return res.status(403).json({ success: false, message: "User is already logged in on another device. Logout there first." });
-      }
-      
+      // Session Replacement Logic (Takeover)
       const sessionId = Math.random().toString(36).substring(2, 15);
       activeAdminSessions[username] = { lastActive: now, sessionId, name: admin1Name };
       
-      console.log(`[ADMIN LOGIN] ${admin1Name} authorized as ${username}`);
+      console.log(`[ADMIN LOGIN] ${admin1Name} authorized as ${username} (Session Takeover)`);
       return res.json({
         success: true,
         token: ADMIN_TOKEN,
@@ -1223,14 +1220,11 @@ app.get("/api/admin/export", async (req, res) => {
   
     // Check Admin 2
     if (username === admin2User && password === admin2Pass) {
-      if (activeAdminSessions[username] && (now - activeAdminSessions[username].lastActive < SESSION_TIMEOUT)) {
-         return res.status(403).json({ success: false, message: "User is already logged in on another device. Logout there first." });
-      }
-      
+      // Session Replacement Logic (Takeover)
       const sessionId = Math.random().toString(36).substring(2, 15);
       activeAdminSessions[username] = { lastActive: now, sessionId, name: admin2Name };
   
-      console.log(`[ADMIN LOGIN] ${admin2Name} authorized as ${username}`);
+      console.log(`[ADMIN LOGIN] ${admin2Name} authorized as ${username} (Session Takeover)`);
       return res.json({
         success: true,
         token: ADMIN_TOKEN,
