@@ -1465,6 +1465,8 @@
                 if (currentSession.role !== 'super-admin') return switchView('dashboard');
                 $('#staff-section').addClass('active');
                 loadStaff();
+            } else if (view === 'profile') {
+                $('#profile-section').addClass('active');
             } else {
                 $('#orders-section').addClass('active');
                 
