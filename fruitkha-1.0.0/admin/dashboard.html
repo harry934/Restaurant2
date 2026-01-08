@@ -278,11 +278,15 @@
         
         <nav id="sidebarNav" class="flex-grow-1">
             <a onclick="switchView('dashboard')" class="active" data-view="dashboard"><i class="fas fa-home"></i> Command Center</a>
-            <a onclick="switchView('active')" data-view="active"><i class="fas fa-clock"></i> Active Orders</a>
-            <a onclick="switchView('analytics')" data-view="analytics"><i class="fas fa-chart-bar"></i> Sales Analytics</a>
-            <a onclick="switchView('history')" data-view="history"><i class="fas fa-history"></i> Order History</a>
-            <a onclick="switchView('menu')" data-view="menu"><i class="fas fa-utensils"></i> Menu Items</a>
-            <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
+            <!-- Restricted Views -->
+            <div id="restrictedNav" style="display: none;">
+                <a onclick="switchView('active')" data-view="active"><i class="fas fa-clock"></i> Active Orders</a>
+                <a onclick="switchView('analytics')" data-view="analytics"><i class="fas fa-chart-bar"></i> Sales Analytics</a>
+                <a onclick="switchView('history')" data-view="history"><i class="fas fa-history"></i> Order History</a>
+                <a onclick="switchView('menu')" data-view="menu"><i class="fas fa-utensils"></i> Menu Items</a>
+                <a onclick="switchView('staff')" data-view="staff"><i class="fas fa-users-cog"></i> Staff Applications</a>
+                <a onclick="switchView('settings')" data-view="settings"><i class="fas fa-cog"></i> System Settings</a>
+            </div>
         </nav>
         
         <div class="mt-auto pt-3">
@@ -425,6 +429,35 @@
                             </tr>
                         </thead>
                         <tbody id="menuTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Management View -->
+        <div id="staff-section" class="view-section">
+            <div class="header-top">
+                <div>
+                    <h2>Staff Applications</h2>
+                    <p class="text-muted small mb-0">Approve or reject employee access requests</p>
+                </div>
+            </div>
+
+            <div class="card order-card mt-4">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead style="background: #fafafa;">
+                            <tr>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>Applied Date</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTable">
+                            <!-- Populated via JS -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -1135,10 +1168,15 @@
             window.location.href = 'index.html';
         }
 
-        // Display admin name
+        // Display admin name and role-based UI
         if (currentSession && currentSession.staffName) {
             document.getElementById('adminNameDisplay').style.display = 'block';
             document.getElementById('adminNameText').innerText = currentSession.staffName;
+            
+            // If super-admin, show all links
+            if (currentSession.role === 'super-admin') {
+                document.getElementById('restrictedNav').style.display = 'block';
+            }
         }
 
         // Logout function - Notifies server and clears local session
@@ -1213,32 +1251,29 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    const onlineAdmins = (data.onlineAdmins || []).map(n => n.trim().toUpperCase());
+                    const onlineAdmins = data.onlineAdmins || []; // Array of names
                     
-                    const admin1Name = "JOHN WAINAINA";
-                    const admin2Name = "HARRY MOKAYA";
-                    
-                    const isAdmin1Online = onlineAdmins.includes(admin1Name);
-                    const isAdmin2Online = onlineAdmins.includes(admin2Name);
-
                     const now = new Date();
                     const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-                    let html = `
-                        <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin1Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin1Online ? '0 0 12px #28a745' : 'none'};"></div>
-                            <div style="flex-grow: 1;">
-                                <div style="font-weight: 700; color: ${isAdmin1Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin1Name}</div>
-                                <div style="font-size: 0.6rem; color: ${isAdmin1Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin1Online ? 'Active Online' : 'System Offline'}</div>
-                            </div>
-                        </div>
-                        <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isAdmin2Online ? '#28a745' : '#444'}; margin-right: 12px; box-shadow: ${isAdmin2Online ? '0 0 12px #28a745' : 'none'};"></div>
-                            <div style="flex-grow: 1;">
-                                <div style="font-weight: 700; color: ${isAdmin2Online ? '#fff' : '#555'}; font-size: 0.85rem; letter-spacing: 0.5px;">${admin2Name}</div>
-                                <div style="font-size: 0.6rem; color: ${isAdmin2Online ? '#28a745' : '#444'}; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">${isAdmin2Online ? 'Active Online' : 'System Offline'}</div>
-                            </div>
-                        </div>
+                    let html = '';
+                    if (onlineAdmins.length === 0) {
+                        html = '<div class="text-center py-2 small text-muted">No sessions active</div>';
+                    } else {
+                        onlineAdmins.forEach(name => {
+                            html += `
+                                <div style="padding: 10px 0; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #28a745; margin-right: 12px; box-shadow: 0 0 10px #28a745;"></div>
+                                    <div style="flex-grow: 1;">
+                                        <div style="font-weight: 700; color: #fff; font-size: 0.8rem; letter-spacing: 0.5px;">${name.toUpperCase()}</div>
+                                        <div style="font-size: 0.55rem; color: #28a745; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Authorized Online</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    html += `
                         <div style="padding-top: 10px; font-size: 0.55rem; color: #555; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
                             <i class="fas fa-heartbeat" style="color: #e7252d; margin-right: 4px;"></i> Live Sync: ${timestamp}
                         </div>
@@ -1272,11 +1307,17 @@
                 $('#menu-section').addClass('active');
                 loadMenu();
             } else if (view === 'analytics') {
+                if (currentSession.role !== 'super-admin') return switchView('dashboard');
                 $('#analytics-section').addClass('active');
                 loadData();
             } else if (view === 'settings') {
+                if (currentSession.role !== 'super-admin') return switchView('dashboard');
                 $('#settings-section').addClass('active');
                 loadSettings();
+            } else if (view === 'staff') {
+                if (currentSession.role !== 'super-admin') return switchView('dashboard');
+                $('#staff-section').addClass('active');
+                loadStaff();
             } else {
                 $('#orders-section').addClass('active');
                 
@@ -1352,6 +1393,51 @@
             if (diffMins < 30) return '#ffc107'; // Yellow - Moderate
             if (diffMins < 60) return '#ff9800'; // Orange - Getting old
             return '#dc3545'; // Red - Very old
+        }
+
+        // Staff Management logic
+        async function loadStaff() {
+            if (currentSession.role !== 'super-admin') return;
+            try {
+                const res = await adminFetch('/api/admin/staff/list');
+                const data = await res.json();
+                if (data.success) {
+                    const tbody = $('#staffTable').empty();
+                    data.staff.forEach(s => {
+                        const statusClass = s.status === 'approved' ? 'badge-success' : (s.status === 'rejected' ? 'badge-danger' : 'badge-warning');
+                        tbody.append(`
+                            <tr>
+                                <td class="font-weight-bold">${s.name}</td>
+                                <td><code>${s.username}</code></td>
+                                <td><span class="badge ${statusClass}">${s.status.toUpperCase()}</span></td>
+                                <td class="small text-muted">${new Date(s.createdAt).toLocaleDateString()}</td>
+                                <td class="text-right">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-success" onclick="handleStaffAction('${s.username}', 'approved')" title="Approve"><i class="fas fa-check"></i></button>
+                                        <button class="btn btn-sm btn-outline-warning" onclick="handleStaffAction('${s.username}', 'rejected')" title="Reject"><i class="fas fa-times"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="handleStaffAction('${s.username}', 'delete')" title="Delete"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function handleStaffAction(username, action) {
+            if (!confirm(`Are you sure you want to ${action} this staff member?`)) return;
+            try {
+                const res = await adminFetch('/api/admin/staff/action', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, action })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Staff Updated', `User ${username} ${action} successfully.`, 'success');
+                    loadStaff();
+                }
+            } catch (e) { console.error(e); }
         }
 
         // Update order ages every minute

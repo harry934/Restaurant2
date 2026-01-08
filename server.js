@@ -12,20 +12,6 @@ const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Consolidated Admin Configuration 
-const ADMIN_CONFIG = {
-  admin1: {
-    username: process.env.ADMIN1_USER || "admin1",
-    password: process.env.ADMIN1_PASS || "admin123",
-    name: process.env.ADMIN1_NAME || "JOHN WAINAINA"
-  },
-  admin2: {
-    username: process.env.ADMIN2_USER || "admin2",
-    password: process.env.ADMIN2_PASS || "pcnc2026",
-    name: process.env.ADMIN2_NAME || "HARRY MOKAYA"
-  }
-};
-
 // Track active admin sessions
 const activeAdminSessions = {}; 
 const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes inactivity timeout
@@ -56,6 +42,7 @@ mongoose
   .then(() => {
     console.log("Connected to MongoDB");
     isConnected = true;
+    seedSuperAdmin(); // Seed the super admin
   })
   .catch((err) => {
     console.error("MongoDB Connection Error:", err);
@@ -65,6 +52,15 @@ mongoose
 // (Removed aggressive DB check to prevent unnecessary 500s)
 
 // Schemas
+const StaffSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+  role: { type: String, enum: ['super-admin', 'staff'], default: 'staff' },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const OrderSchema = new mongoose.Schema({
   id: String,
   customerName: String,
@@ -98,6 +94,8 @@ const MenuSchema = new mongoose.Schema({
 const SettingsSchema = new mongoose.Schema(
   {
     supportPhone: { type: String, default: "0112601334" },
+    supportPhones: { type: Array, default: [] },
+    supportEmails: { type: Array, default: [] },
     homeTitle: String,
     homeSubtext: String,
     aboutText: String,
@@ -107,16 +105,10 @@ const SettingsSchema = new mongoose.Schema(
     menuCategories: { type: Array, default: [] },
     dealOfWeek: Object,
     homeAbout: Object,
+    aboutPromo: Object,
     whatsappNumber: String,
     restaurantLat: { type: Number, default: -1.2200414264779664 },
     restaurantLng: { type: Number, default: 36.87814128003106 },
-    staffLogins: {
-      type: Array,
-      default: [
-        { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
-        { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
-      ]
-    }
   },
   { strict: false }
 );
@@ -126,10 +118,35 @@ const OrderLogSchema = new mongoose.Schema({
   logDate: { type: Date, default: Date.now },
 });
 
+const Staff = mongoose.model("Staff", StaffSchema);
 const Order = mongoose.model("Order", OrderSchema);
 const Menu = mongoose.model("Menu", MenuSchema);
 const Settings = mongoose.model("Settings", SettingsSchema);
 const OrderLog = mongoose.model("OrderLog", OrderLogSchema);
+
+// Helper to seed super admin from environment variables
+async function seedSuperAdmin() {
+  const superUser = process.env.ADMIN1_USER || "admin1";
+  const superPass = process.env.ADMIN1_PASS || "admin123";
+  const superName = process.env.ADMIN1_NAME || "JOHN WAINAINA";
+
+  try {
+    const existing = await Staff.findOne({ username: superUser });
+    if (!existing) {
+      const boss = new Staff({
+        username: superUser,
+        password: superPass,
+        name: superName,
+        role: 'super-admin',
+        status: 'approved'
+      });
+      await boss.save();
+      console.log(`[SEED] Super Admin ${superName} created.`);
+    }
+  } catch (err) {
+    console.error("[SEED] Error seeding super admin:", err);
+  }
+}
 
 // Image Storage Schema - for persisting images in MongoDB
 const ImageSchema = new mongoose.Schema({
@@ -254,10 +271,9 @@ const getImageFromMongoDB = async (filename) => {
 // --- ADMIN SECURITY ---
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "pcnc-secret-token-123";
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const queryToken = req.query.token;
-  const staffName = req.headers["x-staff-name"];
   const sessionId = req.headers["x-admin-session-id"];
   const username = req.headers["x-admin-username"];
 
@@ -268,16 +284,15 @@ const authMiddleware = (req, res, next) => {
       const now = Date.now();
       
       if (!activeSession || activeSession.sessionId !== sessionId || (now - activeSession.lastActive > SESSION_TIMEOUT)) {
-        // If Harry is logged in elsewhere, or session expired, block it.
-        // We only allow one active session per Harry.
-        return res.status(401).json({ success: false, message: "Session expired or active on another device." });
+        return res.status(401).json({ success: false, message: "Session expired or active elsewhere." });
       }
       
-      // Update activity
+      // Update activity and attach info to request
       activeAdminSessions[username].lastActive = now;
+      req.staffName = activeSession.name;
+      req.staffRole = activeSession.role;
+      req.username = username;
     }
-
-    req.staffName = staffName || "Unknown Staff";
     next();
   } else {
     res.status(401).json({ success: false, message: "Unauthorized Access" });
@@ -1229,29 +1244,81 @@ app.get("/api/admin/export", async (req, res) => {
   }
 });
 
-  // 5. Admin: Login (Using Consolidated Config)
+  // 5. Admin: Login & Signup & Management
+  
+  // Staff Signup
+  app.post("/api/admin/signup", async (req, res) => {
+    const { username, password, name } = req.body;
+    try {
+      const existing = await Staff.findOne({ username });
+      if (existing) return res.json({ success: false, message: "Username already taken." });
+      
+      const newStaff = new Staff({ username, password, name, status: 'pending', role: 'staff' });
+      await newStaff.save();
+      res.json({ success: true, message: "Application submitted! Wait for Super Admin approval." });
+    } catch (e) {
+      res.status(500).json({ success: false, message: "Signup failed." });
+    }
+  });
+
+  // Database-backed Login
   app.post("/api/admin/login", async (req, res) => {
     const { username, password } = req.body;
     const now = Date.now();
   
-    // Check Configured Admins
-    for (const key in ADMIN_CONFIG) {
-      const config = ADMIN_CONFIG[key];
-      if (username === config.username && password === config.password) {
-        const sessionId = Math.random().toString(36).substring(2, 15);
-        activeAdminSessions[username] = { lastActive: now, sessionId, name: config.name };
-        
-        console.log(`[ADMIN LOGIN] ${config.name} logged in successfully`);
-        return res.json({
-          success: true,
-          token: ADMIN_TOKEN,
-          staffName: config.name,
-          sessionId: sessionId
-        });
-      }
+    try {
+      const user = await Staff.findOne({ username, password });
+      if (!user) return res.status(401).json({ success: false, message: "Invalid credentials." });
+      
+      if (user.status === 'pending') return res.status(403).json({ success: false, message: "Your account is pending approval." });
+      if (user.status === 'rejected') return res.status(403).json({ success: false, message: "Your account access has been denied." });
+
+      const sessionId = Math.random().toString(36).substring(2, 15);
+      activeAdminSessions[username] = { 
+        lastActive: now, 
+        sessionId, 
+        name: user.name, 
+        role: user.role 
+      };
+      
+      console.log(`[ADMIN LOGIN] ${user.name} (${user.role}) logged in successfully`);
+      return res.json({
+        success: true,
+        token: ADMIN_TOKEN,
+        staffName: user.name,
+        role: user.role,
+        sessionId: sessionId
+      });
+    } catch (e) {
+      res.status(500).json({ success: false, message: "Server error during login." });
     }
-  
-    res.status(401).json({ success: false, message: "Unauthorized Access. Check credentials." });
+  });
+
+  // Staff Management (Super Admin Only)
+  app.get("/api/admin/staff/list", authMiddleware, async (req, res) => {
+    if (req.staffRole !== 'super-admin') return res.status(403).json({ success: false });
+    try {
+      const allStaff = await Staff.find({ role: 'staff' });
+      res.json({ success: true, staff: allStaff });
+    } catch (e) { res.status(500).json({ success: false }); }
+  });
+
+  app.post("/api/admin/staff/action", authMiddleware, async (req, res) => {
+    if (req.staffRole !== 'super-admin') return res.status(403).json({ success: false });
+    const { username, action } = req.body; // action: 'approved' | 'rejected' | 'delete'
+    
+    try {
+      if (action === 'delete') {
+        await Staff.deleteOne({ username });
+        delete activeAdminSessions[username];
+        return res.json({ success: true });
+      }
+      
+      await Staff.updateOne({ username }, { status: action });
+      if (action === 'rejected') delete activeAdminSessions[username];
+      
+      res.json({ success: true });
+    } catch (e) { res.status(500).json({ success: false }); }
   });
 
 

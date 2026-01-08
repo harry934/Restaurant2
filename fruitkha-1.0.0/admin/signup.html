@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCnC | Staff Signup</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Inter', sans-serif;
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            background-image: radial-gradient(#e7252d11 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .login-box { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.05); 
+            width: 100%; 
+            max-width: 420px; 
+            border: 1px solid #f0f0f0;
+        }
+        .logo-area { text-align: center; margin-bottom: 30px; }
+        .logo-area img { max-height: 80px; }
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 1px solid #eee;
+            background: #fafafa;
+            font-size: 0.95rem;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(231, 37, 45, 0.1);
+            border-color: #e7252d;
+            background: #fff;
+        }
+        label { font-weight: 600; font-size: 0.85rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-orange { 
+            background-color: #e7252d; 
+            color: white; 
+            border: none; 
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-orange:hover { 
+            background-color: #1a1a1a; 
+            color: white; 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .admin-footer { margin-top: 30px; font-size: 0.8rem; color: #aaa; text-align: center; }
+        .success-box { display: none; text-align: center; }
+        .success-icon { font-size: 4rem; color: #28a745; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="login-box fadeInUp">
+        <div id="signupFormArea">
+            <div class="logo-area">
+                <img src="../assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo">
+                <h4 class="mt-3 font-weight-bold">Staff Application</h4>
+                <p class="text-muted small">Apply for access to the command center</p>
+            </div>
+            <form id="signupForm">
+                <div class="form-group mb-3">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="E.g. John Doe" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group mb-4">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-orange btn-block" id="signupBtn">Submit Application</button>
+                <div id="error" class="text-danger mt-3 text-center small font-weight-bold" style="display:none;"></div>
+                <div class="text-center mt-3">
+                    <a href="index.html" class="small text-muted font-weight-bold">Already applied? Login here</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="successArea" class="success-box">
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+            <h4 class="font-weight-bold">Application Sent!</h4>
+            <p class="text-muted small" id="successMsg">Your application has been submitted to the Super Admin for approval. You will be able to log in once approved.</p>
+            <a href="index.html" class="btn btn-dark btn-block mt-4" style="border-radius: 12px; font-weight: 800;">Back to Login</a>
+        </div>
+
+        <div class="admin-footer">
+            &copy; 2026 Pizza Chick n Crust | Staff Portal
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('signupBtn');
+            const data = {
+                name: document.getElementById('name').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            btn.innerText = 'Submitting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/admin/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('signupFormArea').style.display = 'none';
+                    document.getElementById('successArea').style.display = 'block';
+                    document.getElementById('successMsg').innerText = result.message;
+                } else {
+                    const error = document.getElementById('error');
+                    error.innerText = result.message || 'Signup failed';
+                    error.style.display = 'block';
+                    btn.innerText = 'Submit Application';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('error').innerText = 'Connection to server failed';
+                document.getElementById('error').style.display = 'block';
+                btn.innerText = 'Submit Application';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

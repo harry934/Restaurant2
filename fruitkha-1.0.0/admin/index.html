@@ -111,6 +111,9 @@
             <div id="error" class="text-danger mt-3 text-center small font-weight-bold" style="display:none;">
                 <i class="fas fa-exclamation-triangle"></i> Invalid Credentials
             </div>
+            <div class="text-center mt-3">
+                <a href="signup.html" class="small text-muted font-weight-bold">New Staff? Apply for Access</a>
+            </div>
         </form>
         <div class="admin-footer">
             &copy; 2026 Pizza Chick n Crust | Security Portal
@@ -118,20 +121,12 @@
     </div>
 
     <script>
-        // Session Manager - Allows multiple admins to be logged in simultaneously
+        // Session Manager
         const SessionManager = {
-            // Generate unique session ID
-            generateSessionId() {
-                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            },
-            
-            // Get all active sessions
             getAllSessions() {
                 const sessions = localStorage.getItem('adminSessions');
                 return sessions ? JSON.parse(sessions) : {};
             },
-            
-            // Save a new session
             saveSession(sessionId, sessionData) {
                 const sessions = this.getAllSessions();
                 sessions[sessionId] = {
@@ -142,8 +137,6 @@
                 localStorage.setItem('adminSessions', JSON.stringify(sessions));
                 return sessionId;
             },
-            
-            // Set current active session
             setActiveSession(sessionId) {
                 sessionStorage.setItem('currentSessionId', sessionId);
             }
@@ -166,21 +159,14 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // Use session ID from server
                     const sessionId = data.sessionId;
-                    const displayName = data.staffName || username;
-                    
-                    // Save session data
                     SessionManager.saveSession(sessionId, {
                         token: data.token,
                         username: username,
-                        staffName: displayName
+                        staffName: data.staffName,
+                        role: data.role // Store the role
                     });
-                    
-                    // Set as active session
                     SessionManager.setActiveSession(sessionId);
-                    
-                    // Redirect to dashboard
                     window.location.href = 'dashboard.html';
                 } else {
                     document.getElementById('error').innerText = data.message || 'Invalid Credentials';
