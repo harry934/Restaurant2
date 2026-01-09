@@ -8,17 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; color: #333; }
+        * { box-sizing: border-box !important; }
+        :root {
+            --sidebar-width: 280px;
+            --pcnc-red: #e7252d;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
         
         .sidebar { 
             height: 100vh; 
             background: #1a1a1a; 
             color: #fff; 
             position: fixed; 
-            width: 260px; 
+            width: var(--sidebar-width); 
             padding: 25px; 
-            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+            box-shadow: 4px 0 10px rgba(0,0,0,0.4);
             z-index: 1000;
             transition: transform 0.3s ease;
         }
@@ -41,7 +45,14 @@
         .sidebar a.logout { color: #888; margin-top: 10px; font-weight: 500; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); border-radius: 0; }
         .sidebar a.logout:hover { color: #fff; background: transparent; }
 
-        .main-content { margin-left: 280px; padding: 50px; transition: margin-left 0.3s ease; }
+        .main-content { 
+            margin-left: var(--sidebar-width) !important; 
+            padding: 50px !important; 
+            transition: margin-left 0.3s ease; 
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
         .stat-card { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
         
@@ -243,14 +254,14 @@
         }
 
         /* Tablet landscape and small desktop */
-        @media only screen and (min-width: 992px) and (max-width: 1200px) {
-            .sidebar { width: 260px; }
-            .main-content { margin-left: 260px; padding: 30px; }
+        @media only screen and (min-width: 992px) and (max-width: 1366px) {
+            :root { --sidebar-width: 260px; }
+            .main-content { padding: 30px !important; margin-left: 260px !important; }
         }
 
         @media only screen and (min-width: 768px) and (max-width: 991px) {
-            .sidebar { width: 260px; }
-            .main-content { margin-left: 0; }
+            .main-content { margin-left: 0; padding: 100px 20px 40px 20px; }
+            .sidebar { transform: translateX(-100%); width: 280px; }
         }
 
         /* Profile Specific Styles */
@@ -533,8 +544,6 @@
             </div>
         </div>
 
-        </div>
-
         <!-- System Settings View -->
         <div id="settings-section" class="view-section">
             <div class="header-top mb-4">
@@ -764,11 +773,7 @@
                                 </thead>
                                 <tbody id="categoryTableBody"></tbody>
                             </table>
-                        </div>
-                    </div>
                 </div>
-
-                <!-- Staff Access section removed - admins are now managed via environment variables (ADMIN1_USER, ADMIN2_USER, etc.) -->
 
             </div>
         </div>
