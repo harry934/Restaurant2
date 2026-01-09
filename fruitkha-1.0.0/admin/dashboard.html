@@ -291,6 +291,7 @@
         
         <nav id="sidebarNav" class="flex-grow-1">
             <a onclick="switchView('dashboard')" class="active" data-view="dashboard"><i class="fas fa-home"></i> Command Center</a>
+            <a onclick="switchView('profile')" data-view="profile" id="profileNavLink" style="display: none;"><i class="fas fa-user-circle"></i> My Profile</a>
             <!-- Restricted Views -->
             <div id="restrictedNav" style="display: none;">
                 <a onclick="switchView('active')" data-view="active"><i class="fas fa-clock"></i> Active Orders</a>
@@ -717,6 +718,72 @@
 
                 <!-- Staff Access section removed - admins are now managed via environment variables (ADMIN1_USER, ADMIN2_USER, etc.) -->
 
+            </div>
+        </div>
+
+        <!-- Profile Management View -->
+        <div id="profile-section" class="view-section">
+            <div class="header-top">
+                <div>
+                    <h2>My Profile</h2>
+                    <p class="text-muted small mb-0">Manage your personal account details</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card order-card p-4 text-center" style="border-radius: 20px;">
+                        <div class="mb-4">
+                            <img id="profilePreview" src="../assets/img/products/default-avatar.png" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid #e7252d; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white;">
+                        </div>
+                        <h4 id="profileDisplayName" class="font-weight-bold mb-1">---</h4>
+                        <p id="profileDisplayRole" class="text-danger font-weight-bold small text-uppercase" style="letter-spacing: 1px;">---</p>
+                        <div class="mt-4">
+                            <label class="btn btn-outline-dark btn-sm px-4" style="border-radius: 10px; cursor: pointer;">
+                                <i class="fas fa-camera mr-2"></i> Change Photo
+                                <input type="file" id="profilePhotoInput" hidden accept="image/*">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px;">
+                        <h5 class="font-weight-bold mb-4"><i class="fas fa-id-card text-danger mr-2"></i>Account Information</h5>
+                        <form id="profileUpdateForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold">Full Name</label>
+                                    <input type="text" id="profileName" class="form-control" required style="border-radius: 12px; padding: 12px;">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold">Username</label>
+                                    <input type="text" id="profileUsername" class="form-control" required style="border-radius: 12px; padding: 12px;">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold">Email Address</label>
+                                    <input type="email" id="profileEmail" class="form-control" style="border-radius: 12px; padding: 12px;">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold">Phone Number</label>
+                                    <input type="text" id="profilePhone" class="form-control" style="border-radius: 12px; padding: 12px;">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <hr class="my-4">
+                                    <label class="small font-weight-bold">Update Access Key (leave blank to keep current)</label>
+                                    <div class="input-group">
+                                        <input type="password" id="profilePassword" class="form-control" style="border-radius: 12px 0 0 12px; padding: 12px;">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePass('profilePassword')" style="border-radius: 0 12px 12px 0;"><i class="fas fa-eye"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right mt-4">
+                                <button type="submit" class="btn btn-dark px-5 py-3" id="profileUpdateBtn" style="border-radius: 12px; font-weight: 800;">SAVE PROFILE CHANGES</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1190,17 +1257,21 @@
 
         // Display admin name and role-based UI
         if (currentSession && currentSession.staffName) {
-            document.getElementById('adminNameDisplay').style.display = 'block';
-            document.getElementById('adminNameText').innerText = currentSession.staffName;
-            
-            if (currentSession.profilePhoto) {
-                document.getElementById('adminProfilePhoto').src = currentSession.profilePhoto;
-                if (document.getElementById('profileCurrentPhoto')) {
-                    document.getElementById('profileCurrentPhoto').src = currentSession.profilePhoto;
+            // Show profile link for everyone (but user specifically asked to ensure employees have it)
+            document.getElementById('profileNavLink').style.display = 'flex';
+
+            // REMOVE PROFILE CIRCLE FOR SUPER ADMIN (per user request)
+            if (currentSession.role === 'super-admin') {
+                document.getElementById('adminNameDisplay').style.display = 'none';
+            } else {
+                document.getElementById('adminNameDisplay').style.display = 'block';
+                document.getElementById('adminNameText').innerText = currentSession.staffName;
+                if (currentSession.profilePhoto) {
+                    document.getElementById('adminProfilePhoto').src = currentSession.profilePhoto;
                 }
             }
-
-            // If super-admin, show all links
+            
+            // If super-admin, show restricted links
             if (currentSession.role === 'super-admin') {
                 document.getElementById('restrictedNav').style.display = 'block';
                 document.getElementById('viewerModeWrapper').style.display = 'block';
@@ -1355,6 +1426,7 @@
                 loadStaff();
             } else if (view === 'profile') {
                 $('#profile-section').addClass('active');
+                loadProfile();
             } else {
                 $('#orders-section').addClass('active');
                 
@@ -1503,6 +1575,112 @@
                 }
             } catch (e) { console.error(e); }
         }
+
+        // --- PROFILE MANAGEMENT ---
+        function togglePass(id) {
+            const el = document.getElementById(id);
+            el.type = el.type === 'password' ? 'text' : 'password';
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function loadProfile() {
+            const s = SessionManager.getCurrentSession();
+            if (!s) return;
+
+            document.getElementById('profileDisplayName').innerText = s.staffName;
+            document.getElementById('profileDisplayRole').innerText = s.role;
+            document.getElementById('profilePreview').src = s.profilePhoto || '../assets/img/products/default-avatar.png';
+            
+            document.getElementById('profileName').value = s.staffName;
+            document.getElementById('profileUsername').value = s.username;
+            document.getElementById('profileEmail').value = s.email || '';
+            document.getElementById('profilePhone').value = s.phone || '';
+            document.getElementById('profilePassword').value = '';
+        }
+
+        document.getElementById('profilePhotoInput').addEventListener('change', async function(e) {
+            if (e.target.files[0]) {
+                const base64 = await toBase64(e.target.files[0]);
+                document.getElementById('profilePreview').src = base64;
+            }
+        });
+
+        document.getElementById('profileUpdateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('profileUpdateBtn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Updating Profile...';
+            btn.disabled = true;
+
+            try {
+                const photoInput = document.getElementById('profilePhotoInput');
+                let profilePhoto = document.getElementById('profilePreview').src;
+                
+                // If it's a relative path, we don't need to re-upload it unless it's a data URI
+                if (!profilePhoto.startsWith('data:')) {
+                    profilePhoto = ""; // Endpoint will keep current if not provided or handle mapping
+                }
+
+                const data = {
+                    name: document.getElementById('profileName').value,
+                    username: document.getElementById('profileUsername').value,
+                    email: document.getElementById('profileEmail').value,
+                    phone: document.getElementById('profilePhone').value
+                };
+
+                const password = document.getElementById('profilePassword').value;
+                if (password) data.password = password;
+                if (profilePhoto) data.profilePhoto = profilePhoto;
+
+                const res = await adminFetch('/api/admin/profile/update', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Success', 'Profile updated successfully', 'success');
+                    
+                    // Update Local Session
+                    const sessionId = SessionManager.getCurrentSessionId();
+                    const sessions = SessionManager.getAllSessions();
+                    if (sessions[sessionId]) {
+                        sessions[sessionId].staffName = result.staffName;
+                        sessions[sessionId].username = result.username;
+                        if (result.profilePhoto) sessions[sessionId].profilePhoto = result.profilePhoto;
+                        sessions[sessionId].email = result.email;
+                        sessions[sessionId].phone = result.phone;
+                        localStorage.setItem('adminSessions', JSON.stringify(sessions));
+                        
+                        // Refresh display
+                        loadProfile();
+                        // Refresh sidebar if employee
+                        if (result.profilePhoto && currentSession.role !== 'super-admin') {
+                            document.getElementById('adminProfilePhoto').src = result.profilePhoto;
+                        }
+                        if (currentSession.role !== 'super-admin') {
+                            document.getElementById('adminNameText').innerText = result.staffName;
+                        }
+                    }
+                } else {
+                    showNotification('Error', result.message || 'Update failed', 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showNotification('Error', 'Server connection failed', 'danger');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
 
         // Update order ages every minute
         setInterval(() => {
@@ -2742,7 +2920,7 @@
             } catch (e) { console.error(e); }
         }
 
-        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+
 
         // Mobile Menu Toggle Function
         function toggleMobileMenu() {

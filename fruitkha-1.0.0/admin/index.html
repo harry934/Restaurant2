@@ -246,7 +246,9 @@
                         username: username,
                         staffName: data.staffName,
                         role: data.role,
-                        profilePhoto: data.profilePhoto
+                        profilePhoto: data.profilePhoto,
+                        email: data.email || "",
+                        phone: data.phone || ""
                     });
                     SessionManager.setActiveSession(data.sessionId);
                     window.location.href = 'dashboard.html';
