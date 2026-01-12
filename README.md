@@ -22,7 +22,7 @@ Designed specifically for the USIU-A community, it seamlessly blends gourmet aes
 
 ## 💎 The Premium Experience
 
-###  Seamless User Journey
+### Seamless User Journey
 
 - ✨ **Natural Search Engine**: Intelligent location-aware search that prioritizes local landmarks (USIU Hostels) with an automatic global fallback for distant areas.
 - 🗺️ **Precision Delivery Maps**: Integrated Leaflet.js map with a confirmation pinpoint system. Marker-dragging triggers real-time delivery fee recalculations.
@@ -58,7 +58,7 @@ graph TD
 
 ---
 
-##  Installation & Setup
+## Installation & Setup
 
 ### 📋 Prerequisites
 
@@ -97,13 +97,20 @@ graph TD
 
 ---
 
-## 🗺️ Deployment Roadmap
+## 🗺️ Hybrid Deployment Strategy
 
-| Platform          | Role              | Status     |
-| :---------------- | :---------------- | :--------- |
-| **Render**        | Backend & Hosting | ✅ Tested  |
-| **MongoDB Atlas** | Data Persistence  | ✅ Active  |
-| **M-Pesa Daraja** | Payments          | 💳 Sandbox |
+We utilize a high-performance hybrid hosting model to ensure maximum speed for Kenyan users while maintaining a robust backend.
+
+| Component             | Platform          | Role                                                     |
+| :-------------------- | :---------------- | :------------------------------------------------------- |
+| **Frontend & Domain** | **HostPinnacle**  | Hosts static assets and `.co.ke` domain for local speed. |
+| **Backend API**       | **Railway**       | Runs the Node.js server and handles business logic.      |
+| **Database**          | **MongoDB Atlas** | Secure, cloud-native data persistence.                   |
+| **Payments**          | **M-Pesa Daraja** | Integrated payment processing (Safaricom).               |
+
+> [!TIP] > **Detailed Deployment Instructions:** See [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md) for step-by-step implementation details, CORS setup, and API pathing.
+
+---
 
 ---
 
