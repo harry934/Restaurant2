@@ -100,30 +100,39 @@
 
 	<!-- products -->
 	<div class="product-section mt-100 mb-150">
-		<div class="container">
+		<div class="container-fluid px-0">
 			
-			<!-- Glovo-Style Sticky Header -->
-            <div class="menu-sticky-wrapper">
-                <div class="container">
-                    <div class="row align-items-center py-3">
-                        <div class="col-md-4 col-12 mb-3 mb-md-0">
-                            <div class="input-group glovo-search-wrap">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-white border-0 pl-3"><i class="fas fa-search text-muted"></i></span>
-                                </div>
-                                <input type="text" id="shopSearch" class="form-control border-0" placeholder="Search menu..." onkeyup="renderMenu(currentFilter)">
-                            </div>
-                        </div>
-                        <div class="col-md-8 col-12">
-                            <div class="pcnc-filter-wrap">
-                                <ul id="categoryFilters" class="pcnc-filter-list">
-                                    <li class="active filter-btn" data-filter="all">All Flavors</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			<!-- Glovo-Style Layout: Sidebar + Content -->
+			<div class="glovo-layout-wrapper">
+				
+				<!-- LEFT SIDEBAR - Categories -->
+				<div class="glovo-sidebar">
+					<div class="sidebar-header">
+						<h4>Menu Categories</h4>
+					</div>
+					<div class="sidebar-search mb-3">
+						<div class="input-group">
+							<div class="input-group-prepend">
+								<span class="input-group-text"><i class="fas fa-search"></i></span>
+							</div>
+							<input type="text" id="shopSearch" class="form-control" placeholder="Search menu..." onkeyup="renderMenu(currentFilter)">
+						</div>
+					</div>
+					<ul id="categoryFilters" class="sidebar-category-list">
+						<li class="sidebar-category-item active" data-filter="all">All Flavors</li>
+					</ul>
+				</div>
+
+				<!-- RIGHT CONTENT - Menu Items -->
+				<div class="glovo-main-content">
+					<div class="container">
+						<div class="row" id="menu-container">
+							<!-- Menu items loaded here -->
+						</div>
+					</div>
+				</div>
+
+			</div>
 
             <script>
                 async function loadMenuCategories() {
@@ -133,14 +142,14 @@
                         const container = document.getElementById('categoryFilters');
                         
                         if (data.menuCategories && data.menuCategories.length > 0) {
-                            let html = `<li class="filter-btn active-filter" data-filter="all">
-                                ${CATEGORY_ICONS['all'] || ''} All Flavors
+                            let html = `<li class="sidebar-category-item active" data-filter="all">
+                                ${CATEGORY_ICONS['all'] || ''} <span>All Flavors</span>
                             </li>`;
                             
                             data.menuCategories.forEach(cat => {
                                 const icon = CATEGORY_ICONS[cat.name.toLowerCase()] || CATEGORY_ICONS[cat.id.toLowerCase()] || '<i class="fas fa-utensils"></i>';
-                                html += `<li class="filter-btn" data-filter="${cat.id}">
-                                    ${icon} ${cat.name}
+                                html += `<li class="sidebar-category-item" data-filter="${cat.id}">
+                                    ${icon} <span>${cat.name}</span>
                                 </li>`;
                             });
                             container.innerHTML = html;

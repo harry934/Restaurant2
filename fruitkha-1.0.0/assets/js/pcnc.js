@@ -512,6 +512,122 @@ function injectPremiumStyles() {
             color: #000;
         }
 
+        /* GLOVO-STYLE SIDEBAR LAYOUT */
+        .glovo-layout-wrapper {
+            display: flex;
+            min-height: 600px;
+            gap: 0;
+            background: #f9f9f9;
+        }
+        
+        .glovo-sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            padding: 25px 20px;
+            position: sticky;
+            top: 90px;
+            height: calc(100vh - 90px);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header h4 {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #000;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .sidebar-search .input-group {
+            border: 1.5px solid #e8e8e8;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .sidebar-search .input-group-text {
+            background: #fff;
+            border: none;
+            color: #999;
+        }
+        .sidebar-search .form-control {
+            border: none;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+        .sidebar-search .form-control:focus {
+            box-shadow: none;
+        }
+        
+        .sidebar-category-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-category-item {
+            padding: 14px 18px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #333;
+            background: #fafafa;
+        }
+        
+        .sidebar-category-item i {
+            font-size: 1.1rem;
+            color: #666;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .sidebar-category-item:hover {
+            background: #e7252d;
+            color: #fff;
+        }
+        
+        .sidebar-category-item:hover i {
+            color: #fff;
+        }
+        
+        .sidebar-category-item.active {
+            background: #e7252d;
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(231, 37, 45, 0.2);
+        }
+        
+        .sidebar-category-item.active i {
+            color: #fff;
+        }
+        
+        .glovo-main-content {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 991px) {
+            .glovo-layout-wrapper {
+                flex-direction: column;
+            }
+            .glovo-sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+                top: 0;
+                border-right: none;
+                border-bottom: 1px solid #e8e8e8;
+            }
+        }
+
         /* Horizontal Scroll Nav - Glovo Style */
         .pcnc-filter-wrap {
             position: relative;
@@ -697,7 +813,7 @@ function injectPremiumStyles() {
 }
 
 function setupFilters() {
-    const filterBtns = document.querySelectorAll('.filter-btn');
+    const filterBtns = document.querySelectorAll('.sidebar-category-item');
     if (!filterBtns.length) return;
 
     filterBtns.forEach(btn => {
@@ -705,32 +821,19 @@ function setupFilters() {
         
         // Initial state sync
         if (filterVal === currentFilter) {
-            btn.classList.add('active-filter');
+            btn.classList.add('active');
         } else {
-            btn.classList.remove('active-filter');
+            btn.classList.remove('active');
         }
 
         btn.onclick = (e) => {
-            const searchTerm = document.getElementById('shopSearch')?.value;
+            // Remove active from all
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add active to clicked
+            btn.classList.add('active');
             
-            if (currentFilter === 'all' && filterVal !== 'all' && !searchTerm) {
-                // Smooth scroll to section
-                const target = document.getElementById(`section-${filterVal}`);
-                if (target) {
-                    const offset = 160; 
-                    const bodyRect = document.body.getBoundingClientRect().top;
-                    const elementRect = target.getBoundingClientRect().top;
-                    const elementPosition = elementRect - bodyRect;
-                    window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
-                    return;
-                }
-            }
-            
-            // Re-render if switching view modes
+            // Re-render menu
             renderMenu(filterVal);
-            
-            // Center the clicked button in horizontal nav
-            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         };
     });
 }
