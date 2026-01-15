@@ -650,7 +650,7 @@
             ><i class="fas fa-utensils"></i> Menu Items</a
           >
           <a onclick="switchView('staff')" data-view="staff"
-            ><i class="fas fa-users-cog"></i> Staff Applications</a
+            ><i class="fas fa-users-cog"></i> Staff</a
           >
           <a onclick="switchView('settings')" data-view="settings"
             ><i class="fas fa-cog"></i> System Settings</a
@@ -914,9 +914,9 @@
       <div id="staff-section" class="view-section">
         <div class="header-top">
           <div>
-            <h2>Staff Applications</h2>
+            <h2>Staff Management</h2>
             <p class="text-muted small mb-0">
-              Approve or reject employee access requests
+              Manage employee accounts and system access permissions
             </p>
           </div>
         </div>
@@ -2599,8 +2599,8 @@
     <script src="../assets/js/admin-core.js"></script>
     <script>
       // Display admin name and role-based UI
+      let currentSession = SessionManager.getCurrentSession();
       (function() {
-          const currentSession = SessionManager.getCurrentSession();
           if (currentSession && currentSession.staffName) {
             // Show profile link for everyone
             document.getElementById("profileNavLink").style.display = "flex";
