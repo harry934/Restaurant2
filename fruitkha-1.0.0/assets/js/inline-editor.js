@@ -149,18 +149,24 @@
 
         async saveChange(element) {
             const key = element.getAttribute('data-cms-key');
-            const value = element.innerHTML.trim();
+            // Use innerHTML for known HTML-safe fields, innerText for others
+            const isHTML = ['shopBanner.title', 'shopBanner.percentText', 'homeAbout.heading', 'dealOfWeek.title'].includes(key);
+            const value = isHTML ? element.innerHTML.trim() : element.innerText.trim();
             const indicator = document.getElementById('cmsSaveIndicator');
 
             indicator.style.display = 'inline';
+            indicator.textContent = 'Saving...';
+            indicator.style.color = '#aaa';
             
             try {
+                const currentSettings = await this.getCurrentSettings();
                 const updateData = {};
+
                 // Handle nested keys like dealOfWeek.title
                 if (key.includes('.')) {
                     const parts = key.split('.');
                     updateData[parts[0]] = {
-                        ... (await this.getCurrentSettings())[parts[0]],
+                        ... (currentSettings[parts[0]] || {}),
                         [parts[1]]: value
                     };
                 } else {

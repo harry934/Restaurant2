@@ -11,11 +11,21 @@ async function loadGlobalSettings() {
             });
         }
         
-        // 2. Footer About
+        // 2. Textual Content (General)
+        if (data.homeTitle) {
+            const el = document.getElementById('homeTitle');
+            if(el) el.innerText = data.homeTitle;
+        }
+        if (data.homeSubtext) {
+            const el = document.getElementById('homeSubtext');
+            if(el) el.innerText = data.homeSubtext;
+        }
+        
+        // 3. Footer About
         const footerAbout = document.getElementById('footerAboutText');
         if (footerAbout && data.aboutText) footerAbout.innerText = data.aboutText;
         
-        // 3. Footer / Contact Details
+        // 4. Footer / Contact Details
         if (data.contact) {
             const addr = document.getElementById('footerAddress');
             if (addr) addr.innerText = data.contact.address;
@@ -39,7 +49,7 @@ async function loadGlobalSettings() {
             if (hours) hours.innerText = data.contact.hours;
         }
         
-        // 4. Social Links
+        // 5. Social Links
         if (data.social) {
             const fb = document.getElementById('socialFacebook');
             if (fb) fb.href = data.social.facebook || '#';
@@ -54,7 +64,55 @@ async function loadGlobalSettings() {
             if (tw) tw.href = data.social.twitter || '#';
         }
 
-        // 5. Hero / Breadcrumb Backgrounds (Generic)
+        // 6. Shop Banner
+        if (data.shopBanner) {
+            const title = document.getElementById('shopBannerTitle');
+            if (title) title.innerHTML = data.shopBanner.title;
+            const percent = document.getElementById('shopBannerPercent');
+            if (percent) percent.innerHTML = data.shopBanner.percentText;
+            if (data.shopBanner.image) {
+                const sbArea = document.getElementById('shopBannerArea');
+                if(sbArea) sbArea.style.backgroundImage = `url(${data.shopBanner.image})`;
+            }
+        }
+
+        // 7. Deal of the Week
+        if (data.dealOfWeek) {
+            const dt = document.getElementById('dealTitle');
+            if(dt) dt.innerHTML = data.dealOfWeek.title;
+            const ds = document.getElementById('dealSubtitle');
+            if(ds) ds.innerText = data.dealOfWeek.subtitle;
+            const dd = document.getElementById('dealDescription');
+            if(dd) dd.innerText = data.dealOfWeek.description;
+            if (data.dealOfWeek.image) {
+                const dImg = document.getElementById('dealImage');
+                if(dImg) dImg.src = data.dealOfWeek.image;
+            }
+        }
+
+        // 8. Home About
+        if (data.homeAbout) {
+            const at = document.getElementById('homeAboutTitle');
+            if(at) at.innerText = data.homeAbout.title;
+            const ah = document.querySelectorAll('#homeAboutHeading');
+            ah.forEach(el => el.innerHTML = data.homeAbout.heading);
+            const ad = document.querySelectorAll('#homeAboutDescription');
+            ad.forEach(el => el.innerText = data.homeAbout.description);
+            if (data.homeAbout.abtImage) {
+                const abImage = document.getElementById('homeAboutImage');
+                if(abImage) abImage.style.backgroundImage = `url(${data.homeAbout.abtImage})`;
+            }
+            const videoLink = document.getElementById('homeVideoLink');
+            if (videoLink && data.homeAbout.videoLink) {
+                videoLink.href = data.homeAbout.videoLink;
+                if (data.homeAbout.isVideoLocal) {
+                    videoLink.classList.remove('popup-youtube');
+                    videoLink.classList.add('popup-video');
+                }
+            }
+        }
+
+        // 9. Hero / Breadcrumb Backgrounds (Generic)
         if (data.heroBg) {
             const hero = document.getElementById('heroArea');
             if (hero) hero.style.backgroundImage = `url(${data.heroBg})`;

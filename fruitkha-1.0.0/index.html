@@ -369,84 +369,9 @@
     <script src="assets/js/cms-loader.js"></script>
 
     <script>
-        async function loadHomeSettings() {
-            const data = await loadGlobalSettings();
-            if (!data) return;
-            try {
-                // Feature List
-                if (data.homeFeatures && data.homeFeatures.length === 3) {
-                    const features = document.querySelectorAll('.list-section .list-box');
-                    data.homeFeatures.forEach((f, i) => {
-                        if (features[i]) {
-                            features[i].querySelector('i').className = f.icon;
-                            features[i].querySelector('h3').innerText = f.title;
-                            features[i].querySelector('p').innerText = f.desc;
-                        }
-                    });
-                }
-
-                // Shop Banner
-                if (data.shopBanner) {
-                    if (data.shopBanner.title) document.getElementById('shopBannerTitle').innerHTML = data.shopBanner.title;
-                    if (data.shopBanner.percentText) document.getElementById('shopBannerPercent').innerHTML = data.shopBanner.percentText;
-                    if (data.shopBanner.image) {
-                        const sbArea = document.getElementById('shopBannerArea');
-                        if(sbArea) sbArea.style.backgroundImage = `url(${data.shopBanner.image})`;
-                    }
-                }
-                
-                // Deal of the Week
-                if (data.dealOfWeek) {
-                    if (data.dealOfWeek.title) {
-                        const dt = document.getElementById('dealTitle');
-                        if(dt) dt.innerHTML = data.dealOfWeek.title;
-                    }
-                    if (data.dealOfWeek.subtitle) {
-                        const ds = document.getElementById('dealSubtitle');
-                        if(ds) ds.innerText = data.dealOfWeek.subtitle;
-                    }
-                    if (data.dealOfWeek.description) {
-                         const dd = document.getElementById('dealDescription');
-                         if(dd) dd.innerText = data.dealOfWeek.description;
-                    }
-                    if (data.dealOfWeek.image) {
-                        const dImg = document.getElementById('dealImage');
-                        if(dImg) dImg.src = data.dealOfWeek.image;
-                    }
-                }
-
-                // Home About
-                if (data.homeAbout) {
-                    if (data.homeAbout.title) document.getElementById('homeAboutTitle').innerText = data.homeAbout.title;
-                    if (data.homeAbout.heading) {
-                        const abHeading = document.querySelectorAll('#homeAboutHeading');
-                        abHeading.forEach(el => el.innerHTML = data.homeAbout.heading);
-                    }
-                    if (data.homeAbout.description) {
-                        const abDesc = document.querySelectorAll('#homeAboutDescription');
-                        abDesc.forEach(el => el.innerText = data.homeAbout.description);
-                    }
-                    if (data.homeAbout.abtImage) {
-                         const abImage = document.getElementById('homeAboutImage');
-                         if(abImage) abImage.style.backgroundImage = `url(${data.homeAbout.abtImage})`;
-                    }
-                    if (data.homeAbout.videoLink) {
-                        const videoLink = document.getElementById('homeVideoLink');
-                        if(videoLink) {
-                            videoLink.href = data.homeAbout.videoLink;
-                            if (data.homeAbout.isVideoLocal) {
-                                videoLink.classList.remove('popup-youtube');
-                                videoLink.classList.add('popup-video');
-                            }
-                        }
-                    }
-                }
-            } catch(e) {
-                console.error("Home CMS Error:", e);
-            }
-        }
+        // Local homepage logic beyond global CMS
         $(document).ready(function() {
-            loadHomeSettings();
+            // Any specific homepage JS transitions can go here
         });
     </script>
 
