@@ -116,9 +116,9 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <div class="product-filters text-center mb-80">
-                        <ul id="categoryFilters" style="padding: 0; list-style: none; display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                            <li class="active filter-btn" data-filter="all" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; background: #c11b17; color: #fff; border: 2px solid #c11b17;">All Flavors</li>
+                    <div class="product-filters text-center">
+                        <ul id="categoryFilters" class="pcnc-filter-list">
+                            <li class="active filter-btn" data-filter="all">All Flavors</li>
                         </ul>
                     </div>
                 </div>
@@ -132,10 +132,9 @@
                         const container = document.getElementById('categoryFilters');
                         
                         if (data.menuCategories && data.menuCategories.length > 0) {
-                            // Keep "All Flavors" and add dynamic categories
-                            let html = '<li class="active filter-btn" data-filter="all" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; background: #c11b17; color: #fff; border: 2px solid #c11b17;">All Flavors</li>';
+                            let html = '<li class="filter-btn" data-filter="all">All Flavors</li>';
                             data.menuCategories.forEach(cat => {
-                                html += `<li class="filter-btn" data-filter="${cat.id}" style="padding: 10px 25px; border-radius: 50px; cursor: pointer; font-weight: 700; transition: 0.3s; color: #333; border: 2px solid #eee;">${cat.name}</li>`;
+                                html += `<li class="filter-btn" data-filter="${cat.id}">${cat.name}</li>`;
                             });
                             container.innerHTML = html;
                         }
