@@ -1026,7 +1026,7 @@
                       Homepage Hero Section
                     </h6>
                     <div class="form-group">
-                      <label class="small font-weight-bold">Main Title</label
+                      <label class="small font-weight-bold">Hero Main Title</label
                       ><input
                         type="text"
                         name="homeTitle"
@@ -1035,7 +1035,7 @@
                       />
                     </div>
                     <div class="form-group">
-                      <label class="small font-weight-bold">Subtitle</label
+                      <label class="small font-weight-bold">Hero Subtitle</label
                       ><input
                         type="text"
                         name="homeSubtext"
@@ -1044,15 +1044,73 @@
                       />
                     </div>
                     <div class="form-group">
-                      <label class="small font-weight-bold"
-                        >About Main Description</label
-                      ><textarea
-                        name="aboutText"
-                        class="form-control"
-                        rows="3"
-                      ></textarea>
+                      <label class="small font-weight-bold">Hero Background Image</label>
+                      <input type="file" id="heroBgInput" class="form-control-file mb-2">
+                      <small class="text-muted">Current: <span id="currentHeroBg">default</span></small>
                     </div>
                   </div>
+                </div>
+                <div class="row">
+                   <div class="col-md-6">
+                      <h6 class="font-weight-bold small text-uppercase text-info mb-3">Site Identity</h6>
+                      <div class="form-group text-center bg-light p-3 rounded" style="border: 2px dashed #ddd;">
+                        <img id="logoPreview" src="" style="max-height: 80px;" class="mb-2 d-none">
+                        <label class="small font-weight-bold d-block">Website Logo</label>
+                        <input type="file" id="logoInput" class="form-control-file">
+                      </div>
+                   </div>
+                   <div class="col-md-6">
+                      <h6 class="font-weight-bold small text-uppercase text-info mb-3">Global Contact Info</h6>
+                      <div class="form-group mb-2">
+                        <label class="small font-weight-bold">Business Address</label>
+                        <input type="text" name="address" class="form-control form-control-sm">
+                      </div>
+                      <div class="form-group mb-2">
+                        <label class="small font-weight-bold">Primary Support Phone</label>
+                        <input type="text" name="phone" class="form-control form-control-sm">
+                      </div>
+                      <div class="form-group mb-2">
+                        <label class="small font-weight-bold">Official Support Email</label>
+                        <input type="email" name="email" class="form-control form-control-sm">
+                      </div>
+                      <div class="form-group mb-2">
+                        <label class="small font-weight-bold">M-Pesa Till Number</label>
+                        <input type="text" name="till" class="form-control form-control-sm">
+                      </div>
+                      <div class="form-group">
+                        <label class="small font-weight-bold">Shop Hours</label>
+                        <input type="text" name="hours" class="form-control form-control-sm" placeholder="MON - SUN: 8:00 AM to 9:00 PM">
+                      </div>
+                   </div>
+                </div>
+                <hr class="my-3">
+                <div class="row">
+                   <div class="col-md-6">
+                      <h6 class="font-weight-bold small text-uppercase text-info mb-3">Social Media Links</h6>
+                        <div class="input-group mb-2 input-group-sm">
+                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-facebook"></i></span></div>
+                            <input type="text" name="facebook" class="form-control" placeholder="Facebook URL">
+                        </div>
+                        <div class="input-group mb-2 input-group-sm">
+                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-tiktok"></i></span></div>
+                            <input type="text" name="tiktok" class="form-control" placeholder="TikTok URL">
+                        </div>
+                        <div class="input-group mb-2 input-group-sm">
+                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-instagram"></i></span></div>
+                            <input type="text" name="instagram" class="form-control" placeholder="Instagram URL">
+                        </div>
+                        <div class="input-group mb-2 input-group-sm">
+                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-twitter"></i></span></div>
+                            <input type="text" name="twitter" class="form-control" placeholder="Twitter URL">
+                        </div>
+                   </div>
+                   <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="small font-weight-bold">General "About Us" Footer Text</label>
+                        <textarea name="aboutText" class="form-control" rows="5"></textarea>
+                      </div>
+                   </div>
+                </div>
                 </div>
                 <div class="text-right">
                   <button
@@ -1257,12 +1315,65 @@
           <!-- MARKETING & PROMOS -->
           <div class="col-lg-12 settings-tab-content d-none" id="tab-marketing">
             <div class="row mb-4">
+              <div class="col-md-12 mb-4">
+                <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px">
+                  <h5 class="font-weight-bold mb-4">Wide Promo Banner (BOGO Section)</h5>
+                  <form id="shopBannerForm">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="small font-weight-bold">Banner Headline (HTML safe)</label>
+                          <textarea name="title" class="form-control" rows="2" placeholder="e.g. New Year BOGO! <br> with Kibby's"></textarea>
+                          <small class="text-muted">Use <code>&lt;br&gt;</code> for new lines. Use <code>&lt;span class="orange-text"&gt;Text&lt;/span&gt;</code> for brand color.</small>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="small font-weight-bold">Sale Percentage/Deals Text</label>
+                          <textarea name="percentText" class="form-control" rows="2" placeholder="e.g. Buy One Get One FREE"></textarea>
+                        </div>
+                        <div class="form-group">
+                          <label class="small font-weight-bold">Background Image</label>
+                          <input type="file" id="shopBannerBgInput" class="form-control-file">
+                          <small class="text-muted">Recommended: 1920x600px</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                       <button type="submit" class="btn btn-dark px-4" style="border-radius: 10px">SAVE BANNER CHANGES</button>
+                    </div>
+                  </form>
+                </div>
+                
+                <hr class="my-5" />
+                <h6 class="font-weight-bold small text-uppercase text-primary mb-3">Website Content Features</h6>
+                <form id="featuresForm">
+                  <div class="row">
+                    <div class="col-md-6 border-right">
+                        <h6 class="font-weight-bold small text-muted mb-3">Homepage Service List (3 Items)</h6>
+                        <div id="homeFeaturesInputs">
+                            <!-- JS will inject 3 feature blocks here -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold small text-muted mb-3">About Page Why Choose Us (4 Items)</h6>
+                        <div id="aboutFeaturesInputs">
+                            <!-- JS will inject 4 feature blocks here -->
+                        </div>
+                    </div>
+                  </div>
+                  <div class="text-right mt-3 pb-4">
+                    <button type="submit" class="btn btn-primary px-4">Save All Features</button>
+                  </div>
+                </form>
+              </div>
+
               <div class="col-md-6">
                 <div
                   class="card order-card p-4 h-100 border-0 shadow-sm"
                   style="border-radius: 20px"
                 >
-                  <h5 class="font-weight-bold mb-4">Deal of the Week</h5>
+                  <h5 class="font-weight-bold mb-4">Deal of the Week (Side Box)</h5>
                   <form id="dealForm">
                     <div class="form-group">
                       <label class="small font-weight-bold">Section Title</label
@@ -4104,9 +4215,41 @@
               if (form.homeSubtext)
                 form.homeSubtext.value = data.homeSubtext || "";
               if (form.aboutText) form.aboutText.value = data.aboutText || "";
+              if (data.heroBg) $("#currentHeroBg").text(data.heroBg.split('/').pop());
+              
+              // Load Identity
+              if (data.logo) {
+                  $("#logoPreview").attr("src", "/"+data.logo).removeClass("d-none");
+              }
+
+              // Load Contact
+              if (data.contact) {
+                  if(form.address) form.address.value = data.contact.address || "";
+                  if(form.phone) form.phone.value = data.contact.phone || "";
+                  if(form.email) form.email.value = data.contact.email || "";
+                  if(form.till) form.till.value = data.contact.till || "";
+                  if(form.hours) form.hours.value = data.contact.hours || "";
+              }
+
+              // Load Social
+              if (data.social) {
+                  if(form.facebook) form.facebook.value = data.social.facebook || "";
+                  if(form.tiktok) form.tiktok.value = data.social.tiktok || "";
+                  if(form.instagram) form.instagram.value = data.social.instagram || "";
+                  if(form.twitter) form.twitter.value = data.social.twitter || "";
+              }
               $("#globalWhatsappInput").val(data.whatsappNumber || "");
             }
           }, "CoreInfo");
+
+          // Load Shop Banner
+          tryBlock(() => {
+            const sbForm = $("#shopBannerForm")[0];
+            if (sbForm && data.shopBanner) {
+              if (sbForm.title) sbForm.title.value = data.shopBanner.title || "";
+              if (sbForm.percentText) sbForm.percentText.value = data.shopBanner.percentText || "";
+            }
+          }, "ShopBanner");
 
           // Load Deal of the Week
           tryBlock(() => {
@@ -4149,6 +4292,38 @@
 
           // Load Promos
           tryBlock(() => renderPromos(data.promoCodes || []), "Promos");
+
+          // Load Features
+          tryBlock(() => {
+            if (data.homeFeatures) {
+                const container = $("#homeFeaturesInputs");
+                container.empty();
+                data.homeFeatures.forEach((f, i) => {
+                    container.append(`
+                        <div class="feature-edit-block mb-3 p-2 border rounded">
+                            <label class="small font-weight-bold">Home Feature ${i+1}</label>
+                            <input type="text" name="hf_icon_${i}" class="form-control form-control-sm mb-1" value="${f.icon}" placeholder="Icon class">
+                            <input type="text" name="hf_title_${i}" class="form-control form-control-sm mb-1" value="${f.title}" placeholder="Title">
+                            <textarea name="hf_desc_${i}" class="form-control form-control-sm" rows="2" placeholder="Description">${f.desc}</textarea>
+                        </div>
+                    `);
+                });
+            }
+            if (data.aboutPage && data.aboutPage.features) {
+                const container = $("#aboutFeaturesInputs");
+                container.empty();
+                data.aboutPage.features.forEach((f, i) => {
+                    container.append(`
+                        <div class="feature-edit-block mb-3 p-2 border rounded">
+                            <label class="small font-weight-bold">About Feature ${i+1}</label>
+                            <input type="text" name="af_icon_${i}" class="form-control form-control-sm mb-1" value="${f.icon}" placeholder="Icon class">
+                            <input type="text" name="af_title_${i}" class="form-control form-control-sm mb-1" value="${f.title}" placeholder="Title">
+                            <textarea name="af_desc_${i}" class="form-control form-control-sm" rows="2" placeholder="Description">${f.desc}</textarea>
+                        </div>
+                    `);
+                });
+            }
+          }, "Features");
 
           // Load Riders
           tryBlock(() => {
@@ -4572,7 +4747,43 @@
           homeTitle: formData.get("homeTitle"),
           homeSubtext: formData.get("homeSubtext"),
           aboutText: formData.get("aboutText"),
+          contact: {
+              address: formData.get("address"),
+              phone: formData.get("phone"),
+              email: formData.get("email"),
+              till: formData.get("till"),
+              hours: formData.get("hours")
+          },
+          social: {
+              facebook: formData.get("facebook"),
+              tiktok: formData.get("tiktok"),
+              instagram: formData.get("instagram"),
+              twitter: formData.get("twitter")
+          }
         };
+
+        // Handle Logo Upload
+        const logoInput = $("#logoInput")[0].files[0];
+        if (logoInput) {
+          const ud = new FormData();
+          ud.append("mediaFile", logoInput);
+          const ur = await adminFetch("/api/admin/settings/upload", { method: "POST", body: ud });
+          const resLog = await ur.json();
+          if (resLog.success) data.logo = resLog.filePath;
+        }
+
+        // Handle Hero Bg Upload
+        const heroBgInput = $("#heroBgInput")[0].files[0];
+        if (heroBgInput) {
+          const uploadData = new FormData();
+          uploadData.append("mediaFile", heroBgInput);
+          const uploadRes = await adminFetch("/api/admin/settings/upload", {
+            method: "POST",
+            body: uploadData,
+          });
+          const uploadResult = await uploadRes.json();
+          if (uploadResult.success) data.heroBg = uploadResult.filePath;
+        }
 
         const res = await adminFetch("/api/admin/settings/update", {
           method: "POST",
@@ -4635,6 +4846,61 @@
         });
         if (res.ok)
           showNotification("Updated", "Home About section saved", "success");
+      });
+
+      $("#shopBannerForm").submit(async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const bannerData = Object.fromEntries(formData);
+
+        // Handle Image Upload if selected
+        const fileInput = $("#shopBannerBgInput")[0].files[0];
+        if (fileInput) {
+          const uploadData = new FormData();
+          uploadData.append("mediaFile", fileInput);
+          const uploadRes = await adminFetch("/api/admin/settings/upload", {
+            method: "POST",
+            body: uploadData,
+          });
+          const uploadResult = await uploadRes.json();
+          if (uploadResult.success) bannerData.image = uploadResult.filePath;
+        }
+
+        const res = await adminFetch("/api/admin/settings/update", {
+          method: "POST",
+          body: JSON.stringify({ shopBanner: bannerData }),
+        });
+        if (res.ok)
+          showNotification("Updated", "Promo banner settings saved", "success");
+      });
+
+      $("#featuresForm").submit(async (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          
+          const homeFeatures = [0,1,2].map(i => ({
+              icon: fd.get(`hf_icon_${i}`),
+              title: fd.get(`hf_title_${i}`),
+              desc: fd.get(`hf_desc_${i}`)
+          }));
+
+          const aboutFeatures = [0,1,2,3].map(i => ({
+              icon: fd.get(`af_icon_${i}`),
+              title: fd.get(`af_title_${i}`),
+              desc: fd.get(`af_desc_${i}`)
+          }));
+
+          const res = await adminFetch("/api/admin/settings/update", {
+              method: "POST",
+              body: JSON.stringify({
+                  homeFeatures,
+                  aboutPage: {
+                      features: aboutFeatures
+                  }
+              })
+          });
+
+          if (res.ok) showNotification("Updated", "All features saved", "success");
       });
 
       $("#videoUpload").change(async function () {

@@ -150,11 +150,11 @@
 						</div>
 						<div class="contact-form-box">
 							<h4><i class="far fa-clock"></i> Shop Hours</h4>
-							<p>MON - SUN: 8:00 AM to 9:00 PM</p>
+							<p id="contactHours">MON - SUN: 8:00 AM to 9:00 PM</p>
 						</div>
 						<div class="contact-form-box">
 							<h4><i class="fas fa-address-book"></i> Contact</h4>
-							<p>Phone: 0715430320 <br> Email: hello@kibbyskitchen.com</p>
+							<p>Phone: <span id="contactPhone">0715430320</span> <br> Email: <span id="contactEmail">hello@kibbyskitchen.com</span></p>
 						</div>
 					</div>
 				</div>
@@ -196,9 +196,10 @@
 					<div class="footer-box get-in-touch">
 						<h2 class="widget-title">Get in Touch</h2>
 						<ul>
-							<li>Unicity Mall (KU)</li>
-							<li>hello@kibbyskitchen.com</li>
-							<li>0715430320</li>
+							<li id="footerAddress">Unicity Mall (KU)</li>
+							<li id="footerEmail">hello@kibbyskitchen.com</li>
+							<li id="footerPhone">0715430320</li>
+                            <li id="footerTill">Till Number: 0715430320</li>
 						</ul>
 					</div>
 				</div>
@@ -240,12 +241,10 @@
 				</div>
 				<div class="col-lg-6 text-right col-md-12">
 					<div class="social-icons">
-						<ul>
-							<li><a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-twitter"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-instagram"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-linkedin"></i></a></li>
-							<li><a href="#" target="_blank"><i class="fab fa-dribbble"></i></a></li>
+						<ul id="socialLinks">
+							<li><a href="#" target="_blank" id="socialFacebook"><i class="fab fa-facebook-f"></i></a></li>
+							<li><a href="#" target="_blank" id="socialTikTok"><i class="fab fa-tiktok"></i></a></li>
+							<li><a href="#" target="_blank" id="socialInstagram"><i class="fab fa-instagram"></i></a></li>
 						</ul>
 					</div>
 				</div>
@@ -276,6 +275,27 @@
 	<script src="assets/js/form-validate.js"></script>
 	<!-- main js -->
 	<script src="assets/js/main.js"></script>
+    <!-- CMS Loader -->
+    <script src="assets/js/cms-loader.js"></script>
+
+    <script>
+        async function loadContactCMS() {
+            const data = await loadGlobalSettings();
+            if(!data) return;
+            try {
+                if(data.contact) {
+                    const cp = document.getElementById('contactPhone');
+                    if(cp) cp.innerText = data.contact.phone;
+                    
+                    const ce = document.getElementById('contactEmail');
+                    if(ce) ce.innerText = data.contact.email;
+                }
+            } catch(e) { console.error("Contact CMS Error:", e); }
+        }
+        $(document).ready(function() {
+            loadContactCMS();
+        });
+    </script>
 	
 	<!-- Mobile Bottom Nav -->
 	<div class="mobile-bottom-nav">

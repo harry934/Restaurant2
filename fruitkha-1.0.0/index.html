@@ -84,7 +84,7 @@
 	<!-- end header -->
 
 	<!-- hero area -->
-	<div class="hero-area hero-bg">
+	<div class="hero-area hero-bg" id="heroArea">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-9 offset-lg-2 text-center">
@@ -109,9 +109,59 @@
                 const data = await res.json();
                 if (data.homeTitle) document.getElementById('homeTitle').innerText = data.homeTitle;
                 if (data.homeSubtext) document.getElementById('homeSubtext').innerText = data.homeSubtext;
-            } catch(e) {}
+                if (data.heroBg) {
+                    const hero = document.getElementById('heroArea');
+                    if(hero) hero.style.backgroundImage = `url(${data.heroBg})`;
+                }
+                
+                if (data.aboutText) {
+                    const footerAbout = document.getElementById('footerAboutText');
+                    if(footerAbout) footerAbout.innerText = data.aboutText;
+                }
+
+                if (data.shopBanner) {
+                    if (data.shopBanner.title) document.getElementById('shopBannerTitle').innerHTML = data.shopBanner.title;
+                    if (data.shopBanner.percentText) document.getElementById('shopBannerPercent').innerHTML = data.shopBanner.percentText;
+                    if (data.shopBanner.image) {
+                        const sbArea = document.getElementById('shopBannerArea');
+                        if(sbArea) sbArea.style.backgroundImage = `url(${data.shopBanner.image})`;
+                    }
+                }
+
+                if (data.homeAbout) {
+                    if (data.homeAbout.title) {
+                        const abTitle = document.getElementById('homeAboutTitle');
+                        if(abTitle) abTitle.innerText = data.homeAbout.title;
+                    }
+                    if (data.homeAbout.heading) {
+                        const abHeading = document.querySelectorAll('#homeAboutHeading');
+                        abHeading.forEach(el => el.innerHTML = data.homeAbout.heading);
+                    }
+                    if (data.homeAbout.description) {
+                        const abDesc = document.querySelectorAll('#homeAboutDescription');
+                        abDesc.forEach(el => el.innerText = data.homeAbout.description);
+                    }
+                    if (data.homeAbout.abtImage) {
+                        const abImage = document.getElementById('homeAboutImage');
+                        if(abImage) abImage.style.backgroundImage = `url(${data.homeAbout.abtImage})`;
+                    }
+                    const videoLink = document.getElementById('homeVideoLink');
+                    if (videoLink && data.homeAbout.videoLink) {
+                        let vPath = data.homeAbout.videoLink;
+                        if (data.homeAbout.isVideoLocal && !vPath.startsWith('http')) {
+                            vPath = '../' + vPath;
+                        }
+                        videoLink.href = vPath;
+                        if (data.homeAbout.isVideoLocal) {
+                            videoLink.classList.remove('popup-youtube');
+                            videoLink.classList.add('popup-video');
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Error loading home settings:", e);
+            }
         }
-        loadHomeSettings();
     </script>
 	<!-- end hero area -->
 
@@ -213,11 +263,11 @@
 	<!-- end advertisement section -->
 	
 	<!-- shop banner -->
-	<section class="shop-banner pt-100 pb-100">
+	<section class="shop-banner pt-100 pb-100" id="shopBannerArea">
     	<div class="container">
-        	<h3>New Year BOGO! <br> with <span class="orange-text">Pizza Chick n Crust</span></h3>
-            <div class="sale-percent"><span style="color: #fff; font-weight: 700;">Buy One <br> Get One</span> FREE <span>on Tue & Thur</span></div>
-            <a href="shop.html" class="cart-btn btn-lg mt-4" style="border-radius: 50px;">Get Your Order Now!</a> Now</a>
+        	<h3 id="shopBannerTitle">New Year BOGO! <br> with <span class="orange-text">Kibby’s Hot Kitchen</span></h3>
+            <div class="sale-percent" id="shopBannerPercent"><span style="color: #fff; font-weight: 700;">Buy One <br> Get One</span> FREE <span>on Tue & Thur</span></div>
+            <a href="shop.html" class="cart-btn btn-lg mt-4" style="border-radius: 50px;">Get Your Order Now!</a>
         </div>
     </section>
 	<!-- end shop banner -->
@@ -229,17 +279,17 @@
 				<div class="col-lg-3 col-md-6">
 					<div class="footer-box about-widget">
 						<h2 class="widget-title">About us</h2>
-						<p>Kibby’s Hot Kitchen is your destination for delicious, fresh, and healthy meals. Located at Unicity Mall (KU), we serve the best flavors in town.</p>
+						<p id="footerAboutText">Kibby’s Hot Kitchen is your destination for delicious, fresh, and healthy meals. Located at Unicity Mall (KU), we serve the best flavors in town.</p>
 					</div>
 				</div>
 				<div class="col-lg-3 col-md-6">
 					<div class="footer-box get-in-touch">
 						<h2 class="widget-title">Get in Touch</h2>
 						<ul>
-							<li>Unicity Mall (KU)</li>
-							<li>0715430320</li>
-							<li>Till Number: 0715430320</li>
-							<li>@kibbyshotkitchen</li>
+							<li id="footerAddress">Unicity Mall (KU)</li>
+							<li id="footerEmail">hello@kibbyskitchen.com</li>
+							<li id="footerPhone">0715430320</li>
+							<li id="footerTill">Till Number: 0715430320</li>
 						</ul>
 					</div>
 				</div>
@@ -278,9 +328,9 @@
 				<div class="col-lg-6 text-right col-md-12">
 					<div class="social-icons">
 						<ul>
-							<li><a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-							<li><a href="https://www.tiktok.com/@pizzachickncrust" target="_blank"><i class="fab fa-tiktok"></i></a></li>
-							<li><a href="https://www.instagram.com/pizzachickncrust" target="_blank"><i class="fab fa-instagram"></i></a></li>
+							<li><a href="#" target="_blank" id="socialFacebook"><i class="fab fa-facebook-f"></i></a></li>
+							<li><a href="#" target="_blank" id="socialTikTok"><i class="fab fa-tiktok"></i></a></li>
+							<li><a href="#" target="_blank" id="socialInstagram"><i class="fab fa-instagram"></i></a></li>
 						</ul>
 					</div>
 				</div>
@@ -309,59 +359,92 @@
 	<script src="assets/js/sticker.js"></script>
 	<!-- main js -->
 	<script src="assets/js/main.js?v=1.1"></script>
+    <!-- CMS Loader -->
+    <script src="assets/js/cms-loader.js"></script>
 
     <script>
         async function loadHomeSettings() {
+            const data = await loadGlobalSettings();
+            if (!data) return;
             try {
-                const res = await fetch('/api/settings');
-                const data = await res.json();
-                if (data.homeTitle) document.getElementById('homeTitle').innerText = data.homeTitle;
-                if (data.homeSubtext) document.getElementById('homeSubtext').innerText = data.homeSubtext;
+                // Feature List
+                if (data.homeFeatures && data.homeFeatures.length === 3) {
+                    const features = document.querySelectorAll('.list-section .list-box');
+                    data.homeFeatures.forEach((f, i) => {
+                        if (features[i]) {
+                            features[i].querySelector('i').className = f.icon;
+                            features[i].querySelector('h3').innerText = f.title;
+                            features[i].querySelector('p').innerText = f.desc;
+                        }
+                    });
+                }
+
+                // Shop Banner
+                if (data.shopBanner) {
+                    if (data.shopBanner.title) document.getElementById('shopBannerTitle').innerHTML = data.shopBanner.title;
+                    if (data.shopBanner.percentText) document.getElementById('shopBannerPercent').innerHTML = data.shopBanner.percentText;
+                    if (data.shopBanner.image) {
+                        const sbArea = document.getElementById('shopBannerArea');
+                        if(sbArea) sbArea.style.backgroundImage = `url(${data.shopBanner.image})`;
+                    }
+                }
                 
                 // Deal of the Week
                 if (data.dealOfWeek) {
-                    if (data.dealOfWeek.title) document.getElementById('dealTitle').innerHTML = data.dealOfWeek.title;
-                    if (data.dealOfWeek.subtitle) document.getElementById('dealSubtitle').innerText = data.dealOfWeek.subtitle;
-                    if (data.dealOfWeek.description) document.getElementById('dealDescription').innerText = data.dealOfWeek.description;
+                    if (data.dealOfWeek.title) {
+                        const dt = document.getElementById('dealTitle');
+                        if(dt) dt.innerHTML = data.dealOfWeek.title;
+                    }
+                    if (data.dealOfWeek.subtitle) {
+                        const ds = document.getElementById('dealSubtitle');
+                        if(ds) ds.innerText = data.dealOfWeek.subtitle;
+                    }
+                    if (data.dealOfWeek.description) {
+                         const dd = document.getElementById('dealDescription');
+                         if(dd) dd.innerText = data.dealOfWeek.description;
+                    }
                     if (data.dealOfWeek.image) {
-                        let imgPath = data.dealOfWeek.image;
-                        if (!imgPath.startsWith('http') && !imgPath.startsWith('/')) imgPath = '/' + imgPath;
                         const dImg = document.getElementById('dealImage');
-                        dImg.src = imgPath;
-                        dImg.onerror = function() { this.src = 'assets/img/traditional-supreme-pizza-isolated-white-background.jpg'; };
+                        if(dImg) dImg.src = data.dealOfWeek.image;
                     }
                 }
 
                 // Home About
                 if (data.homeAbout) {
-                    if (data.homeAbout.abtImage) {
-                        let imgPath = data.homeAbout.abtImage;
-                        if (!imgPath.startsWith('http') && !imgPath.startsWith('/')) imgPath = '/' + imgPath;
-                        // For background image, we can't easily use onerror. We trust the path or use fetch check?
-                        // Fallback logic: set valid bg.
-                        document.getElementById('homeAboutImage').style.backgroundImage = `url("${imgPath}"), url("assets/img/feature-bg.jpg")`; 
-                    }
                     if (data.homeAbout.title) document.getElementById('homeAboutTitle').innerText = data.homeAbout.title;
-                    if (data.homeAbout.heading) document.getElementById('homeAboutHeading').innerHTML = data.homeAbout.heading;
-                    if (data.homeAbout.description) document.getElementById('homeAboutDescription').innerText = data.homeAbout.description;
+                    if (data.homeAbout.heading) {
+                        const abHeading = document.querySelectorAll('#homeAboutHeading');
+                        abHeading.forEach(el => el.innerHTML = data.homeAbout.heading);
+                    }
+                    if (data.homeAbout.description) {
+                        const abDesc = document.querySelectorAll('#homeAboutDescription');
+                        abDesc.forEach(el => el.innerText = data.homeAbout.description);
+                    }
+                    if (data.homeAbout.abtImage) {
+                         const abImage = document.getElementById('homeAboutImage');
+                         if(abImage) abImage.style.backgroundImage = `url(${data.homeAbout.abtImage})`;
+                    }
                     if (data.homeAbout.videoLink) {
                         const videoLink = document.getElementById('homeVideoLink');
-                        const vPath = data.homeAbout.videoLink.startsWith('http') || data.homeAbout.videoLink.startsWith('/') ? data.homeAbout.videoLink : '/' + data.homeAbout.videoLink;
-                        videoLink.href = vPath;
-                        if (data.homeAbout.isVideoLocal) {
-                            videoLink.classList.remove('popup-youtube');
-                            videoLink.classList.add('popup-video');
+                        if(videoLink) {
+                            videoLink.href = data.homeAbout.videoLink;
+                            if (data.homeAbout.isVideoLocal) {
+                                videoLink.classList.remove('popup-youtube');
+                                videoLink.classList.add('popup-video');
+                            }
                         }
                     }
                 }
             } catch(e) {
-                console.error("Error loading home settings:", e);
+                console.error("Home CMS Error:", e);
             }
         }
         $(document).ready(function() {
             loadHomeSettings();
         });
     </script>
+
+
 	<!-- Mobile Bottom Nav -->
 	<div class="mobile-bottom-nav">
 		<a href="index.html" class="nav-item active">

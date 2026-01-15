@@ -239,20 +239,101 @@ const getSettings = async () => {
   if (!settings) {
     settings = new Settings({
       supportPhone: "0715430320",
+      supportPhones: ["0715430320"],
+      supportEmails: ["hello@kibbyskitchen.com"],
+      whatsappNumber: "0715430320",
       restaurantLat: -1.2200414264779664,
       restaurantLng: 36.87814128003106,
+      
+      // CMS Content
+      homeTitle: "Kibby’s Hot Kitchen",
+      homeSubtext: "Fresh & Healthy, Every day!",
+      aboutText: "Kibby’s Hot Kitchen is your destination for delicious, fresh, and healthy meals. Located at Unicity Mall (KU), we serve the best flavors in town.",
+      logo: "assets/img/kibbys-logo.png",
+      heroBg: "assets/img/hero-bg.jpg",
+      
+      contact: {
+        address: "Unicity Mall (KU)",
+        phone: "0715430320",
+        email: "hello@kibbyskitchen.com",
+        till: "0715430320",
+        hours: "MON - SUN: 8:00 AM to 9:00 PM"
+      },
+      
+      social: {
+        facebook: "#",
+        twitter: "#",
+        instagram: "#",
+        tiktok: "#",
+        linkedin: "#"
+      },
+      
+      homeFeatures: [
+        { icon: "fas fa-shipping-fast", title: "Free Delivery", desc: "Around USIU area" },
+        { icon: "fas fa-phone-volume", title: "Open Daily", desc: "8:00 AM to 9:00 PM" },
+        { icon: "fas fa-sync", title: "Best Offers", desc: "Tasty & Healthy Meals" }
+      ],
+      
+      dealOfWeek: {
+        title: "Deal of the Week",
+        subtitle: "Hot & Fresh Cuisines",
+        description: "Enjoy our delicious hot meals prepared daily with the freshest ingredients.",
+        image: "assets/img/traditional-supreme-pizza-isolated-white-background.jpg"
+      },
+      
+      homeAbout: {
+        title: "Fresh & Tasty",
+        heading: "About <span class=\"orange-text\">Kibby’s Hot Kitchen</span>",
+        description: "Kibby’s Hot Kitchen is your destination for delicious, fresh, and healthy meals. Located at Unicity Mall (KU), we serve the best flavors in town.",
+        abtImage: "assets/img/about-img.jpg",
+        videoLink: "https://www.youtube.com/watch?v=DBLlFWYcIGQ",
+        isVideoLocal: false
+      },
+      
+      shopBanner: {
+          title: "New Year BOGO! <br> with <span class=\"orange-text\">Kibby’s Hot Kitchen</span>",
+          percentText: "<span style=\"color: #fff; font-weight: 700;\">Buy One <br> Get One</span> FREE <span>on Tue & Thur</span>",
+          image: "assets/img/shop-banner-bg.jpg"
+      },
+      
+      aboutPage: {
+          whyTitle: "Why <span style=\"color: #c11b17;\">Kibby’s Hot Kitchen?</span>",
+          features: [
+              { icon: "fas fa-shipping-fast", title: "Fast Delivery", desc: "We deliver your pizza and chicken hot and fresh to your doorstep around the USIU area." },
+              { icon: "fas fa-utensils", title: "Quality Ingredients", desc: "We use the highest quality dough, cheese, and fresh ingredients for every meal we serve." },
+              { icon: "fas fa-money-bill-alt", title: "Student Friendly Prices", desc: "Get the best value for your money with our affordable meal combos and special offers." },
+              { icon: "fas fa-heart", title: "Made with Passion", desc: "Every order is prepared with care to ensure you enjoy the signature Kibby’s taste every time." }
+          ]
+      },
+
       staffLogins: [
         { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
         { id: 2, username: "admin2", password: "kibbys2026", name: "Staff2" }
       ]
     });
     await settings.save();
-  } else if (!settings.staffLogins || settings.staffLogins.length === 0) {
-    settings.staffLogins = [
-      { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
-      { id: 2, username: "admin2", password: "kibbys2026", name: "Staff2" }
-    ];
-    await settings.save();
+  } else {
+      // Ensure new fields exist even if settings were already there
+      let updated = false;
+      const defaults = {
+          contact: { address: "Unicity Mall (KU)", phone: "0715430320", email: "hello@kibbyskitchen.com", till: "0715430320", hours: "MON - SUN: 8:00 AM to 9:00 PM" },
+          social: { facebook: "#", twitter: "#", instagram: "#", tiktok: "#", linkedin: "#" },
+          logo: "assets/img/kibbys-logo.png",
+          aboutPage: { whyTitle: "Why <span style=\"color: #c11b17;\">Kibby’s Hot Kitchen?</span>", features: [] }
+      };
+      
+      for (let key in defaults) {
+          if (settings[key] === undefined) {
+              settings[key] = defaults[key];
+              updated = true;
+          }
+      }
+      if (updated) {
+          settings.markModified('contact');
+          settings.markModified('social');
+          settings.markModified('aboutPage');
+          await settings.save();
+      }
   }
   return settings;
 };
