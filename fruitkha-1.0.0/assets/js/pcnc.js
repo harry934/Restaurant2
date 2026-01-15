@@ -83,10 +83,12 @@ function addToCart(id) {
     saveCart(cart);
     showNotification('Added!', item.name + ' has been added to your cart.', 'success');
     
-    // Re-render menu to show quantity selector
-    if (window.location.pathname.includes('shop.html')) {
-        renderMenu(currentFilter);
-    }
+    // Force immediate re-render to show quantity selector
+    setTimeout(() => {
+        if (window.location.pathname.includes('shop.html')) {
+            renderMenu(currentFilter);
+        }
+    }, 100);
 }
 
 function updateCartMetadata() {
@@ -221,9 +223,11 @@ function updateProductCardQty(id, change) {
     }
     
     // Force re-render to show updated quantity
-    if (window.location.pathname.includes('shop.html')) {
-        renderMenu(currentFilter);
-    }
+    setTimeout(() => {
+        if (window.location.pathname.includes('shop.html')) {
+            renderMenu(currentFilter);
+        }
+    }, 100);
 }
 
 function renderSkeleton() {
