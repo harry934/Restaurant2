@@ -774,86 +774,108 @@ function injectPremiumStyles() {
             text-align: center;
         }
         
-        /* MOBILE RESPONSIVE IMPROVEMENTS */
+        /* UNIVERSAL MOBILE OPTIMIZATION (Android & iOS) */
         @media (max-width: 768px) {
-            /* Horizontal Food Cards */
+            .glovo-layout-wrapper {
+                flex-direction: column;
+            }
             .horizontal-food-card {
                 flex-direction: row;
                 padding: 12px;
                 gap: 12px;
+                align-items: stretch; /* Ensure equal height */
+                min-height: 110px;
             }
             .food-image-container {
                 width: 90px;
                 height: 90px;
+                flex-shrink: 0;
+                align-self: center;
+            }
+            .food-details {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
             }
             .food-title {
                 font-size: 1rem;
-            }
-            .food-description {
-                font-size: 0.85rem;
+                margin-bottom: 4px;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
             }
-            .current-price {
-                font-size: 1.1rem;
-            }
-            .add-item-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 14px;
-            }
-            .horizontal-qty-control {
-                padding: 4px 8px;
-            }
-            .qty-btn {
-                width: 26px;
-                height: 26px;
-            }
-            .qty-display {
-                font-size: 0.9rem;
-                min-width: 20px;
-            }
-            
-            /* Sidebar Improvements */
-            .glovo-sidebar {
-                padding: 15px;
-            }
-            .sidebar-header h4 {
-                font-size: 1rem;
-            }
-            .sidebar-category-item {
-                padding: 12px 14px;
-                font-size: 0.9rem;
-            }
-            .glovo-main-content {
-                padding: 15px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            /* Extra small screens */
-            .horizontal-food-card {
-                flex-direction: column;
-                text-align: left;
-            }
-            .food-image-container {
-                width: 100%;
-                height: 180px;
+            .food-description {
+                font-size: 0.8rem;
+                line-height: 1.3;
+                display: none; /* Hide description on mobile to save space */
             }
             .food-pricing {
-                width: 100%;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
+                flex-direction: column;
+                justify-content: center;
+                gap: 8px;
+                align-items: flex-end;
+                min-width: 80px; /* Prevent squashing */
             }
-            .title-row {
-                flex-wrap: wrap;
+            .current-price {
+                font-size: 1rem;
             }
-            .discount-tag {
-                font-size: 0.7rem;
-                padding: 3px 8px;
+            .add-item-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            /* Sidebar Optimization */
+            .glovo-sidebar {
+                padding: 10px 15px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background: #fff;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            }
+            .sidebar-search { display: none; } /* Hide search on mobile, save header space */
+            .sidebar-category-list {
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 5px;
+                -webkit-overflow-scrolling: touch; /* smooth scroll iOS */
+                scrollbar-width: none; /* Firefox */
+            }
+            .sidebar-category-list::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+            
+            .sidebar-category-item {
+                flex-shrink: 0;
+                margin-bottom: 0;
+                margin-right: 10px;
+                padding: 8px 16px;
+                border-radius: 20px;
+                border: 1px solid #f0f0f0;
+            }
+            .sidebar-header { display: none; }
+        }
+
+        /* Small Phones (Android Mini/iPhone SE) */
+        @media (max-width: 480px) {
+             .horizontal-food-card {
+                padding: 10px;
+                gap: 10px;
+            }
+            .food-image-container {
+                width: 80px;
+                height: 80px;
+            }
+            .food-title {
+                font-size: 0.95rem;
+            }
+            
+            /* Better Touch Targets */
+            .pcnc-toast {
+                width: 90%;
+                left: 5%;
+                right: auto;
+                min-width: auto;
             }
         }
 
