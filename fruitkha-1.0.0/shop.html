@@ -102,24 +102,25 @@
 	<div class="product-section mt-100 mb-150">
 		<div class="container">
 			
-			<!-- Search & Filter -->
-			<div class="row mb-5">
-                <div class="col-md-6 offset-md-3">
-                    <div class="input-group" style="box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 50px; overflow: hidden; background: #fff; padding: 5px;">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-0 pl-4"><i class="fas fa-search text-muted"></i></span>
+			<!-- Glovo-Style Sticky Header -->
+            <div class="menu-sticky-wrapper">
+                <div class="container">
+                    <div class="row align-items-center py-3">
+                        <div class="col-md-4 col-12 mb-3 mb-md-0">
+                            <div class="input-group glovo-search-wrap">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white border-0 pl-3"><i class="fas fa-search text-muted"></i></span>
+                                </div>
+                                <input type="text" id="shopSearch" class="form-control border-0" placeholder="Search menu..." onkeyup="renderMenu(currentFilter)">
+                            </div>
                         </div>
-                        <input type="text" id="shopSearch" class="form-control border-0" placeholder="Search for your favorite pizza..." style="box-shadow: none; font-weight: 600;" onkeyup="renderMenu(currentFilter)">
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="product-filters text-center">
-                        <ul id="categoryFilters" class="pcnc-filter-list">
-                            <li class="active filter-btn" data-filter="all">All Flavors</li>
-                        </ul>
+                        <div class="col-md-8 col-12">
+                            <div class="product-filters">
+                                <ul id="categoryFilters" class="pcnc-filter-list">
+                                    <li class="active filter-btn" data-filter="all">All Flavors</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -142,6 +143,40 @@
                 }
                 loadMenuCategories();
             </script>
+
+            <style>
+                .menu-sticky-wrapper {
+                    position: sticky;
+                    top: 85px; /* Adjust based on main navbar height */
+                    z-index: 99;
+                    background: #fff;
+                    border-bottom: 1px solid #f0f0f0;
+                    margin-bottom: 30px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                }
+                .glovo-search-wrap {
+                    background: #f2f2f2;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    padding: 2px;
+                }
+                .glovo-search-wrap input {
+                    background: transparent;
+                    font-weight: 600;
+                    box-shadow: none !important;
+                    font-size: 0.9rem;
+                }
+                .product-filters {
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    border: none !important;
+                    background: transparent !important;
+                    position: static !important;
+                }
+                @media (max-width: 768px) {
+                    .menu-sticky-wrapper { top: 70px; }
+                }
+            </style>
 
 			<div class="row" id="menu-container">
 				<!-- Items rendered by JS with premium styling -->
