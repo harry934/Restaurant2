@@ -90,6 +90,7 @@ const MenuSchema = new mongoose.Schema({
   category: String,
   image: String,
   tag: String,
+  description: { type: String, default: "" },
   isAvailable: { type: Boolean, default: true },
 });
 

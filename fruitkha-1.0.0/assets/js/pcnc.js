@@ -156,27 +156,24 @@ function generateProductCardHTML(item) {
     const cartItem = cart.find(c => c.id === item.id);
     const quantity = cartItem ? cartItem.quantity : 0;
     
-    // Calculate discount percentage if item has tag
-    const hasDiscount = item.tag && item.tag.includes('%');
-    const originalPrice = hasDiscount ? Math.round(item.price / (1 - parseInt(item.tag) / 100)) : null;
-    
     return `
         <div class="col-12 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity}; margin-bottom: 15px;">
             <div class="horizontal-food-card">
                 <div class="food-image-container">
                     <img src="${item.image}" alt="${item.name}" class="food-image">
                     ${isSoldOut ? `<span class="sold-out-badge">Sold Out</span>` : ''}
-                    ${item.tag && !isSoldOut ? `<span class="discount-badge">${item.tag}</span>` : ''}
                 </div>
                 
                 <div class="food-details">
-                    <h3 class="food-title">${item.name}</h3>
+                    <div class="title-row">
+                        <h3 class="food-title">${item.name}</h3>
+                        ${item.tag && !isSoldOut ? `<span class="discount-tag">${item.tag}</span>` : ''}
+                    </div>
                     <p class="food-description">${item.description || 'Delicious and freshly prepared'}</p>
                 </div>
                 
                 <div class="food-pricing">
                     <div class="price-block">
-                        ${originalPrice ? `<span class="original-price">KSh${originalPrice.toLocaleString()}</span>` : ''}
                         <span class="current-price">KSh${item.price.toLocaleString()}</span>
                     </div>
                     ${isSoldOut ? `
@@ -551,29 +548,33 @@ function injectPremiumStyles() {
             font-weight: 900;
             text-transform: uppercase;
         }
-        .discount-badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 900;
-            box-shadow: 0 2px 8px rgba(231, 37, 45, 0.3);
-        }
         
         .food-details {
             flex: 1;
             min-width: 0;
         }
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
         .food-title {
             font-size: 1.2rem;
             font-weight: 900;
             color: #000;
-            margin: 0 0 8px 0;
+            margin: 0;
             line-height: 1.3;
+        }
+        .discount-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            box-shadow: 0 2px 6px rgba(231, 37, 45, 0.25);
         }
         .food-description {
             font-size: 0.9rem;
