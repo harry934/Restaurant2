@@ -97,7 +97,7 @@ const MenuSchema = new mongoose.Schema({
 
 const SettingsSchema = new mongoose.Schema(
   {
-    supportPhone: { type: String, default: "0112601334" },
+    supportPhone: { type: String, default: "0715430320" },
     supportPhones: { type: Array, default: [] },
     supportEmails: { type: Array, default: [] },
     homeTitle: String,
@@ -135,7 +135,7 @@ async function seedSuperAdmin() {
   const superName = process.env.ADMIN1_NAME || "JOHN WAINAINA";
 
   const staff2User = process.env.ADMIN2_USER || "admin2";
-  const staff2Pass = process.env.ADMIN2_PASS || "pcnc2026";
+  const staff2Pass = process.env.ADMIN2_PASS || "kibbys2026";
   const staff2Name = process.env.ADMIN2_NAME || "HARRY MOKAYA";
 
   try {
@@ -237,19 +237,19 @@ const getSettings = async () => {
   let settings = await Settings.findOne();
   if (!settings) {
     settings = new Settings({
-      supportPhone: "0112601334",
+      supportPhone: "0715430320",
       restaurantLat: -1.2200414264779664,
       restaurantLng: 36.87814128003106,
       staffLogins: [
         { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
-        { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+        { id: 2, username: "admin2", password: "kibbys2026", name: "Staff2" }
       ]
     });
     await settings.save();
   } else if (!settings.staffLogins || settings.staffLogins.length === 0) {
     settings.staffLogins = [
       { id: 1, username: "admin1", password: "admin123", name: "Staff1" },
-      { id: 2, username: "admin2", password: "pcnc2026", name: "Staff2" }
+      { id: 2, username: "admin2", password: "kibbys2026", name: "Staff2" }
     ];
     await settings.save();
   }
@@ -302,7 +302,7 @@ const getImageFromMongoDB = async (filename) => {
 };
 
 // --- ADMIN SECURITY ---
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "pcnc-secret-token-123";
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "kibbys-secret-token-123";
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -1036,7 +1036,7 @@ app.post("/api/order", async (req, res) => {
       PartyB: shortcode,
       PhoneNumber: cleanPhone,
       CallBackURL: `https://your-domain.com/api/callback`, // Needs to be public
-      AccountReference: "PCnC Restaurant",
+      AccountReference: "Kibby's Hot Kitchen",
       TransactionDesc: `Pay for Order ${orderId}`,
     };
 
@@ -1267,7 +1267,7 @@ app.get("/api/admin/export", async (req, res) => {
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=PCnC_Sales_Report_${Date.now()}.xlsx`
+      `attachment; filename=Kibbys_Sales_Report_${Date.now()}.xlsx`
     );
     await workbook.xlsx.write(res);
     res.end();

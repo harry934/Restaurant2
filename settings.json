@@ -13,39 +13,39 @@
       "image": "uploads/1767556645964-download (4).jpg"
     }
   ],
-  "whatsappNumber": "0725484595",
+  "whatsappNumber": "0715430320",
   "team": [],
   "menuCategories": [],
   "supportPhones": [
-    "0725484595"
+    "0715430320"
   ],
   "supportEmails": [
-    "delivery@pcnc.com"
+    "hello@kibbyskitchen.com"
   ],
-  "homeTitle": "Delicious Pizza & Chicken",
-  "homeSubtext": "Home for Pizza Cuisines",
+  "homeTitle": "Fresh & Healthy, Every day!",
+  "homeSubtext": "Kibby’s Hot Kitchen",
   "aboutText": "",
   "dealOfWeek": {
     "title": "Deal of the Week",
-    "subtitle": "Buy One Get One Free",
-    "description": "Every Tuesday & Thursday! Get any flavor of pizza and get another one absolutely free.",
-    "image": "assets/img/traditional-supreme-pizza-isolated-white-background.jpg"
+    "subtitle": "Hot & Fresh Cuisines",
+    "description": "Enjoy our delicious hot meals prepared daily with the freshest ingredients.",
+    "image": "assets/img/kibbys-logo.png"
   },
   "homeAbout": {
-    "title": "Fresh & Tasty ",
-    "heading": "About Pizza Chick n Crust",
-    "description": "Pizza Chick n Crust is your home for pizza cuisines and chicken-based fast food. Located on USIU Road, we serve the best flavors in town.",
-    "abtImage": "uploads/1767544236210-Screenshot 2026-01-03 015702.png",
-    "videoLink": "uploads/1767543785018-Recording 2026-01-04 171209.mp4",
+    "title": "Fresh & Healthy, Every day!",
+    "heading": "About Kibby’s Hot Kitchen",
+    "description": "Kibby’s Hot Kitchen is your destination for delicious, fresh, and healthy meals. Located at Unicity Mall (KU), we serve the best flavors in town every day from 8:00 AM to 9:00 PM.",
+    "abtImage": "assets/img/kibbys-logo.png",
+    "videoLink": "https://www.youtube.com/watch?v=DBLlFWYcIGQ",
     "isVideoLocal": false
   },
   "aboutPromo": {
-    "line1": "Get the best deals at Pizza Chick n Crust...",
-    "line2": "Fresh & Hot"
+    "line1": "Get the best meals at Kibby’s Hot Kitchen...",
+    "line2": "Fresh & Healthy, Every day!"
   },
   "promoCodes": [
     {
-      "code": "MWAKAMPYA",
+      "code": "KIBBYS10",
       "discount": 10
     }
   ]

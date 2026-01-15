@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Track Your Order | PCnC</title>
+	<title>Track Your Order | Kibby's Hot Kitchen</title>
 
 	<link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
 	<link href="https://fonts.googleapis.com/css?family=Poppins:400,700,800&display=swap" rel="stylesheet">
@@ -69,10 +69,10 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         .status-step.active .step-icon {
-            background: #e7252d;
+            background: #c11b17;
             color: #fff;
             transform: scale(1.2);
-            box-shadow: 0 10px 25px rgba(231, 37, 45, 0.3);
+            box-shadow: 0 10px 25px rgba(193, 27, 23, 0.3);
         }
         .status-step.completed .step-icon {
             background: #116940;
@@ -202,7 +202,7 @@
 					<div class="main-menu-wrap">
 						<div class="site-logo">
 							<a href="index.html">
-								<img src="assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo">
+								<img src="assets/img/kibbys-logo.png" alt="Kibby's Hot Kitchen Logo">
 							</a>
 						</div>
 						<nav class="main-menu">
@@ -264,7 +264,7 @@
                         <div id="estimatedTimeArea" style="display: none; margin-top: 15px;" class="fade-in">
                             <div class="eta-box" style="display: inline-block; background: #fff4e1; padding: 10px 25px; border-radius: 50px; border: 1px solid #ffeeba; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
                                 <span style="color: #856404; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                                    <i class="fas fa-clock mr-2" style="color: #ffc107;"></i> Est. Arrival: <span id="estimatedTimeText" style="color: #e7252d;">--:--</span>
+                                    <i class="fas fa-clock mr-2" style="color: #ffc107;"></i> Est. Arrival: <span id="estimatedTimeText" style="color: #c11b17;">--:--</span>
                                 </span>
                             </div>
                         </div>
@@ -330,7 +330,7 @@
                     <div id="thankYouSection" class="text-center py-5" style="display: none;">
                         <i class="fas fa-heart text-danger mb-4" style="font-size: 4rem;"></i>
                         <h2 style="font-weight: 900;">THANK YOU FOR ORDERING!</h2>
-                        <p class="text-muted">We hope you enjoyed your meal from PCnC Restaurant.</p>
+                        <p class="text-muted">We hope you enjoyed your meal from Kibby's Hot Kitchen.</p>
                         
 
 
@@ -346,7 +346,7 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-6 col-md-12">
-					<p>Copyrights &copy; 2026 - PCnC,  All Rights Reserved.</p>
+					<p>Copyrights &copy; 2026 - Kibby's Hot Kitchen,  All Rights Reserved.</p>
 				</div>
 			</div>
 		</div>
@@ -464,7 +464,7 @@
                 
                 const waDisplay = data.whatsappNumber || (data.supportPhones ? data.supportPhones[0] : '---');
                 document.getElementById('supportPhone').innerText = waDisplay;
-                document.getElementById('supportRider').innerText = data.riderName || 'PCnC Dispatch Team';
+                document.getElementById('supportRider').innerText = data.riderName || "Kibby's Dispatch Team";
                 
                 // Format for WhatsApp: Remove spaces, add 254 if starts with 0
                 let waNum = waDisplay.replace(/\s/g, '');

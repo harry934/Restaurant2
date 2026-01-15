@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard | PCnC Command Center</title>
+    <title>Dashboard | Kibby's Hot Kitchen</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css" />
     <link
       rel="stylesheet"
@@ -20,7 +20,7 @@
       }
       :root {
         --sidebar-width: 280px;
-        --pcnc-red: #e7252d;
+        --kibbys-red: #c11b17;
       }
       body {
         font-family: "Inter", sans-serif;
@@ -49,7 +49,7 @@
         letter-spacing: 1px;
       }
       .sidebar h4 span {
-        color: #e7252d;
+        color: var(--kibbys-red);
       }
       .sidebar a {
         color: #999;
@@ -70,8 +70,8 @@
       .sidebar a:hover,
       .sidebar a.active {
         color: white;
-        background: rgba(231, 37, 45, 0.15);
-        color: #e7252d;
+        background: rgba(193, 27, 23, 0.15);
+        color: var(--kibbys-red);
       }
       .sidebar a.logout {
         color: #888;
@@ -250,13 +250,13 @@
         top: 20px;
         left: 20px;
         z-index: 1001;
-        background: #e7252d;
+        background: var(--kibbys-red);
         color: #fff;
         border: none;
         border-radius: 12px;
         padding: 12px 15px;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(231, 37, 45, 0.3);
+        box-shadow: 0 4px 15px rgba(193, 27, 23, 0.3);
         transition: all 0.3s ease;
       }
 
@@ -446,7 +446,7 @@
         right: -20%;
         width: 300px;
         height: 300px;
-        background: rgba(231, 37, 45, 0.1);
+        background: rgba(193, 27, 23, 0.1);
         border-radius: 50%;
         z-index: -1;
         filter: blur(50px);
@@ -464,8 +464,8 @@
       }
       .profile-input-group:focus-within {
         background: #fff;
-        border-color: #e7252d;
-        box-shadow: 0 0 0 4px rgba(231, 37, 45, 0.05);
+        border-color: var(--kibbys-red);
+        box-shadow: 0 0 0 4px rgba(193, 27, 23, 0.05);
       }
       .profile-input-group .form-control {
         background: transparent;
@@ -491,7 +491,7 @@
     <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
 
     <div class="sidebar d-flex flex-column" style="overflow-y: auto">
-      <h4>PCNC <span>HQ</span></h4>
+      <h4>Kibby's Hot Kitchen <span>HQ</span></h4>
 
       <!-- Welcome Section -->
       <div
@@ -516,7 +516,7 @@
                 height: 42px;
                 border-radius: 50%;
                 object-fit: cover;
-                border: 2px solid #e7252d;
+                border: 2px solid var(--kibbys-red);
                 background: white;
               "
             />
@@ -538,7 +538,7 @@
               style="
                 font-size: 0.6rem;
                 text-transform: uppercase;
-                color: #e7252d;
+                color: var(--kibbys-red);
                 font-weight: 800;
                 letter-spacing: 1px;
                 margin-bottom: 0px;
@@ -657,10 +657,10 @@
           <div
             id="realtimeClock"
             style="
-              background: linear-gradient(135deg, #e7252d 0%, #c71f27 100%);
+              background: linear-gradient(135deg, var(--kibbys-red) 0%, #a11612 100%);
               padding: 15px 25px;
               border-radius: 16px;
-              box-shadow: 0 8px 20px rgba(231, 37, 45, 0.25);
+              box-shadow: 0 8px 20px rgba(193, 27, 23, 0.25);
               text-align: center;
               min-width: 200px;
             "
@@ -3749,7 +3749,7 @@
                 </head>
                 <body onload="setTimeout(() => { window.print(); window.close(); }, 500);">
                     <div class="header">
-                        <h2 style="margin:0;">PCnC PIZZA</h2>
+                        <h2 style="margin:0;">KIBBY'S HOT KITCHEN</h2>
                         <p style="margin:5px 0;">Ndichu Container, Room 7<br>USIU Road, Nairobi</p>
                     </div>
                     <div>
@@ -3812,14 +3812,14 @@
         let msg = "";
         const ref = o.id.slice(-6).toUpperCase();
         if (o.status === "New")
-          msg = `Hi ${o.customerName}, PCnC has received your order #${ref}. We'll start preparing it shortly! 🍕`;
+          msg = `Hi ${o.customerName}, Kibby's Hot Kitchen has received your order #${ref}. We'll start preparing it shortly! 🔥`;
         else if (o.status === "Preparing")
-          msg = `Hi ${o.customerName}, your PCnC order #${ref} is now being prepared! 🔥`;
+          msg = `Hi ${o.customerName}, your Kibby's order #${ref} is now being prepared! 🔥`;
         else if (o.status === "Out for Delivery")
-          msg = `Hi ${o.customerName}, your PCnC order #${ref} is out for delivery! 🛵 Expect it soon.`;
+          msg = `Hi ${o.customerName}, your Kibby's order #${ref} is out for delivery! 🛵 Expect it soon.`;
         else if (o.status === "Completed")
           msg = `Hi ${o.customerName}, your order #${ref} has been delivered. Enjoy your meal! 🍕`;
-        else msg = `Hi ${o.customerName}, regarding your PCnC order #${ref}...`;
+        else msg = `Hi ${o.customerName}, regarding your Kibby's order #${ref}...`;
 
         const phone = o.phoneNumber.replace(/^0/, "254");
         const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;

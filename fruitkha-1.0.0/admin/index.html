@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCnC | HQ Security Portal</title>
+    <title>Kibby's Hot Kitchen | Portal Login</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
         :root {
-            --pcnc-red: #e7252d;
+            --kibbys-red: #c11b17;
             --pcnc-dark: #1a1a1a;
             --glass: rgba(255, 255, 255, 0.85); /* Slightly more transparent */
         }
@@ -34,8 +34,8 @@
             filter: blur(100px);
             opacity: 0.3;
         }
-        .aurora-1 { width: 400px; height: 400px; background: var(--pcnc-red); top: -100px; right: -100px; border-radius: 50%; animation: drift 15s infinite alternate; }
-        .aurora-2 { width: 500px; height: 500px; background: #c71f27; bottom: -150px; left: -150px; border-radius: 50%; animation: drift 20s infinite alternate-reverse; }
+        .aurora-1 { width: 400px; height: 400px; background: var(--kibbys-red); top: -100px; right: -100px; border-radius: 50%; animation: drift 15s infinite alternate; }
+        .aurora-2 { width: 500px; height: 500px; background: #a11612; bottom: -150px; left: -150px; border-radius: 50%; animation: drift 20s infinite alternate-reverse; }
         
         @keyframes drift {
             from { transform: translate(0, 0) scale(1); }
@@ -57,7 +57,7 @@
         .login-box:hover { transform: translateY(-5px); }
         
         .logo-area { text-align: center; margin-bottom: 30px; }
-        .logo-area img { max-height: 80px; filter: drop-shadow(0 10px 20px rgba(231, 37, 45, 0.3)); transition: 0.3s; }
+        .logo-area img { max-height: 80px; filter: drop-shadow(0 10px 20px rgba(193, 27, 23, 0.3)); transition: 0.3s; }
         .logo-area img:hover { transform: scale(1.05) rotate(2deg); }
         
         .nav-pills { background: rgba(0,0,0,0.05); padding: 5px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); }
@@ -65,7 +65,7 @@
             color: #666; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; 
             letter-spacing: 1px; border-radius: 16px; transition: 0.3s;
         }
-        .nav-pills .nav-link.active { background: var(--pcnc-red); color: white; box-shadow: 0 5px 15px rgba(231, 37, 45, 0.3); }
+        .nav-pills .nav-link.active { background: var(--kibbys-red); color: white; box-shadow: 0 5px 15px rgba(193, 27, 23, 0.3); }
 
         .form-group label { 
             font-weight: 700; color: #444; font-size: 0.7rem; 
@@ -79,16 +79,16 @@
             height: auto;
         }
         .form-control:focus {
-            border-color: var(--pcnc-red); background: #fff; box-shadow: 0 0 0 5px rgba(231, 37, 45, 0.1);
+            border-color: var(--kibbys-red); background: #fff; box-shadow: 0 0 0 5px rgba(193, 27, 23, 0.1);
         }
         
         .btn-orange { 
-            background: linear-gradient(135deg, var(--pcnc-red) 0%, #c71f27 100%); 
+            background: linear-gradient(135deg, var(--kibbys-red) 0%, #a11612 100%); 
             color: white; border: none; padding: 18px; border-radius: 20px;
             font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
             transition: 0.4s; margin-top: 10px;
         }
-        .btn-orange:hover { transform: scale(1.02); box-shadow: 0 15px 35px rgba(231, 37, 45, 0.4); color: white; }
+        .btn-orange:hover { transform: scale(1.02); box-shadow: 0 15px 35px rgba(193, 27, 23, 0.4); color: white; }
         
         .custom-file-label { border-radius: 18px; padding: 14px 20px; border: 2px solid #eee; height: auto; background: rgba(255,255,255,0.8); }
         .custom-file-label::after { border-radius: 0 16px 16px 0; padding: 14px 20px; height: auto; background: #f0f0f0; }
@@ -97,7 +97,7 @@
         
         #previewArea img {
             width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
-            border: 4px solid var(--pcnc-red); margin: 0 auto 20px; display: block;
+            border: 4px solid var(--kibbys-red); margin: 0 auto 20px; display: block;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
@@ -114,8 +114,8 @@
 
     <div class="login-box animate__animated animate__fadeIn">
         <div class="logo-area">
-            <img src="../assets/img/products/Orange_and_Tan_Playful_Pizza_Restaurant_Logo-removebg-preview.png" alt="PCnC Logo">
-            <h4 class="mt-3 font-weight-bold" style="letter-spacing: -0.5px; color: var(--pcnc-dark);">HQ Security Portal</h4>
+            <img src="../assets/img/kibbys-logo.png" alt="Kibby's Hot Kitchen Logo">
+            <h4 class="mt-3 font-weight-bold" style="letter-spacing: -0.5px; color: var(--pcnc-dark);">Kibby's Hot Kitchen Portal</h4>
             <p class="text-muted small">Restricted access for authorized personnel</p>
         </div>
 
@@ -183,7 +183,7 @@
         </div>
 
         <div class="admin-footer">
-            &copy; 2026 Pizza Chick n Crust | HQ Operations Port
+            &copy; 2026 Kibby's Hot Kitchen | Operations Portal
         </div>
     </div>
 
