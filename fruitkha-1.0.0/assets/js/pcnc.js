@@ -82,6 +82,11 @@ function addToCart(id) {
     }
     saveCart(cart);
     showNotification('Added!', item.name + ' has been added to your cart.', 'success');
+    
+    // Re-render menu to show quantity selector
+    if (window.location.pathname.includes('shop.html')) {
+        renderMenu(currentFilter);
+    }
 }
 
 function updateCartMetadata() {
@@ -120,6 +125,8 @@ function removeFromCart(id) {
     saveCart(cart);
     if (window.location.pathname.includes('cart.html') || window.location.pathname.includes('checkout.html')) {
         renderCartPage();
+    } else if (window.location.pathname.includes('shop.html')) {
+        renderMenu(currentFilter);
     }
 }
 
@@ -359,83 +366,88 @@ function injectPremiumStyles() {
             border-radius: 3px;
         }
 
-        /* Glovo Cards */
+        /* Glovo Cards - Professional Redesign */
         .glovo-card {
             background: #fff;
-            border-radius: 16px;
+            border-radius: 14px;
             overflow: hidden;
-            border: 1px solid #f2f2f2;
+            border: 1.5px solid #e8e8e8;
             height: 100%;
             display: flex;
             flex-direction: column;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .glovo-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-            border-color: #eee;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            border-color: #d0d0d0;
         }
 
         .glovo-img-wrap {
             position: relative;
-            padding-top: 65%; /* Reduced from 75% to give more space for text */
-            background: #fafafa;
+            padding-top: 70%;
+            background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
+            border-bottom: 1px solid #f0f0f0;
         }
         .glovo-img {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
-            padding: 12px;
+            padding: 15px;
             transition: 0.3s;
         }
-        .glovo-card:hover .glovo-img { transform: scale(1.08); }
+        .glovo-card:hover .glovo-img { transform: scale(1.05); }
 
         .glovo-badge-sold {
             position: absolute;
-            top: 10px; right: 10px;
-            background: rgba(0,0,0,0.7);
+            top: 12px; right: 12px;
+            background: rgba(0,0,0,0.85);
             color: #fff;
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 5px 10px;
-            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: 8px;
             z-index: 5;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .glovo-badge-tag {
             position: absolute;
-            top: 10px; left: 10px;
-            background: var(--glovo-red);
+            top: 12px; left: 12px;
+            background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
             color: #fff;
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 5px 10px;
-            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: 8px;
             z-index: 5;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            box-shadow: 0 2px 8px rgba(231, 37, 45, 0.3);
         }
 
         .glovo-body {
-            padding: 16px;
+            padding: 18px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             background: #fff;
         }
         .glovo-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            color: #1a1a1a;
-            line-height: 1.4;
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            color: #000;
+            line-height: 1.35;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            min-height: 2.8em;
+            min-height: 2.7em;
+            letter-spacing: -0.2px;
         }
 
         .glovo-footer {
@@ -443,101 +455,98 @@ function injectPremiumStyles() {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid #f5f5f5;
         }
         .glovo-price {
             font-weight: 900;
-            font-size: 1.1rem;
-            color: var(--glovo-red);
+            font-size: 1.15rem;
+            color: #000;
             letter-spacing: -0.5px;
         }
         .glovo-add-btn {
-            width: 36px; height: 36px;
-            background: var(--glovo-red);
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
             color: #fff;
             border: none;
-            border-radius: 50%;
+            border-radius: 10px;
             display: flex;
             align-items: center; justify-content: center;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 900;
             transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(231, 37, 45, 0.25);
+            box-shadow: 0 3px 10px rgba(231, 37, 45, 0.25);
             flex-shrink: 0;
         }
-        .glovo-add-btn:hover { background: #c11b17; transform: scale(1.1); box-shadow: 0 6px 16px rgba(231, 37, 45, 0.35); }
+        .glovo-add-btn:hover { background: linear-gradient(135deg, #c11b17 0%, #a01512 100%); transform: scale(1.05); box-shadow: 0 5px 15px rgba(231, 37, 45, 0.4); }
         .glovo-add-btn.disabled { background: #ddd; box-shadow: none; cursor: not-allowed; }
 
         /* Quantity Selector */
         .glovo-qty-selector {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: #fff;
-            border: 1.5px solid #e7252d;
-            border-radius: 50px;
-            padding: 4px 8px;
-            box-shadow: 0 4px 12px rgba(231, 37, 45, 0.12);
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 4px 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .glovo-qty-selector button {
-            width: 26px; height: 26px;
-            border-radius: 50%;
+            width: 28px; height: 28px;
+            border-radius: 8px;
             border: none;
-            background: #f8f8f8;
-            color: var(--glovo-red);
+            background: #f5f5f5;
+            color: #000;
             display: flex;
             align-items: center; justify-content: center;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 900;
             transition: 0.2s;
         }
-        .glovo-qty-selector button:hover { background: var(--glovo-red); color: #fff; transform: scale(1.1); }
+        .glovo-qty-selector button:hover { background: #000; color: #fff; }
         .glovo-qty-selector span {
             font-weight: 900;
-            font-size: 0.95rem;
-            min-width: 18px;
+            font-size: 1rem;
+            min-width: 20px;
             text-align: center;
-            color: var(--glovo-red);
+            color: #000;
         }
 
-        /* Horizontal Scroll Nav with Indicators */
+        /* Horizontal Scroll Nav - Glovo Style */
         .pcnc-filter-wrap {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #f8f8f8 0%, #ffffff 100%);
-            border-bottom: 2px solid #f0f0f0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
         }
         .pcnc-filter-wrap::after {
-            content: '→';
+            content: '›';
             position: absolute;
-            top: 50%; right: 15px;
+            top: 50%; right: 5px;
             transform: translateY(-50%);
-            width: 40px; height: 40px;
+            width: 35px; height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to left, rgba(231,37,45,0.15), transparent);
-            color: var(--glovo-red);
-            font-size: 1.2rem;
-            font-weight: 900;
+            background: linear-gradient(to left, #fff 0%, rgba(255,255,255,0) 100%);
+            color: #666;
+            font-size: 2rem;
+            font-weight: 300;
             pointer-events: none;
             z-index: 3;
-            animation: scroll-hint 2s infinite;
-        }
-        @keyframes scroll-hint {
-            0%, 100% { transform: translateY(-50%) translateX(0); opacity: 0.7; }
-            50% { transform: translateY(-50%) translateX(5px); opacity: 1; }
         }
         .pcnc-filter-list {
             display: flex !important;
             overflow-x: auto;
             white-space: nowrap;
-            padding: 10px 20px !important;
-            gap: 15px !important;
+            padding: 12px 20px !important;
+            gap: 12px !important;
             -ms-overflow-style: none;
             scrollbar-width: none;
             scroll-behavior: smooth;
-            padding-right: 60px !important; /* Space for fade indicator */
+            padding-right: 50px !important;
         }
         .pcnc-filter-list::-webkit-scrollbar { display: none; }
 
