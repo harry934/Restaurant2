@@ -2,6 +2,15 @@ let MENU_ITEMS = [];
 let APPLIED_DISCOUNT_PERCENT = 0;
 let APPLIED_PROMO_CODE = null;
 
+const CATEGORY_ICONS = {
+    'pizza': '<i class="fas fa-pizza-slice"></i>',
+    'sides': '<i class="fas fa-hamburger"></i>',
+    'drinks': '<i class="fas fa-wine-glass-alt"></i>',
+    'dessert': '<i class="fas fa-ice-cream"></i>',
+    'pasta': '<i class="fas fa-utensils"></i>',
+    'all': '<i class="fas fa-th-large"></i>'
+};
+
 async function loadMenuData() {
     try {
         const res = await fetch('/api/menu');
@@ -94,36 +103,15 @@ function updateCartMetadata() {
         bottomNavCount.style.display = count > 0 ? 'block' : 'none';
     }
 
-    // Update Floating Cart Bar
-    updateFloatingCartBar(count, total);
-
     // Update any other .cart-count elements
     const genericCounts = document.querySelectorAll('.cart-count:not(.mobile-bottom-nav .cart-count)');
     genericCounts.forEach(gc => gc.innerText = count);
 }
 
 function updateFloatingCartBar(count, total) {
+    // Disabled per user request to reduce distraction
     let bar = document.querySelector('.floating-cart-bar');
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'floating-cart-bar';
-        bar.innerHTML = `
-            <div class="floating-cart-total">KES <span id="f-cart-total">0</span></div>
-            <button class="floating-checkout-btn" onclick="window.location.href='cart.html'">
-                VIEW CART <i class="fas fa-arrow-right"></i>
-            </button>
-        `;
-        document.body.appendChild(bar);
-    }
-
-    const totalEl = document.getElementById('f-cart-total');
-    if (totalEl) totalEl.innerText = total.toLocaleString();
-
-    if (count > 0 && !window.location.pathname.includes('cart.html') && !window.location.pathname.includes('checkout.html')) {
-        bar.classList.add('show');
-    } else {
-        bar.classList.remove('show');
-    }
+    if (bar) bar.classList.remove('show');
 }
 
 function removeFromCart(id) {
@@ -156,30 +144,83 @@ function generateProductCardHTML(item) {
     const isSoldOut = item.isAvailable === false;
     const opacity = isSoldOut ? '0.7' : '1';
     
+    // Check if item is in cart
+    const cart = getCart();
+    const cartItem = cart.find(c => c.id === item.id);
+    const quantity = cartItem ? cartItem.quantity : 0;
+    
     return `
-        <div class="col-lg-3 col-md-4 col-6 mb-4 menu-item-card" data-category="${item.category}" style="opacity: ${opacity};">
+        <div class="col-lg-3 col-md-4 col-6 mb-4 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity};">
             <div class="glovo-card">
                 ${isSoldOut ? `<span class="glovo-badge-sold">Sold Out</span>` : ''}
                 ${item.tag ? `<span class="glovo-badge-tag">${item.tag}</span>` : ''}
                 
-                <div class="glovo-img-wrap" onclick="console.log('Item clicked: ${item.name}')">
+                <div class="glovo-img-wrap">
                     <img src="${item.image}" alt="${item.name}" class="glovo-img">
                 </div>
                 
                 <div class="glovo-body">
                     <h3 class="glovo-title">${item.name}</h3>
-                    <div class="glovo-footer">
+                    <div class="glovo-footer" id="footer-${item.id}">
                         <span class="glovo-price">KES ${item.price.toLocaleString()}</span>
                         ${isSoldOut ? `
                             <button class="glovo-add-btn disabled" disabled><i class="fas fa-plus"></i></button>
+                        ` : (quantity > 0 ? `
+                            <div class="glovo-qty-selector">
+                                <button onclick="updateProductCardQty(${item.id}, -1); return false;"><i class="fas fa-minus"></i></button>
+                                <span>${quantity}</span>
+                                <button onclick="updateProductCardQty(${item.id}, 1); return false;"><i class="fas fa-plus"></i></button>
+                            </div>
                         ` : `
                             <button class="glovo-add-btn" onclick="addToCart(${item.id}); return false;"><i class="fas fa-plus"></i></button>
-                        `}
+                        `)}
                     </div>
                 </div>
             </div>
         </div>
     `;
+}
+
+function updateProductCardQty(id, change) {
+    if (change > 0) {
+        addToCart(id);
+    } else {
+        // Find existing cart item to decrease
+        let cart = getCart();
+        const existing = cart.find(i => i.id === id);
+        if (existing) {
+            if (existing.quantity > 1) {
+                existing.quantity--;
+                saveCart(cart);
+                renderCart();
+                updateCartMetadata();
+            } else {
+                removeFromCart(id);
+            }
+        }
+    }
+    
+    // Specifically update ONLY this footer to avoid full re-render
+    const footer = document.getElementById(`footer-${id}`);
+    const item = MENU_ITEMS.find(i => i.id === id);
+    if (footer && item) {
+        const cart = getCart();
+        const cartItem = cart.find(c => c.id === id);
+        const quantity = cartItem ? cartItem.quantity : 0;
+        
+        footer.innerHTML = `
+            <span class="glovo-price">KES ${item.price.toLocaleString()}</span>
+            ${quantity > 0 ? `
+                <div class="glovo-qty-selector">
+                    <button onclick="updateProductCardQty(${item.id}, -1); return false;"><i class="fas fa-minus"></i></button>
+                    <span>${quantity}</span>
+                    <button onclick="updateProductCardQty(${item.id}, 1); return false;"><i class="fas fa-plus"></i></button>
+                </div>
+            ` : `
+                <button class="glovo-add-btn" onclick="addToCart(${item.id}); return false;"><i class="fas fa-plus"></i></button>
+            `}
+        `;
+    }
 }
 
 function renderSkeleton() {
@@ -402,7 +443,51 @@ function injectPremiumStyles() {
         .glovo-add-btn:hover { background: #c11b17; transform: scale(1.15); }
         .glovo-add-btn.disabled { background: #ddd; box-shadow: none; cursor: not-allowed; }
 
-        /* Horizontal Scroll Nav */
+        /* Quantity Selector */
+        .glovo-qty-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 50px;
+            padding: 3px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .glovo-qty-selector button {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: #f8f8f8;
+            color: var(--glovo-text);
+            display: flex;
+            align-items: center; justify-content: center;
+            font-size: 10px;
+            transition: 0.2s;
+        }
+        .glovo-qty-selector button:hover { background: var(--glovo-red); color: #fff; }
+        .glovo-qty-selector span {
+            font-weight: 800;
+            font-size: 0.9rem;
+            min-width: 15px;
+            text-align: center;
+        }
+
+        /* Horizontal Scroll Nav with Indicators */
+        .pcnc-filter-wrap {
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+        }
+        .pcnc-filter-wrap::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 50px; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.9));
+            pointer-events: none;
+            z-index: 2;
+        }
         .pcnc-filter-list {
             display: flex !important;
             overflow-x: auto;
@@ -412,25 +497,109 @@ function injectPremiumStyles() {
             -ms-overflow-style: none;
             scrollbar-width: none;
             scroll-behavior: smooth;
+            padding-right: 60px !important; /* Space for fade indicator */
         }
         .pcnc-filter-list::-webkit-scrollbar { display: none; }
 
         .filter-btn {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
             flex: 0 0 auto;
-            padding: 8px 20px !important;
-            font-size: 0.85rem !important;
+            padding: 10px 22px !important;
+            font-size: 0.9rem !important;
             border-radius: 30px !important;
-            border: 1px solid #eee !important;
+            border: 1px solid #f0f0f0 !important;
             background: #fff !important;
             color: var(--glovo-text) !important;
             font-weight: 700 !important;
-            box-shadow: none !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+        }
+        .filter-btn i {
+            font-size: 1.1rem;
+            color: var(--glovo-red);
+            opacity: 0.8;
         }
         .filter-btn.active-filter {
             background: var(--glovo-red) !important;
             color: #fff !important;
             border-color: var(--glovo-red) !important;
         }
+        .filter-btn.active-filter i {
+            color: #fff;
+            opacity: 1;
+        }
+
+        /* PREMIUM CART STYLES */
+        .glovo-cart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .premium-cart-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border: 1px solid #f2f2f2;
+            transition: 0.3s;
+        }
+        .premium-cart-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .cart-img-wrap {
+            width: 100px; height: 100px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f9f9f9;
+        }
+        .cart-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .cart-info { flex-grow: 1; }
+        .cart-item-title { font-size: 1.1rem; font-weight: 800; color: var(--glovo-text); margin-bottom: 5px; }
+        .cart-item-price { font-size: 0.95rem; font-weight: 700; color: var(--glovo-red); }
+        .cart-actions { display: flex; align-items: center; gap: 20px; }
+        .premium-qty-select {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f8f8;
+            border-radius: 50px;
+            padding: 5px 15px;
+        }
+        .premium-qty-select button {
+            border: none; background: none; color: var(--glovo-red);
+            font-weight: 900; cursor: pointer; padding: 5px;
+        }
+        .remove-icon { color: #ccc; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
+        .remove-icon:hover { color: var(--glovo-red); }
+
+        .premium-summary-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+            border: 1px solid #f0f0f0;
+            position: sticky;
+            top: 120px;
+        }
+        .summary-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 25px; color: var(--glovo-text); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 600; color: #666; }
+        .total-row { color: var(--glovo-text); font-weight: 900; font-size: 1.3rem; margin-top: 15px; }
+        .glovo-checkout-btn {
+            background: var(--glovo-red) !important;
+            border: none !important;
+            color: #fff !important;
+            padding: 15px !important;
+            border-radius: 50px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            transition: 0.3s !important;
+        }
+        .glovo-checkout-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(231, 37, 45, 0.3); }
 
         /* Skeleton Loading */
         .skeleton-box {
@@ -554,14 +723,21 @@ function initScrollspy() {
 
 // RENDER CART (cart.html) & CHECKOUT (checkout.html)
 function renderCartPage() {
+    const listContainer = document.getElementById('cart-item-list');
     const tbody = document.getElementById('cart-table-body');
     const totalEl = document.getElementById('cart-total');
-    if (!tbody) return;
+    const subtotalEl = document.getElementById('subtotal');
+    
+    if (!listContainer && !tbody) return;
+
+    injectPremiumStyles();
 
     const cart = getCart();
     if (cart.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Your cart is empty</td></tr>';
-        if(totalEl) totalEl.innerText = 'KES 0';
+        if (listContainer) listContainer.innerHTML = '<div class="text-center py-5"><h3 class="text-muted">Your cart is empty</h3><a href="shop.html" class="boxed-btn mt-3">Go to Menu</a></div>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Your cart is empty</td></tr>';
+        if (totalEl) totalEl.innerText = 'KES 0';
+        if (subtotalEl) subtotalEl.innerText = 'KES 0';
         return;
     }
 
@@ -569,6 +745,7 @@ function renderCartPage() {
     let total = 0;
 
     if (isCheckout) {
+        // ... (Checkout logic as is, it's already reasonably clean)
         tbody.innerHTML = cart.map(item => {
             const itemTotal = item.price * item.quantity;
             total += itemTotal;
@@ -594,48 +771,59 @@ function renderCartPage() {
             </tr>
             `;
         }).join('');
-
-        // Handle Discount
-        if (APPLIED_DISCOUNT_PERCENT > 0) {
-            const discountAmount = Math.round(total * (APPLIED_DISCOUNT_PERCENT / 100));
-            document.getElementById('discount-row').style.display = 'flex';
-            document.getElementById('discount-amount').innerText = `-KES ${discountAmount.toLocaleString()}`;
-            total -= discountAmount;
-        } else {
-            const drow = document.getElementById('discount-row');
-            if (drow) drow.style.display = 'none';
-        }
-
-    } else {
-        tbody.innerHTML = cart.map(item => {
+    } else if (listContainer) {
+        // PREMIUM CART (cart.html)
+        listContainer.innerHTML = cart.map(item => {
             const itemTotal = item.price * item.quantity;
             total += itemTotal;
             return `
-            <tr class="table-body-row">
-                <td class="product-remove"><a href="#" onclick="removeFromCart(${item.id})"><i class="far fa-window-close"></i></a></td>
-                <td class="product-image"><img src="${item.image}" alt=""></td>
-                <td class="product-name">${item.name}</td>
-                <td class="product-price">KES ${item.price.toLocaleString()}</td>
-                <td class="product-quantity"><input type="number" value="${item.quantity}" onchange="updateQuantity(${item.id}, this.value - ${item.quantity})"></td>
-                <td class="product-total">KES ${itemTotal.toLocaleString()}</td>
-            </tr>
+            <div class="premium-cart-card">
+                <div class="cart-img-wrap">
+                    <img src="${item.image}" alt="${item.name}">
+                </div>
+                <div class="cart-info">
+                    <h4 class="cart-item-title">${item.name}</h4>
+                    <div class="cart-item-price">KES ${item.price.toLocaleString()} each</div>
+                </div>
+                <div class="cart-actions">
+                    <div class="premium-qty-select">
+                        <button onclick="updateQuantity(${item.id}, -1)"><i class="fas fa-minus"></i></button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.id}, 1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="total-col font-weight-bold" style="min-width: 100px; text-align: right;">KES ${itemTotal.toLocaleString()}</div>
+                    <i class="fas fa-trash-alt remove-icon ml-3" onclick="removeFromCart(${item.id})"></i>
+                </div>
+            </div>
             `;
         }).join('');
     }
 
-    if(totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
+    // Handle Summary Section
+    if (subtotalEl) subtotalEl.innerText = 'KES ' + total.toLocaleString();
+
+    // Handle Discount
+    if (APPLIED_DISCOUNT_PERCENT > 0) {
+        const discountAmount = Math.round(total * (APPLIED_DISCOUNT_PERCENT / 100));
+        const discRow = document.getElementById('discount-row');
+        const discAmtEl = document.getElementById('discount-amount');
+        if (discRow) discRow.style.display = 'flex';
+        if (discAmtEl) discAmtEl.innerText = `-KES ${discountAmount.toLocaleString()}`;
+        total -= discountAmount;
+    } else {
+        const discRow = document.getElementById('discount-row');
+        if (discRow) discRow.style.display = 'none';
+    }
+
+    if (totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
     
     // Add Delivery Fee if present
     const deliveryFeeEl = document.getElementById('delivery_fee_hidden');
     if (deliveryFeeEl && parseInt(deliveryFeeEl.value) > 0) {
         const fee = parseInt(deliveryFeeEl.value);
         total += fee;
-        if(totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
+        if (totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
     }
-
-    // Also update checkout subtotal if present
-    const subtotalEl = document.getElementById('subtotal');
-    if (subtotalEl) subtotalEl.innerText = 'KES ' + total;
 }
 
 // CHECKOUT (checkout.html)

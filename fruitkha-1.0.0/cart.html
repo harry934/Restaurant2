@@ -101,47 +101,32 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-8 col-md-12">
-					<div class="cart-table-wrap">
-						<table class="cart-table">
-							<thead class="cart-table-head">
-								<tr class="table-head-row">
-									<th class="product-remove"></th>
-									<th class="product-image">Product Image</th>
-									<th class="product-name">Name</th>
-									<th class="product-price">Price</th>
-									<th class="product-quantity">Quantity</th>
-									<th class="product-total">Total</th>
-								</tr>
-							</thead>
-							<tbody id="cart-table-body">
-								<!-- Items loaded from JS -->
-							</tbody>
-						</table>
+					<div id="cart-item-list" class="glovo-cart-list">
+						<!-- Premium Cards loaded from JS -->
 					</div>
 				</div>
 
 				<div class="col-lg-4">
-					<div class="total-section">
-						<table class="total-table">
-							<thead class="total-table-head">
-								<tr class="table-total-row">
-									<th>Total</th>
-									<th>Price</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr class="total-data">
-									<td><strong>Subtotal: </strong></td>
-									<td id="subtotal">KES 0</td>
-								</tr>
-								<tr class="total-data">
-									<td><strong>Total: </strong></td>
-									<td id="cart-total">KES 0</td>
-								</tr>
-							</tbody>
-						</table>
-						<div class="cart-buttons">
-							<a href="checkout.html" class="boxed-btn black">Check Out</a>
+					<div class="premium-summary-card">
+                        <h3 class="summary-title">Order Summary</h3>
+                        <div class="summary-rows">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span id="subtotal">KES 0</span>
+                            </div>
+                            <div class="summary-row" id="discount-row" style="display: none;">
+                                <span>Discount</span>
+                                <span id="discount-amount" class="text-danger">-KES 0</span>
+                            </div>
+                            <hr>
+                            <div class="summary-row total-row">
+                                <span>Total</span>
+                                <span id="cart-total">KES 0</span>
+                            </div>
+                        </div>
+						<div class="cart-buttons mt-4">
+							<a href="checkout.html" class="boxed-btn glovo-checkout-btn w-100 text-center">Proceed to Checkout</a>
+                            <a href="shop.html" class="continue-shopping mt-3 d-block text-center text-muted"> <i class="fas fa-arrow-left"></i> Continue Shopping</a>
 						</div>
 					</div>
 				</div>

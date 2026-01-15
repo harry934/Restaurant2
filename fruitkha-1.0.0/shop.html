@@ -115,7 +115,7 @@
                             </div>
                         </div>
                         <div class="col-md-8 col-12">
-                            <div class="product-filters">
+                            <div class="pcnc-filter-wrap">
                                 <ul id="categoryFilters" class="pcnc-filter-list">
                                     <li class="active filter-btn" data-filter="all">All Flavors</li>
                                 </ul>
@@ -133,11 +133,18 @@
                         const container = document.getElementById('categoryFilters');
                         
                         if (data.menuCategories && data.menuCategories.length > 0) {
-                            let html = '<li class="filter-btn" data-filter="all">All Flavors</li>';
+                            let html = `<li class="filter-btn active-filter" data-filter="all">
+                                ${CATEGORY_ICONS['all'] || ''} All Flavors
+                            </li>`;
+                            
                             data.menuCategories.forEach(cat => {
-                                html += `<li class="filter-btn" data-filter="${cat.id}">${cat.name}</li>`;
+                                const icon = CATEGORY_ICONS[cat.name.toLowerCase()] || CATEGORY_ICONS[cat.id.toLowerCase()] || '<i class="fas fa-utensils"></i>';
+                                html += `<li class="filter-btn" data-filter="${cat.id}">
+                                    ${icon} ${cat.name}
+                                </li>`;
                             });
                             container.innerHTML = html;
+                            setupFilters(); // Re-bind events
                         }
                     } catch(e) { console.error(e); }
                 }
