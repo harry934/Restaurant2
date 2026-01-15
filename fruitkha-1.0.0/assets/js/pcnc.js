@@ -671,20 +671,86 @@ function injectPremiumStyles() {
             text-align: center;
         }
         
+        /* MOBILE RESPONSIVE IMPROVEMENTS */
         @media (max-width: 768px) {
+            /* Horizontal Food Cards */
+            .horizontal-food-card {
+                flex-direction: row;
+                padding: 12px;
+                gap: 12px;
+            }
+            .food-image-container {
+                width: 90px;
+                height: 90px;
+            }
+            .food-title {
+                font-size: 1rem;
+            }
+            .food-description {
+                font-size: 0.85rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            .current-price {
+                font-size: 1.1rem;
+            }
+            .add-item-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+            .horizontal-qty-control {
+                padding: 4px 8px;
+            }
+            .qty-btn {
+                width: 26px;
+                height: 26px;
+            }
+            .qty-display {
+                font-size: 0.9rem;
+                min-width: 20px;
+            }
+            
+            /* Sidebar Improvements */
+            .glovo-sidebar {
+                padding: 15px;
+            }
+            .sidebar-header h4 {
+                font-size: 1rem;
+            }
+            .sidebar-category-item {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+            }
+            .glovo-main-content {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            /* Extra small screens */
             .horizontal-food-card {
                 flex-direction: column;
-                text-align: center;
+                text-align: left;
             }
             .food-image-container {
                 width: 100%;
-                height: 150px;
+                height: 180px;
             }
             .food-pricing {
                 width: 100%;
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
+            }
+            .title-row {
+                flex-wrap: wrap;
+            }
+            .discount-tag {
+                font-size: 0.7rem;
+                padding: 3px 8px;
             }
         }
 
@@ -801,6 +867,113 @@ function injectPremiumStyles() {
                 top: 0;
                 border-right: none;
                 border-bottom: 1px solid #e8e8e8;
+                max-height: 400px;
+            }
+            .sidebar-category-list {
+                max-height: 250px;
+                overflow-y: auto;
+            }
+        }
+        
+        /* PREMIUM CART STYLES - Mobile Optimized */
+        .glovo-cart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .premium-cart-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border: 1px solid #f2f2f2;
+            transition: 0.3s;
+        }
+        .premium-cart-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .cart-img-wrap {
+            width: 100px; height: 100px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f9f9f9;
+        }
+        .cart-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .cart-info { flex-grow: 1; min-width: 0; }
+        .cart-item-title { font-size: 1.1rem; font-weight: 800; color: var(--glovo-text); margin-bottom: 5px; word-wrap: break-word; }
+        .cart-item-price { font-size: 0.95rem; font-weight: 700; color: var(--glovo-red); }
+        .cart-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .premium-qty-select {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f8f8;
+            border-radius: 50px;
+            padding: 5px 15px;
+        }
+        .premium-qty-select button {
+            border: none; background: none; color: var(--glovo-red);
+            font-weight: 900; cursor: pointer; padding: 5px;
+        }
+        .remove-icon { color: #ccc; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
+        .remove-icon:hover { color: var(--glovo-red); }
+
+        .premium-summary-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+            border: 1px solid #f0f0f0;
+            position: sticky;
+            top: 120px;
+        }
+        .summary-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 25px; color: var(--glovo-text); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 600; color: #666; }
+        .total-row { color: var(--glovo-text); font-weight: 900; font-size: 1.3rem; margin-top: 15px; }
+        .glovo-checkout-btn {
+            background: var(--glovo-red) !important;
+            border: none !important;
+            color: #fff !important;
+            padding: 15px !important;
+            border-radius: 50px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            transition: 0.3s !important;
+            width: 100%;
+        }
+        .glovo-checkout-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(231, 37, 45, 0.3); }
+        
+        /* Mobile Cart Optimizations */
+        @media (max-width: 768px) {
+            .premium-cart-card {
+                padding: 15px;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .cart-img-wrap {
+                width: 80px;
+                height: 80px;
+            }
+            .cart-item-title {
+                font-size: 1rem;
+            }
+            .cart-actions {
+                width: 100%;
+                justify-content: space-between;
+                gap: 10px;
+            }
+            .premium-summary-card {
+                position: relative;
+                top: 0;
+                margin-top: 20px;
+                padding: 20px;
+            }
+            .summary-title {
+                font-size: 1.2rem;
             }
         }
 
