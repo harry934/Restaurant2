@@ -99,3 +99,41 @@ async function adminFetch(url, options = {}) {
   }
   return res;
 }
+
+// Logout function - Notifies server and clears local session
+async function logout() {
+    const sessionId = SessionManager.getCurrentSessionId();
+    const session = SessionManager.getCurrentSession();
+
+    if (sessionId && session) {
+        try {
+            await fetch("/api/admin/logout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: session.username,
+                    sessionId: sessionId,
+                }),
+            });
+        } catch (e) {
+            console.error("Logout notification failed", e);
+        }
+
+        SessionManager.removeSession(sessionId);
+    }
+    
+    // Redirect logic
+    if (window.location.pathname.includes('/admin/')) {
+        window.location.href = "index.html";
+    } else {
+        window.location.href = "/";
+    }
+}
+
+// Global Auth Check for Admin Pages
+(function() {
+    const session = SessionManager.getCurrentSession();
+    if (!session && window.location.pathname.includes("/admin/") && !window.location.pathname.includes("index.html")) {
+        window.location.href = "index.html";
+    }
+})();

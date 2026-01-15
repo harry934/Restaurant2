@@ -616,6 +616,12 @@
         >
         <!-- Restricted Views -->
         <div id="restrictedNav" style="display: none">
+          <!-- Direct link to website with instruction -->
+          <a href="../index.html" style="background: rgba(255,255,255,0.05); color: #fff; margin-bottom: 20px;">
+            <i class="fas fa-external-link-alt" style="color: #28a745"></i> 
+            <span>VISIT WEBSITE</span>
+          </a>
+          
           <a onclick="switchView('active')" data-view="active"
             ><i class="fas fa-clock"></i> Active Orders</a
           >
@@ -2721,6 +2727,30 @@
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="../assets/js/admin-core.js"></script>
     <script>
+      // Display admin name and role-based UI
+      (function() {
+          const currentSession = SessionManager.getCurrentSession();
+          if (currentSession && currentSession.staffName) {
+            // Show profile link for everyone
+            document.getElementById("profileNavLink").style.display = "flex";
+
+            // ROLE-BASED UI
+            if (currentSession.role === "super-admin") {
+              // Super admins don't see their own name circle (per user request)
+              document.getElementById("adminNameDisplay").style.display = "none";
+              // But they see the restricted sections
+              document.getElementById("restrictedNav").style.display = "block";
+              document.getElementById("viewerModeWrapper").style.display = "block";
+            } else {
+              // Regular staff see their name and photo
+              document.getElementById("adminNameDisplay").style.display = "block";
+              document.getElementById("adminNameText").innerText = currentSession.staffName;
+              if (currentSession.profilePhoto) {
+                document.getElementById("adminProfilePhoto").src = currentSession.profilePhoto;
+              }
+            }
+          }
+      })();
 
       // Update Active Sessions Display (Strictly 2 Admins - Fetched from Server)
       async function updateActiveSessionsDisplay() {

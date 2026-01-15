@@ -64,7 +64,7 @@
 
         async init() {
             this.session = SessionManager.getCurrentSession();
-            if (!this.session) return;
+            if (!this.session || this.session.role !== 'super-admin') return;
 
             this.injectStyles();
             this.injectUI();
