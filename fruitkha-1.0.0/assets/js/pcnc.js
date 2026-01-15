@@ -146,42 +146,58 @@ function updateQuantity(id, delta) {
     }
 }
 
-// Helper to generate compact Glovo-style product card HTML
+// Helper to generate horizontal list-style product card HTML
 function generateProductCardHTML(item) {
     const isSoldOut = item.isAvailable === false;
-    const opacity = isSoldOut ? '0.7' : '1';
+    const opacity = isSoldOut ? '0.6' : '1';
     
     // Check if item is in cart
     const cart = getCart();
     const cartItem = cart.find(c => c.id === item.id);
     const quantity = cartItem ? cartItem.quantity : 0;
     
+    // Calculate discount percentage if item has tag
+    const hasDiscount = item.tag && item.tag.includes('%');
+    const originalPrice = hasDiscount ? Math.round(item.price / (1 - parseInt(item.tag) / 100)) : null;
+    
     return `
-        <div class="col-lg-3 col-md-4 col-6 mb-4 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity};">
-            <div class="glovo-card">
-                ${isSoldOut ? `<span class="glovo-badge-sold">Sold Out</span>` : ''}
-                ${item.tag ? `<span class="glovo-badge-tag">${item.tag}</span>` : ''}
-                
-                <div class="glovo-img-wrap">
-                    <img src="${item.image}" alt="${item.name}" class="glovo-img">
+        <div class="col-12 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity}; margin-bottom: 15px;">
+            <div class="horizontal-food-card">
+                <div class="food-image-container">
+                    <img src="${item.image}" alt="${item.name}" class="food-image">
+                    ${isSoldOut ? `<span class="sold-out-badge">Sold Out</span>` : ''}
+                    ${item.tag && !isSoldOut ? `<span class="discount-badge">${item.tag}</span>` : ''}
                 </div>
                 
-                <div class="glovo-body">
-                    <h3 class="glovo-title">${item.name}</h3>
-                    <div class="glovo-footer" id="footer-${item.id}">
-                        <span class="glovo-price">KES ${item.price.toLocaleString()}</span>
-                        ${isSoldOut ? `
-                            <button class="glovo-add-btn disabled" disabled><i class="fas fa-plus"></i></button>
-                        ` : (quantity > 0 ? `
-                            <div class="glovo-qty-selector">
-                                <button onclick="updateProductCardQty(${item.id}, -1); return false;"><i class="fas fa-minus"></i></button>
-                                <span>${quantity}</span>
-                                <button onclick="updateProductCardQty(${item.id}, 1); return false;"><i class="fas fa-plus"></i></button>
-                            </div>
-                        ` : `
-                            <button class="glovo-add-btn" onclick="addToCart(${item.id}); return false;"><i class="fas fa-plus"></i></button>
-                        `)}
+                <div class="food-details">
+                    <h3 class="food-title">${item.name}</h3>
+                    <p class="food-description">${item.description || 'Delicious and freshly prepared'}</p>
+                </div>
+                
+                <div class="food-pricing">
+                    <div class="price-block">
+                        ${originalPrice ? `<span class="original-price">KSh${originalPrice.toLocaleString()}</span>` : ''}
+                        <span class="current-price">KSh${item.price.toLocaleString()}</span>
                     </div>
+                    ${isSoldOut ? `
+                        <button class="add-item-btn disabled" disabled>
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    ` : (quantity > 0 ? `
+                        <div class="horizontal-qty-control">
+                            <button onclick="updateProductCardQty(${item.id}, -1); return false;" class="qty-btn">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="qty-display">${quantity}</span>
+                            <button onclick="updateProductCardQty(${item.id}, 1); return false;" class="qty-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    ` : `
+                        <button class="add-item-btn" onclick="addToCart(${item.id}); return false;">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    `)}
                 </div>
             </div>
         </div>
@@ -199,37 +215,17 @@ function updateProductCardQty(id, change) {
             if (existing.quantity > 1) {
                 existing.quantity--;
                 saveCart(cart);
-                // Re-render menu to update quantity display
-                if (window.location.pathname.includes('shop.html')) {
-                    renderMenu(currentFilter);
-                }
                 updateCartMetadata();
             } else {
                 removeFromCart(id);
+                return;
             }
         }
     }
     
-    // Specifically update ONLY this footer to avoid full re-render
-    const footer = document.getElementById(`footer-${id}`);
-    const item = MENU_ITEMS.find(i => i.id === id);
-    if (footer && item) {
-        const cart = getCart();
-        const cartItem = cart.find(c => c.id === id);
-        const quantity = cartItem ? cartItem.quantity : 0;
-        
-        footer.innerHTML = `
-            <span class="glovo-price">KES ${item.price.toLocaleString()}</span>
-            ${quantity > 0 ? `
-                <div class="glovo-qty-selector">
-                    <button onclick="updateProductCardQty(${item.id}, -1); return false;"><i class="fas fa-minus"></i></button>
-                    <span>${quantity}</span>
-                    <button onclick="updateProductCardQty(${item.id}, 1); return false;"><i class="fas fa-plus"></i></button>
-                </div>
-            ` : `
-                <button class="glovo-add-btn" onclick="addToCart(${item.id}); return false;"><i class="fas fa-plus"></i></button>
-            `}
-        `;
+    // Force re-render to show updated quantity
+    if (window.location.pathname.includes('shop.html')) {
+        renderMenu(currentFilter);
     }
 }
 
@@ -510,6 +506,181 @@ function injectPremiumStyles() {
             min-width: 20px;
             text-align: center;
             color: #000;
+        }
+
+        /* HORIZONTAL FOOD CARD DESIGN */
+        .horizontal-food-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .horizontal-food-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        
+        .food-image-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f9f9f9;
+        }
+        .food-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sold-out-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        .discount-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            box-shadow: 0 2px 8px rgba(231, 37, 45, 0.3);
+        }
+        
+        .food-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .food-title {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #000;
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+        .food-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .food-pricing {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+        .price-block {
+            text-align: right;
+        }
+        .original-price {
+            display: block;
+            font-size: 0.85rem;
+            color: #999;
+            text-decoration: line-through;
+            margin-bottom: 2px;
+        }
+        .current-price {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #000;
+        }
+        
+        .add-item-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 10px rgba(231, 37, 45, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .add-item-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 37, 45, 0.4);
+        }
+        .add-item-btn.disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .horizontal-qty-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 6px 12px;
+        }
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: none;
+            background: #f5f5f5;
+            color: #000;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+        }
+        .qty-btn:hover {
+            background: #000;
+            color: #fff;
+        }
+        .qty-display {
+            font-size: 1rem;
+            font-weight: 900;
+            color: #000;
+            min-width: 25px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .horizontal-food-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .food-image-container {
+                width: 100%;
+                height: 150px;
+            }
+            .food-pricing {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
 
         /* GLOVO-STYLE SIDEBAR LAYOUT */
