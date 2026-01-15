@@ -130,9 +130,9 @@ const OrderLog = mongoose.model("OrderLog", OrderLogSchema);
 
 // Helper to seed super admin from environment variables
 async function seedSuperAdmin() {
-  const superUser = process.env.ADMIN1_USER || "admin1";
-  const superPass = process.env.ADMIN1_PASS || "admin123";
-  const superName = process.env.ADMIN1_NAME || "JOHN WAINAINA";
+  const superUser = process.env.ADMIN1_USER || process.env.ADMIN_USER || "admin1";
+  const superPass = process.env.ADMIN1_PASS || process.env.ADMIN_PASS || "admin123";
+  const superName = process.env.ADMIN1_NAME || "KIBBY ADMIN";
 
   const staff2User = process.env.ADMIN2_USER || "admin2";
   const staff2Pass = process.env.ADMIN2_PASS || "kibbys2026";
@@ -1310,6 +1310,11 @@ app.get("/api/admin/export", async (req, res) => {
     const now = Date.now();
   
     try {
+      if (!mongoose.connection.readyState) {
+        console.error("[LOGIN ERROR] Database not connected (readyState: 0)");
+        return res.status(503).json({ success: false, message: "Database connection is not ready. Check your MONGODB_URI." });
+      }
+
       const user = await Staff.findOne({ username, password });
       if (!user) return res.status(401).json({ success: false, message: "Invalid credentials." });
       
@@ -1339,7 +1344,8 @@ app.get("/api/admin/export", async (req, res) => {
         sessionId
       });
     } catch (e) {
-      res.status(500).json({ success: false, message: "Server error during login." });
+      console.error("[LOGIN CRITICAL ERROR]", e);
+      res.status(500).json({ success: false, message: "Server error during login: " + e.message });
     }
   });
 
