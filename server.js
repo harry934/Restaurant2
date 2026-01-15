@@ -626,7 +626,7 @@ app.post("/api/admin/settings/update", authMiddleware, async (req, res) => {
   try {
     console.log(`[ADMIN ACTION] ${req.staffName} updating system settings`);
     // Upsert ensures document is created if it doesn't exist
-    const updated = await Settings.findOneAndUpdate({}, req.body, {
+    const updated = await Settings.findOneAndUpdate({}, { $set: req.body }, {
       new: true,
       upsert: true,
     });
