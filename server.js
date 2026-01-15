@@ -126,7 +126,21 @@ const Menu = mongoose.model("Menu", MenuSchema);
 const Settings = mongoose.model("Settings", SettingsSchema);
 const OrderLog = mongoose.model("OrderLog", OrderLogSchema);
 
-// Helper to seed super admin from environment variables
+// Admin Session Schema for persistence across redeploys
+const AdminSessionSchema = new mongoose.Schema({
+  sessionId: { type: String, required: true, unique: true },
+  username: { type: String, required: true },
+  name: String,
+  role: String,
+  photo: String,
+  lastActive: { type: Date, default: Date.now },
+  expiresAt: { type: Date, index: { expires: '24h' } } // Auto-cleanup after 24h
+});
+const AdminSession = mongoose.model("AdminSession", AdminSessionSchema);
+
+// Cleanup stale sessions (Legacy in-memory tracker - kept for compatibility but will be phased out)
+let activeAdminSessions = {}; 
+const SESSION_TIMEOUT = 10 * 60 * 1000;
 async function seedSuperAdmin() {
   const superUser = process.env.ADMIN1_USER || process.env.ADMIN_USER || "admin1";
   const superPass = process.env.ADMIN1_PASS || process.env.ADMIN_PASS || "admin123";
@@ -395,17 +409,19 @@ const authMiddleware = async (req, res, next) => {
   if (authHeader === `Bearer ${ADMIN_TOKEN}` || queryToken === ADMIN_TOKEN) {
     // Session validation
     if (username && sessionId) {
-      const activeSession = activeAdminSessions[username];
+      const dbSession = await AdminSession.findOne({ sessionId, username });
       const now = Date.now();
       
-      if (!activeSession || activeSession.sessionId !== sessionId || (now - activeSession.lastActive > SESSION_TIMEOUT)) {
+      if (!dbSession) {
         return res.status(401).json({ success: false, message: "Session expired or active elsewhere." });
       }
       
       // Update activity and attach info to request
-      activeAdminSessions[username].lastActive = now;
-      req.staffName = activeSession.name;
-      req.staffRole = activeSession.role;
+      dbSession.lastActive = new Date();
+      await dbSession.save();
+
+      req.staffName = dbSession.name;
+      req.staffRole = dbSession.role;
       req.staffUsername = username;
     }
     next();
@@ -415,46 +431,25 @@ const authMiddleware = async (req, res, next) => {
 };
 
 // Admin Logout Route - Extremely robust to clear sessions
-app.post("/api/admin/logout", (req, res) => {
+app.post("/api/admin/logout", async (req, res) => {
   const { username, sessionId } = req.body;
-  let cleared = false;
-  
-  // 1. Try clearing by username index
-  if (username && activeAdminSessions[username]) {
-    if (activeAdminSessions[username].sessionId === sessionId) {
-      console.log(`[ADMIN LOGOUT] Explicit logout for ${activeAdminSessions[username].name}`);
-      delete activeAdminSessions[username];
-      cleared = true;
-    }
+  try {
+    const result = await AdminSession.deleteOne({ sessionId, username });
+    res.json({ success: true, cleared: result.deletedCount > 0 });
+  } catch (e) {
+    res.status(500).json({ success: false });
   }
-  
-  // 2. Fallback: Search all sessions for this sessionId (in case username index mismatch)
-  if (!cleared && sessionId) {
-    for (const user in activeAdminSessions) {
-      if (activeAdminSessions[user].sessionId === sessionId) {
-        console.log(`[ADMIN LOGOUT] SessionID match logout for ${activeAdminSessions[user].name}`);
-        delete activeAdminSessions[user];
-        cleared = true;
-        break;
-      }
-    }
-  }
-
-  res.json({ success: true, cleared });
 });
 
 // Get Active Admin status for the whole system (Robust mapping)
-app.get("/api/admin/active-sessions", authMiddleware, (req, res) => {
-  // We explicitly return the status of our two configured admins
-  const sessions = Object.values(activeAdminSessions);
-  const onlineNames = sessions.map(s => s.name.toUpperCase());
-  
-  res.json({ 
-    success: true, 
-    onlineAdmins: onlineNames,
-    // Add timestamps to prove live data
-    serverTime: new Date().toISOString()
-  });
+app.get("/api/admin/active-sessions", authMiddleware, async (req, res) => {
+  try {
+    const sessions = await AdminSession.find();
+    const onlineNames = sessions.map(s => s.name.toUpperCase());
+    res.json({ success: true, onlineAdmins: onlineNames, serverTime: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
 });
 
 // --- API ROUTES ---
@@ -1419,6 +1414,20 @@ app.get("/api/admin/export", async (req, res) => {
         role: user.role,
         photo: user.profilePhoto
       };
+
+      // Save persistent session to MongoDB
+      await AdminSession.findOneAndUpdate(
+        { username: user.username },
+        { 
+          sessionId, 
+          name: user.name, 
+          role: user.role, 
+          photo: user.profilePhoto,
+          lastActive: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) 
+        },
+        { upsert: true }
+      );
       
       console.log(`[ADMIN LOGIN] ${user.name} (${user.role}) logged in successfully`);
       return res.json({
