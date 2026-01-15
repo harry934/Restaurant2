@@ -25,7 +25,10 @@ async function loadMenuData() {
 let currentFilter = 'all';
 
 // Notification System
+// Notification System - Premium Edition
 function showNotification(title, message, type = 'success') {
+    injectNotificationStyles(); // Ensure styles are present
+
     let container = document.querySelector('.pcnc-notification-container');
     if (!container) {
         container = document.createElement('div');
@@ -39,24 +42,124 @@ function showNotification(title, message, type = 'success') {
     let icon = 'fa-check-circle';
     if (type === 'error') icon = 'fa-times-circle';
     if (type === 'info') icon = 'fa-info-circle';
+    if (type === 'warning') icon = 'fa-exclamation-triangle';
     
     toast.innerHTML = `
-        <i class="fas ${icon}"></i>
+        <div class="toast-icon-wrap">
+            <i class="fas ${icon}"></i>
+        </div>
         <div class="pcnc-toast-content">
             <span class="pcnc-toast-title">${title}</span>
             <span class="pcnc-toast-msg">${message}</span>
         </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
     `;
 
     container.appendChild(toast);
 
-    // Auto remove after 4 seconds
+    // Auto remove after 2.5 seconds (snappy and professional)
     setTimeout(() => {
-        toast.classList.add('fade-out');
+        toast.style.animation = 'slideOutTop 0.4s forwards ease-in';
         setTimeout(() => {
-            toast.remove();
-        }, 300);
-    }, 4000);
+            if (toast.parentElement) toast.remove();
+        }, 400); // Wait for animation
+    }, 2500); 
+}
+
+function injectNotificationStyles() {
+    if (document.getElementById('pcnc-notify-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'pcnc-notify-styles';
+    style.innerHTML = `
+        .pcnc-notification-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+            font-family: 'Poppins', sans-serif;
+        }
+        .pcnc-toast {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            color: #333;
+            padding: 16px 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            min-width: 320px;
+            max-width: 380px;
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: slideInTop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            pointer-events: auto;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .pcnc-toast::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+        .pcnc-toast.success::before { background: #00c851; }
+        .pcnc-toast.error::before { background: #ff4444; }
+        .pcnc-toast.info::before { background: #33b5e5; }
+        .pcnc-toast.warning::before { background: #ffbb33; }
+
+        .toast-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .pcnc-toast.success .toast-icon-wrap { background: rgba(0, 200, 81, 0.1); color: #00c851; }
+        .pcnc-toast.error .toast-icon-wrap { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
+        .pcnc-toast.info .toast-icon-wrap { background: rgba(51, 181, 229, 0.1); color: #33b5e5; }
+        .pcnc-toast.warning .toast-icon-wrap { background: rgba(255, 187, 51, 0.1); color: #ffbb33; }
+        
+        .pcnc-toast i { font-size: 1.1rem; }
+        
+        .pcnc-toast-content { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .pcnc-toast-title { font-weight: 800; font-size: 0.95rem; color: #000; letter-spacing: -0.3px; line-height: 1.2; }
+        .pcnc-toast-msg { font-size: 0.85rem; color: #666; font-weight: 500; line-height: 1.4; }
+        
+        .toast-close {
+            background: transparent;
+            border: none;
+            color: #ccc;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: 0.2s;
+            margin-top: -2px;
+            margin-right: -4px;
+        }
+        .toast-close:hover { color: #333; }
+
+        @keyframes slideInTop {
+            from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes slideOutTop {
+            from { transform: translateY(0) scale(1); opacity: 1; }
+            to { transform: translateY(-20px) scale(0.95); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // CART LOGIC
