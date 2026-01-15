@@ -138,9 +138,7 @@ const AdminSessionSchema = new mongoose.Schema({
 });
 const AdminSession = mongoose.model("AdminSession", AdminSessionSchema);
 
-// Cleanup stale sessions (Legacy in-memory tracker - kept for compatibility but will be phased out)
-let activeAdminSessions = {}; 
-const SESSION_TIMEOUT = 10 * 60 * 1000;
+// Helper to seed super admin from environment variables
 async function seedSuperAdmin() {
   const superUser = process.env.ADMIN1_USER || process.env.ADMIN_USER || "admin1";
   const superPass = process.env.ADMIN1_PASS || process.env.ADMIN_PASS || "admin123";
