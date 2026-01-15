@@ -192,7 +192,10 @@ function updateProductCardQty(id, change) {
             if (existing.quantity > 1) {
                 existing.quantity--;
                 saveCart(cart);
-                renderCart();
+                // Re-render menu to update quantity display
+                if (window.location.pathname.includes('shop.html')) {
+                    renderMenu(currentFilter);
+                }
                 updateCartMetadata();
             } else {
                 removeFromCart(id);
@@ -330,22 +333,36 @@ function injectPremiumStyles() {
             --glovo-bg: #f5f5f5;
         }
 
-        /* Category Header - Glovo Style */
+        /* Category Header - Enhanced */
         .category-header-glovo {
-            padding: 30px 0 15px;
-            margin-bottom: 10px;
+            padding: 35px 0 20px;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #f5f5f5;
         }
         .category-header-glovo h2 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--glovo-text);
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #1a1a1a;
             margin: 0;
+            position: relative;
+            padding-left: 15px;
+        }
+        .category-header-glovo h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 5px;
+            height: 30px;
+            background: var(--glovo-red);
+            border-radius: 3px;
         }
 
         /* Glovo Cards */
         .glovo-card {
             background: #fff;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             border: 1px solid #f2f2f2;
             height: 100%;
@@ -362,59 +379,63 @@ function injectPremiumStyles() {
 
         .glovo-img-wrap {
             position: relative;
-            padding-top: 75%; /* 4:3 Aspect Ratio */
+            padding-top: 65%; /* Reduced from 75% to give more space for text */
             background: #fafafa;
         }
         .glovo-img {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
-            padding: 10px;
+            padding: 12px;
             transition: 0.3s;
         }
-        .glovo-card:hover .glovo-img { transform: scale(1.05); }
+        .glovo-card:hover .glovo-img { transform: scale(1.08); }
 
         .glovo-badge-sold {
             position: absolute;
             top: 10px; right: 10px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             color: #fff;
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 5px 10px;
+            border-radius: 6px;
             z-index: 5;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .glovo-badge-tag {
             position: absolute;
             top: 10px; left: 10px;
             background: var(--glovo-red);
             color: #fff;
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 5px 10px;
+            border-radius: 6px;
             z-index: 5;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .glovo-body {
-            padding: 12px;
+            padding: 16px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            background: #fff;
         }
         .glovo-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--glovo-text);
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            min-height: 2.4em;
+            min-height: 2.8em;
         }
 
         .glovo-footer {
@@ -422,71 +443,90 @@ function injectPremiumStyles() {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
         }
         .glovo-price {
-            font-weight: 800;
-            font-size: 1rem;
-            color: var(--glovo-text);
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--glovo-red);
+            letter-spacing: -0.5px;
         }
         .glovo-add-btn {
-            width: 32px; height: 32px;
+            width: 36px; height: 36px;
             background: var(--glovo-red);
             color: #fff;
             border: none;
             border-radius: 50%;
             display: flex;
             align-items: center; justify-content: center;
-            font-size: 12px;
+            font-size: 14px;
             transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(231, 37, 45, 0.2);
+            box-shadow: 0 4px 12px rgba(231, 37, 45, 0.25);
+            flex-shrink: 0;
         }
-        .glovo-add-btn:hover { background: #c11b17; transform: scale(1.15); }
+        .glovo-add-btn:hover { background: #c11b17; transform: scale(1.1); box-shadow: 0 6px 16px rgba(231, 37, 45, 0.35); }
         .glovo-add-btn.disabled { background: #ddd; box-shadow: none; cursor: not-allowed; }
 
         /* Quantity Selector */
         .glovo-qty-selector {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             background: #fff;
-            border: 1px solid #eee;
+            border: 1.5px solid #e7252d;
             border-radius: 50px;
-            padding: 3px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 4px 8px;
+            box-shadow: 0 4px 12px rgba(231, 37, 45, 0.12);
         }
         .glovo-qty-selector button {
-            width: 28px; height: 28px;
+            width: 26px; height: 26px;
             border-radius: 50%;
             border: none;
             background: #f8f8f8;
-            color: var(--glovo-text);
+            color: var(--glovo-red);
             display: flex;
             align-items: center; justify-content: center;
-            font-size: 10px;
+            font-size: 11px;
+            font-weight: 900;
             transition: 0.2s;
         }
-        .glovo-qty-selector button:hover { background: var(--glovo-red); color: #fff; }
+        .glovo-qty-selector button:hover { background: var(--glovo-red); color: #fff; transform: scale(1.1); }
         .glovo-qty-selector span {
-            font-weight: 800;
-            font-size: 0.9rem;
-            min-width: 15px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            min-width: 18px;
             text-align: center;
+            color: var(--glovo-red);
         }
 
         /* Horizontal Scroll Nav with Indicators */
         .pcnc-filter-wrap {
             position: relative;
             overflow: hidden;
-            background: #fff;
+            background: linear-gradient(135deg, #f8f8f8 0%, #ffffff 100%);
+            border-bottom: 2px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
         .pcnc-filter-wrap::after {
-            content: '';
+            content: '→';
             position: absolute;
-            top: 0; right: 0;
-            width: 50px; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.9));
+            top: 50%; right: 15px;
+            transform: translateY(-50%);
+            width: 40px; height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to left, rgba(231,37,45,0.15), transparent);
+            color: var(--glovo-red);
+            font-size: 1.2rem;
+            font-weight: 900;
             pointer-events: none;
-            z-index: 2;
+            z-index: 3;
+            animation: scroll-hint 2s infinite;
+        }
+        @keyframes scroll-hint {
+            0%, 100% { transform: translateY(-50%) translateX(0); opacity: 0.7; }
+            50% { transform: translateY(-50%) translateX(5px); opacity: 1; }
         }
         .pcnc-filter-list {
             display: flex !important;
