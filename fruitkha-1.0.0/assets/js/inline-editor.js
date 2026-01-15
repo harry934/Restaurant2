@@ -91,7 +91,25 @@
                 </div>
             `;
             document.body.appendChild(bar);
+            
+            // Adjust body and elements for the bar height (approx 50px)
             document.body.style.paddingTop = '50px';
+            
+            // Fix for overlapping navigation headers (id="sticker" in fruitkha)
+            const sticker = document.getElementById('sticker');
+            if (sticker) {
+                sticker.style.top = '50px';
+            }
+            
+            // Ensure any other top-fixed elements are also moved
+            const style = document.createElement('style');
+            style.textContent = `
+                .cms-admin-bar ~ #sticker { top: 50px !important; }
+                @media only screen and (max-width: 991px) {
+                    .mean-container .mean-bar { top: 50px !important; }
+                }
+            `;
+            document.head.appendChild(style);
         }
 
         setupListeners() {

@@ -478,6 +478,21 @@
       /* Fix for potential overlapping */
       .view-section {
         padding-bottom: 50px;
+        overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+      }
+      
+      .main-content {
+        overflow-x: hidden;
+      }
+
+      /* Profile responsiveness tweak */
+      @media (max-width: 768px) {
+        .profile-header-card {
+            margin-bottom: 20px;
+        }
+        .main-content {
+            padding: 80px 15px 40px 15px !important;
+        }
       }
     </style>
   </head>
@@ -993,130 +1008,43 @@
               </h5>
               <form id="settingsForm">
                 <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label
-                        class="small font-weight-bold d-flex justify-content-between align-items-center"
-                      >
-                        <span>Primary Support Phone Numbers</span>
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-primary"
-                          onclick="addPhoneField()"
-                        >
-                          <i class="fas fa-plus"></i>
-                        </button>
-                      </label>
-                      <div id="phoneFields"></div>
-                    </div>
-                    <div class="form-group">
-                      <label
-                        class="small font-weight-bold d-flex justify-content-between align-items-center"
-                      >
-                        <span>Support Emails</span>
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-primary"
-                          onclick="addEmailField()"
-                        >
-                          <i class="fas fa-plus"></i>
-                        </button>
-                      </label>
-                      <div id="emailFields"></div>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <h6
-                      class="font-weight-bold small text-uppercase text-danger mb-3"
-                    >
-                      Homepage Hero Section
+                  <div class="col-md-6 border-right">
+                    <h6 class="font-weight-bold small text-uppercase text-danger mb-3">
+                      <i class="fas fa-image mr-2"></i>Media & Branding
                     </h6>
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Hero Main Title</label
-                      ><input
-                        type="text"
-                        name="homeTitle"
-                        class="form-control"
-                        placeholder="e.g. Delicious Food Delivered"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Hero Subtitle</label
-                      ><input
-                        type="text"
-                        name="homeSubtext"
-                        class="form-control"
-                        placeholder="e.g. Freshly made with love"
-                      />
+                    <div class="form-group mb-4">
+                      <label class="small font-weight-bold">Website Logo</label>
+                      <div class="bg-light p-3 rounded mb-2 text-center" style="border: 2px dashed #ddd;">
+                        <img id="logoPreview" src="" style="max-height: 60px;" class="mb-2 d-none">
+                        <input type="file" id="logoInput" class="form-control-file">
+                      </div>
                     </div>
                     <div class="form-group">
                       <label class="small font-weight-bold">Hero Background Image</label>
                       <input type="file" id="heroBgInput" class="form-control-file mb-2">
-                      <small class="text-muted">Current: <span id="currentHeroBg">default</span></small>
+                       <small class="text-muted d-block">Current: <span id="currentHeroBg" class="font-weight-bold">default</span></small>
                     </div>
                   </div>
-                </div>
-                <div class="row">
-                   <div class="col-md-6">
-                      <h6 class="font-weight-bold small text-uppercase text-info mb-3">Site Identity</h6>
-                      <div class="form-group text-center bg-light p-3 rounded" style="border: 2px dashed #ddd;">
-                        <img id="logoPreview" src="" style="max-height: 80px;" class="mb-2 d-none">
-                        <label class="small font-weight-bold d-block">Website Logo</label>
-                        <input type="file" id="logoInput" class="form-control-file">
-                      </div>
-                   </div>
-                   <div class="col-md-6">
-                      <h6 class="font-weight-bold small text-uppercase text-info mb-3">Global Contact Info</h6>
-                      <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Business Address</label>
-                        <input type="text" name="address" class="form-control form-control-sm">
-                      </div>
-                      <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Primary Support Phone</label>
-                        <input type="text" name="phone" class="form-control form-control-sm">
-                      </div>
-                      <div class="form-group mb-2">
-                        <label class="small font-weight-bold">Official Support Email</label>
-                        <input type="email" name="email" class="form-control form-control-sm">
-                      </div>
-                      <div class="form-group mb-2">
-                        <label class="small font-weight-bold">M-Pesa Till Number</label>
-                        <input type="text" name="till" class="form-control form-control-sm">
-                      </div>
-                      <div class="form-group">
-                        <label class="small font-weight-bold">Shop Hours</label>
-                        <input type="text" name="hours" class="form-control form-control-sm" placeholder="MON - SUN: 8:00 AM to 9:00 PM">
-                      </div>
-                   </div>
-                </div>
-                <hr class="my-3">
-                <div class="row">
-                   <div class="col-md-6">
-                      <h6 class="font-weight-bold small text-uppercase text-info mb-3">Social Media Links</h6>
-                        <div class="input-group mb-2 input-group-sm">
-                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-facebook"></i></span></div>
-                            <input type="text" name="facebook" class="form-control" placeholder="Facebook URL">
-                        </div>
-                        <div class="input-group mb-2 input-group-sm">
-                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-tiktok"></i></span></div>
-                            <input type="text" name="tiktok" class="form-control" placeholder="TikTok URL">
-                        </div>
-                        <div class="input-group mb-2 input-group-sm">
-                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-instagram"></i></span></div>
-                            <input type="text" name="instagram" class="form-control" placeholder="Instagram URL">
-                        </div>
-                        <div class="input-group mb-2 input-group-sm">
-                            <div class="input-group-prepend"><span class="input-group-text"><i class="fab fa-twitter"></i></span></div>
-                            <input type="text" name="twitter" class="form-control" placeholder="Twitter URL">
-                        </div>
-                   </div>
-                   <div class="col-md-6">
-                      <div class="form-group">
-                        <label class="small font-weight-bold">General "About Us" Footer Text</label>
-                        <textarea name="aboutText" class="form-control" rows="5"></textarea>
-                      </div>
-                   </div>
-                </div>
+                  
+                  <div class="col-md-6">
+                    <h6 class="font-weight-bold small text-uppercase text-info mb-3">
+                      <i class="fas fa-headset mr-2"></i>Support Channels
+                    </h6>
+                    <div class="form-group mb-3">
+                      <label class="small font-weight-bold d-flex justify-content-between">
+                        <span>Customer Support Phone Numbers</span>
+                        <button type="button" class="btn btn-xs btn-primary" onclick="addPhoneField()"><i class="fas fa-plus"></i></button>
+                      </label>
+                      <div id="phoneFields"></div>
+                    </div>
+                    <div class="form-group">
+                      <label class="small font-weight-bold d-flex justify-content-between">
+                        <span>Customer Support Emails</span>
+                        <button type="button" class="btn btn-xs btn-primary" onclick="addEmailField()"><i class="fas fa-plus"></i></button>
+                      </label>
+                      <div id="emailFields"></div>
+                    </div>
+                  </div>
                 </div>
                 <div class="text-right">
                   <button
@@ -1137,35 +1065,10 @@
               </h6>
               <form id="homeAboutForm">
                 <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Section Title</label
-                      ><input
-                        type="text"
-                        name="title"
-                        class="form-control"
-                        placeholder="Since 2019"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Main Heading</label
-                      ><input
-                        type="text"
-                        name="heading"
-                        class="form-control"
-                        placeholder="We are Pizza Chick n Crust"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Description</label
-                      ><textarea
-                        name="description"
-                        class="form-control"
-                        rows="3"
-                      ></textarea>
-                    </div>
+                  <div class="col-md-12">
+                     <p class="text-muted small">The text content for this section (Title, Heading, Description) is now managed directly on the website via <b>Inline Editing</b>. Use the fields below only for media updates.</p>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-12">
                     <div class="form-group">
                       <label class="small font-weight-bold">Video Source</label>
                       <div class="custom-control custom-switch mb-2">
@@ -1326,22 +1229,14 @@
                   <h5 class="font-weight-bold mb-4">Wide Promo Banner (BOGO Section)</h5>
                   <form id="shopBannerForm">
                     <div class="row">
-                      <div class="col-md-6">
-                        <div class="form-group">
-                          <label class="small font-weight-bold">Banner Headline (HTML safe)</label>
-                          <textarea name="title" class="form-control" rows="2" placeholder="e.g. New Year BOGO! <br> with Kibby's"></textarea>
-                          <small class="text-muted">Use <code>&lt;br&gt;</code> for new lines. Use <code>&lt;span class="orange-text"&gt;Text&lt;/span&gt;</code> for brand color.</small>
-                        </div>
+                      <div class="col-md-12 mb-3">
+                        <p class="text-muted small">Text for the Promo Banner is managed via **Inline Editing** on the website. Use this form to update the background image.</p>
                       </div>
-                      <div class="col-md-6">
+                      <div class="col-md-12">
                         <div class="form-group">
-                          <label class="small font-weight-bold">Sale Percentage/Deals Text</label>
-                          <textarea name="percentText" class="form-control" rows="2" placeholder="e.g. Buy One Get One FREE"></textarea>
-                        </div>
-                        <div class="form-group">
-                          <label class="small font-weight-bold">Background Image</label>
+                          <label class="small font-weight-bold">Banner Background Image</label>
                           <input type="file" id="shopBannerBgInput" class="form-control-file">
-                          <small class="text-muted">Recommended: 1920x600px</small>
+                          <small class="text-muted">Recommended: 1920x600px for high quality display.</small>
                         </div>
                       </div>
                     </div>
@@ -1381,41 +1276,17 @@
                 >
                   <h5 class="font-weight-bold mb-4">Deal of the Week (Side Box)</h5>
                   <form id="dealForm">
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Section Title</label
-                      ><input type="text" name="title" class="form-control" />
+                    <div class="form-group mb-4">
+                        <p class="text-muted small">Text content for the "Deal of the Week" is managed via **Inline Editing** on the website. Use this form to update the featured image.</p>
                     </div>
                     <div class="form-group">
-                      <label class="small font-weight-bold">Headline</label
-                      ><input
-                        type="text"
-                        name="subtitle"
-                        class="form-control"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label class="small font-weight-bold">Description</label
-                      ><textarea
-                        name="description"
-                        class="form-control"
-                        rows="2"
-                      ></textarea>
-                    </div>
-                    <div class="form-group">
-                      <label class="small font-weight-bold"
-                        >Image URL or Path</label
-                      >
-                      <input
-                        type="text"
-                        name="image"
-                        class="form-control mb-2"
-                        placeholder="assets/img/..."
-                      />
+                      <label class="small font-weight-bold">Featured Deal Image</label>
                       <input
                         type="file"
                         id="dealImageInput"
-                        class="form-control-file"
+                        class="form-control-file mb-2"
                       />
+                      <small class="text-muted">Upload a clear photo of the weekly special.</small>
                     </div>
                     <button
                       type="submit"
@@ -4098,67 +3969,34 @@
                             `);
               });
 
-              if (form.homeTitle) form.homeTitle.value = data.homeTitle || "";
-              if (form.homeSubtext)
-                form.homeSubtext.value = data.homeSubtext || "";
-              if (form.aboutText) form.aboutText.value = data.aboutText || "";
+              // Content management for these fields is now INLINE on the website.
+              // We only manage support contacts and media here.
+              
               if (data.heroBg) $("#currentHeroBg").text(data.heroBg.split('/').pop());
               
               // Load Identity
               if (data.logo) {
                   $("#logoPreview").attr("src", "/"+data.logo).removeClass("d-none");
               }
-
-              // Load Contact
-              if (data.contact) {
-                  if(form.address) form.address.value = data.contact.address || "";
-                  if(form.phone) form.phone.value = data.contact.phone || "";
-                  if(form.email) form.email.value = data.contact.email || "";
-                  if(form.till) form.till.value = data.contact.till || "";
-                  if(form.hours) form.hours.value = data.contact.hours || "";
-              }
-
-              // Load Social
-              if (data.social) {
-                  if(form.facebook) form.facebook.value = data.social.facebook || "";
-                  if(form.tiktok) form.tiktok.value = data.social.tiktok || "";
-                  if(form.instagram) form.instagram.value = data.social.instagram || "";
-                  if(form.twitter) form.twitter.value = data.social.twitter || "";
-              }
+              
               $("#globalWhatsappInput").val(data.whatsappNumber || "");
             }
           }, "CoreInfo");
 
           // Load Shop Banner
           tryBlock(() => {
-            const sbForm = $("#shopBannerForm")[0];
-            if (sbForm && data.shopBanner) {
-              if (sbForm.title) sbForm.title.value = data.shopBanner.title || "";
-              if (sbForm.percentText) sbForm.percentText.value = data.shopBanner.percentText || "";
-            }
+            // Text is handled inline
           }, "ShopBanner");
 
           // Load Deal of the Week
           tryBlock(() => {
-            const df = $("#dealForm")[0];
-            if (df && data.dealOfWeek) {
-              if (df.title) df.title.value = data.dealOfWeek.title || "";
-              if (df.subtitle)
-                df.subtitle.value = data.dealOfWeek.subtitle || "";
-              if (df.description)
-                df.description.value = data.dealOfWeek.description || "";
-              if (df.image) df.image.value = data.dealOfWeek.image || "";
-            }
+            // Text is handled inline
           }, "DealOfWeek");
 
           // Load Home About
           tryBlock(() => {
             const haf = $("#homeAboutForm")[0];
             if (haf && data.homeAbout) {
-              if (haf.title) haf.title.value = data.homeAbout.title || "";
-              if (haf.heading) haf.heading.value = data.homeAbout.heading || "";
-              if (haf.description)
-                haf.description.value = data.homeAbout.description || "";
               if (haf.videoLink)
                 haf.videoLink.value = data.homeAbout.videoLink || "";
               if (haf.isVideoLocal)
