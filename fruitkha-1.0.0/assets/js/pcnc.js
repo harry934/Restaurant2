@@ -430,24 +430,22 @@ function injectPremiumStyles() {
         }
 
         .glovo-body {
-            padding: 18px;
+            padding: 20px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             background: #fff;
         }
         .glovo-title {
-            font-size: 1.1rem;
+            font-size: 1.3rem;
             font-weight: 900;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             color: #000;
-            line-height: 1.35;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            min-height: 2.7em;
-            letter-spacing: -0.2px;
+            line-height: 1.4;
+            display: block;
+            text-align: left;
+            min-height: auto;
+            letter-spacing: -0.3px;
         }
 
         .glovo-footer {
