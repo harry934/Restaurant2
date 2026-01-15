@@ -32,13 +32,11 @@ setInterval(() => {
 // (Security middleware removed)
 
 // MongoDB Connection
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://adminn:kenyasbest@cluster0.wwgtbp9.mongodb.net/restaurant?appName=Cluster0";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 let isConnected = false;
 mongoose
-  .connect(MONGODB_URI)
+  .connect(MONGODB_URI, { bufferCommands: false })
   .then(() => {
     console.log("Connected to MongoDB");
     isConnected = true;
@@ -152,12 +150,15 @@ async function seedSuperAdmin() {
       await boss.save();
       console.log(`[SEED] Super Admin ${superName} created.`);
     } else {
-      // Force role and status if he exists but is restricted
-      if (boss.role !== 'super-admin' || boss.status !== 'approved') {
-        boss.role = 'super-admin';
-        boss.status = 'approved';
+      // Sync role, status, and name if they change in environment variables
+      let updated = false;
+      if (boss.role !== 'super-admin') { boss.role = 'super-admin'; updated = true; }
+      if (boss.status !== 'approved') { boss.status = 'approved'; updated = true; }
+      if (boss.name !== superName) { boss.name = superName; updated = true; }
+      
+      if (updated) {
         await boss.save();
-        console.log(`[SEED] Super Admin ${superName} role restored.`);
+        console.log(`[SEED] Super Admin ${superName} profile updated.`);
       }
     }
 
@@ -1323,6 +1324,13 @@ app.get("/api/admin/export", async (req, res) => {
       if (user.status === 'rejected') return res.status(403).json({ success: false, message: "Your account access has been denied." });
 
       const sessionId = Math.random().toString(36).substring(2, 15);
+      
+      // If this is the Super Admin (from env), force their profile to match current env settings
+      const superUser = process.env.ADMIN1_USER || process.env.ADMIN_USER || "admin1";
+      if (user.role === 'super-admin' && user.username === superUser) {
+        user.name = process.env.ADMIN1_NAME || user.name;
+      }
+
       activeAdminSessions[username] = { 
         lastActive: now, 
         sessionId, 
