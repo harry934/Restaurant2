@@ -24,7 +24,7 @@ async function loadMenuData() {
 
 let currentFilter = 'all';
 
-// Notification System - Modern Professional Edition
+// Notification System - Minimalist & Snappy
 function showNotification(title, message, type = 'success') {
     injectNotificationStyles();
 
@@ -36,7 +36,7 @@ function showNotification(title, message, type = 'success') {
     }
 
     const toast = document.createElement('div');
-    toast.className = `pcnc-toast-modern ${type}`;
+    toast.className = `pcnc-toast-compact ${type}`;
     
     let icon = 'fa-check-circle';
     if (type === 'error') icon = 'fa-times-circle';
@@ -44,153 +44,112 @@ function showNotification(title, message, type = 'success') {
     if (type === 'warning') icon = 'fa-exclamation-triangle';
     
     toast.innerHTML = `
-        <div class="toast-side-accent"></div>
-        <div class="toast-icon-box">
+        <div class="toast-icon">
             <i class="fas ${icon}"></i>
         </div>
-        <div class="toast-content-box">
-            <div class="toast-title-modern">${title}</div>
-            <div class="toast-msg-modern">${message}</div>
+        <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${message}</div>
         </div>
-        <button class="toast-close-modern" onclick="this.parentElement.remove()">
+        <button class="toast-close-btn" onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
         </button>
-        <div class="toast-progress-bar">
-            <div class="toast-progress-fill"></div>
-        </div>
     `;
 
     container.appendChild(toast);
 
-    // Auto remove after 4 seconds
-    const duration = 4000;
-    const fill = toast.querySelector('.toast-progress-fill');
-    if (fill) fill.style.animation = `toastProgress ${duration}ms linear forwards`;
-
+    // Auto remove after 3 seconds
     setTimeout(() => {
-        toast.classList.add('leaving');
+        toast.classList.add('fade-out');
         setTimeout(() => {
             if (toast.parentElement) toast.remove();
-        }, 400);
-    }, duration); 
+        }, 200);
+    }, 3000); 
 }
 
 function injectNotificationStyles() {
-    if (document.getElementById('pcnc-modern-notify-styles')) return;
+    if (document.getElementById('pcnc-compact-notify-styles')) return;
     const style = document.createElement('style');
-    style.id = 'pcnc-modern-notify-styles';
+    style.id = 'pcnc-compact-notify-styles';
     style.innerHTML = `
         .pcnc-toast-container {
             position: fixed;
-            top: 30px;
-            right: 30px;
+            top: 20px;
+            right: 20px;
             z-index: 999999;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             pointer-events: none;
         }
-        .pcnc-toast-modern {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            min-width: 350px;
-            max-width: 450px;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        .pcnc-toast-compact {
+            background: #fff;
+            color: #333;
+            width: 280px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex;
             align-items: center;
-            padding: 18px 25px;
-            position: relative;
-            overflow: hidden;
+            padding: 12px 15px;
             pointer-events: auto;
-            animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            border: 1px solid rgba(255,255,255,0.5);
-            font-family: 'Poppins', sans-serif;
+            border: 1px solid #eee;
+            animation: snappyIn 0.25s ease-out forwards;
+            font-family: 'Poppins', -apple-system, system-ui, sans-serif;
+            position: relative;
         }
-        .pcnc-toast-modern.leaving {
-            animation: toastOut 0.4s ease forwards;
+        .pcnc-toast-compact.fade-out {
+            animation: snappyOut 0.2s ease-in forwards;
         }
-        .toast-side-accent {
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 6px;
+        .toast-icon {
+            font-size: 1.1rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
         }
-        .pcnc-toast-modern.success .toast-side-accent { background: #00b894; }
-        .pcnc-toast-modern.error .toast-side-accent { background: #ff7675; }
-        .pcnc-toast-modern.warning .toast-side-accent { background: #fdcb6e; }
-        .pcnc-toast-modern.info .toast-side-accent { background: #0984e3; }
+        .pcnc-toast-compact.success .toast-icon { color: #2ecc71; background: #eafaf1; }
+        .pcnc-toast-compact.error .toast-icon { color: #e74c3c; background: #fdf2f2; }
+        .pcnc-toast-compact.warning .toast-icon { color: #f39c12; background: #fef9e7; }
+        .pcnc-toast-compact.info .toast-icon { color: #3498db; background: #ebf5fb; }
 
-        .toast-icon-box {
-            width: 45px; height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center; justify-content: center;
-            margin-right: 18px;
-            font-size: 1.4rem;
-        }
-        .success .toast-icon-box { background: rgba(0, 184, 148, 0.1); color: #00b894; }
-        .error .toast-icon-box { background: rgba(255, 118, 117, 0.1); color: #ff7675; }
-        .warning .toast-icon-box { background: rgba(253, 203, 110, 0.1); color: #fdcb6e; }
-        .info .toast-icon-box { background: rgba(9, 132, 227, 0.1); color: #0984e3; }
-
-        .toast-content-box { flex-grow: 1; }
-        .toast-title-modern {
+        .toast-body { flex-grow: 1; }
+        .toast-title {
             font-weight: 800;
-            font-size: 1.05rem;
-            color: #1d1d1f;
-            margin-bottom: 2px;
+            font-size: 0.85rem;
+            color: #111;
+            line-height: 1.2;
         }
-        .toast-msg-modern {
-            font-size: 0.9rem;
-            color: #636e72;
+        .toast-msg {
+            font-size: 0.75rem;
+            color: #777;
             font-weight: 500;
         }
-        .toast-close-modern {
+        .toast-close-btn {
             background: none; border: none;
-            color: #b2bec3;
+            color: #ccc;
             cursor: pointer;
-            padding: 5px;
-            font-size: 1.1rem;
+            padding: 2px;
+            font-size: 0.9rem;
             transition: 0.2s;
-            margin-left: 10px;
+            margin-left: 5px;
         }
-        .toast-close-modern:hover { color: #2d3436; transform: rotate(90deg); }
+        .toast-close-btn:hover { color: #999; }
 
-        .toast-progress-bar {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 4px;
-            background: rgba(0,0,0,0.03);
-        }
-        .toast-progress-fill {
-            height: 100%;
-            width: 100%;
-            transform-origin: left;
-        }
-        .success .toast-progress-fill { background: #00b894; }
-        .error .toast-progress-fill { background: #ff7675; }
-        .warning .toast-progress-fill { background: #fdcb6e; }
-        .info .toast-progress-fill { background: #0984e3; }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(100%) scale(0.9); }
+        @keyframes snappyIn {
+            from { opacity: 0; transform: translateX(20px) scale(0.95); }
             to { opacity: 1; transform: translateX(0) scale(1); }
         }
-        @keyframes toastOut {
+        @keyframes snappyOut {
             from { opacity: 1; transform: translateX(0) scale(1); }
-            to { opacity: 0; transform: translateX(100%) scale(0.9); }
-        }
-        @keyframes toastProgress {
-            from { transform: scaleX(1); }
-            to { transform: scaleX(0); }
+            to { opacity: 0; transform: translateX(20px) scale(0.95); }
         }
 
         @media (max-width: 576px) {
             .pcnc-toast-container {
-                top: 20px; right: 20px; left: 20px;
+                top: 15px; right: 15px; left: 15px;
             }
-            .pcnc-toast-modern {
-                min-width: auto;
+            .pcnc-toast-compact {
                 width: 100%;
             }
         }
