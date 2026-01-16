@@ -24,20 +24,19 @@ async function loadMenuData() {
 
 let currentFilter = 'all';
 
-// Notification System
-// Notification System - Premium Edition
+// Notification System - Modern Professional Edition
 function showNotification(title, message, type = 'success') {
-    injectNotificationStyles(); // Ensure styles are present
+    injectNotificationStyles();
 
-    let container = document.querySelector('.pcnc-notification-container');
+    let container = document.querySelector('.pcnc-toast-container');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'pcnc-notification-container';
+        container.className = 'pcnc-toast-container';
         document.body.appendChild(container);
     }
 
     const toast = document.createElement('div');
-    toast.className = `pcnc-toast ${type}`;
+    toast.className = `pcnc-toast-modern ${type}`;
     
     let icon = 'fa-check-circle';
     if (type === 'error') icon = 'fa-times-circle';
@@ -45,118 +44,155 @@ function showNotification(title, message, type = 'success') {
     if (type === 'warning') icon = 'fa-exclamation-triangle';
     
     toast.innerHTML = `
-        <div class="toast-icon-wrap">
+        <div class="toast-side-accent"></div>
+        <div class="toast-icon-box">
             <i class="fas ${icon}"></i>
         </div>
-        <div class="pcnc-toast-content">
-            <span class="pcnc-toast-title">${title}</span>
-            <span class="pcnc-toast-msg">${message}</span>
+        <div class="toast-content-box">
+            <div class="toast-title-modern">${title}</div>
+            <div class="toast-msg-modern">${message}</div>
         </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        <button class="toast-close-modern" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="toast-progress-bar">
+            <div class="toast-progress-fill"></div>
+        </div>
     `;
 
     container.appendChild(toast);
 
-    // Auto remove after 2.5 seconds (snappy and professional)
+    // Auto remove after 4 seconds
+    const duration = 4000;
+    const fill = toast.querySelector('.toast-progress-fill');
+    if (fill) fill.style.animation = `toastProgress ${duration}ms linear forwards`;
+
     setTimeout(() => {
-        toast.style.animation = 'slideOutTop 0.4s forwards ease-in';
+        toast.classList.add('leaving');
         setTimeout(() => {
             if (toast.parentElement) toast.remove();
-        }, 400); // Wait for animation
-    }, 2500); 
+        }, 400);
+    }, duration); 
 }
 
 function injectNotificationStyles() {
-    if (document.getElementById('pcnc-notify-styles')) return;
+    if (document.getElementById('pcnc-modern-notify-styles')) return;
     const style = document.createElement('style');
-    style.id = 'pcnc-notify-styles';
+    style.id = 'pcnc-modern-notify-styles';
     style.innerHTML = `
-        .pcnc-notification-container {
+        .pcnc-toast-container {
             position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 99999;
+            top: 30px;
+            right: 30px;
+            z-index: 999999;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
             pointer-events: none;
-            font-family: 'Poppins', sans-serif;
         }
-        .pcnc-toast {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(12px);
-            color: #333;
-            padding: 16px 20px;
+        .pcnc-toast-modern {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            min-width: 350px;
+            max-width: 450px;
             border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            min-width: 320px;
-            max-width: 380px;
-            transform: translateY(-20px);
-            opacity: 0;
-            animation: slideInTop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            pointer-events: auto;
-            border: 1px solid rgba(0,0,0,0.05);
-            position: relative;
-            overflow: hidden;
-        }
-        .pcnc-toast::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-        }
-        .pcnc-toast.success::before { background: #00c851; }
-        .pcnc-toast.error::before { background: #ff4444; }
-        .pcnc-toast.info::before { background: #33b5e5; }
-        .pcnc-toast.warning::before { background: #ffbb33; }
-
-        .toast-icon-wrap {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-top: 2px;
+            padding: 18px 25px;
+            position: relative;
+            overflow: hidden;
+            pointer-events: auto;
+            animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border: 1px solid rgba(255,255,255,0.5);
+            font-family: 'Poppins', sans-serif;
         }
-        .pcnc-toast.success .toast-icon-wrap { background: rgba(0, 200, 81, 0.1); color: #00c851; }
-        .pcnc-toast.error .toast-icon-wrap { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
-        .pcnc-toast.info .toast-icon-wrap { background: rgba(51, 181, 229, 0.1); color: #33b5e5; }
-        .pcnc-toast.warning .toast-icon-wrap { background: rgba(255, 187, 51, 0.1); color: #ffbb33; }
-        
-        .pcnc-toast i { font-size: 1.1rem; }
-        
-        .pcnc-toast-content { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .pcnc-toast-title { font-weight: 800; font-size: 0.95rem; color: #000; letter-spacing: -0.3px; line-height: 1.2; }
-        .pcnc-toast-msg { font-size: 0.85rem; color: #666; font-weight: 500; line-height: 1.4; }
-        
-        .toast-close {
-            background: transparent;
-            border: none;
-            color: #ccc;
-            font-size: 1.4rem;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            transition: 0.2s;
-            margin-top: -2px;
-            margin-right: -4px;
+        .pcnc-toast-modern.leaving {
+            animation: toastOut 0.4s ease forwards;
         }
-        .toast-close:hover { color: #333; }
+        .toast-side-accent {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 6px;
+        }
+        .pcnc-toast-modern.success .toast-side-accent { background: #00b894; }
+        .pcnc-toast-modern.error .toast-side-accent { background: #ff7675; }
+        .pcnc-toast-modern.warning .toast-side-accent { background: #fdcb6e; }
+        .pcnc-toast-modern.info .toast-side-accent { background: #0984e3; }
 
-        @keyframes slideInTop {
-            from { transform: translateY(-20px) scale(0.95); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
+        .toast-icon-box {
+            width: 45px; height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center; justify-content: center;
+            margin-right: 18px;
+            font-size: 1.4rem;
         }
-        @keyframes slideOutTop {
-            from { transform: translateY(0) scale(1); opacity: 1; }
-            to { transform: translateY(-20px) scale(0.95); opacity: 0; }
+        .success .toast-icon-box { background: rgba(0, 184, 148, 0.1); color: #00b894; }
+        .error .toast-icon-box { background: rgba(255, 118, 117, 0.1); color: #ff7675; }
+        .warning .toast-icon-box { background: rgba(253, 203, 110, 0.1); color: #fdcb6e; }
+        .info .toast-icon-box { background: rgba(9, 132, 227, 0.1); color: #0984e3; }
+
+        .toast-content-box { flex-grow: 1; }
+        .toast-title-modern {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #1d1d1f;
+            margin-bottom: 2px;
+        }
+        .toast-msg-modern {
+            font-size: 0.9rem;
+            color: #636e72;
+            font-weight: 500;
+        }
+        .toast-close-modern {
+            background: none; border: none;
+            color: #b2bec3;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1.1rem;
+            transition: 0.2s;
+            margin-left: 10px;
+        }
+        .toast-close-modern:hover { color: #2d3436; transform: rotate(90deg); }
+
+        .toast-progress-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: rgba(0,0,0,0.03);
+        }
+        .toast-progress-fill {
+            height: 100%;
+            width: 100%;
+            transform-origin: left;
+        }
+        .success .toast-progress-fill { background: #00b894; }
+        .error .toast-progress-fill { background: #ff7675; }
+        .warning .toast-progress-fill { background: #fdcb6e; }
+        .info .toast-progress-fill { background: #0984e3; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100%) scale(0.9); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to { opacity: 0; transform: translateX(100%) scale(0.9); }
+        }
+        @keyframes toastProgress {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
+        @media (max-width: 576px) {
+            .pcnc-toast-container {
+                top: 20px; right: 20px; left: 20px;
+            }
+            .pcnc-toast-modern {
+                min-width: auto;
+                width: 100%;
+            }
         }
     `;
     document.head.appendChild(style);
