@@ -480,7 +480,7 @@
         padding-bottom: 50px;
         overflow-x: hidden; /* Prevent horizontal scroll on mobile */
       }
-      
+
       .main-content {
         overflow-x: hidden;
       }
@@ -488,10 +488,10 @@
       /* Profile responsiveness tweak */
       @media (max-width: 768px) {
         .profile-header-card {
-            margin-bottom: 20px;
+          margin-bottom: 20px;
         }
         .main-content {
-            padding: 80px 15px 40px 15px !important;
+          padding: 80px 15px 40px 15px !important;
         }
       }
     </style>
@@ -632,11 +632,18 @@
         <!-- Restricted Views -->
         <div id="restrictedNav" style="display: none">
           <!-- Direct link to website with instruction -->
-          <a href="../index.html" style="background: rgba(255,255,255,0.05); color: #fff; margin-bottom: 20px;">
-            <i class="fas fa-external-link-alt" style="color: #28a745"></i> 
+          <a
+            href="../index.html"
+            style="
+              background: rgba(255, 255, 255, 0.05);
+              color: #fff;
+              margin-bottom: 20px;
+            "
+          >
+            <i class="fas fa-external-link-alt" style="color: #28a745"></i>
             <span>VISIT WEBSITE</span>
           </a>
-          
+
           <a onclick="switchView('active')" data-view="active"
             ><i class="fas fa-clock"></i> Active Orders</a
           >
@@ -678,7 +685,11 @@
           <div
             id="realtimeClock"
             style="
-              background: linear-gradient(135deg, var(--kibbys-red) 0%, #a11612 100%);
+              background: linear-gradient(
+                135deg,
+                var(--kibbys-red) 0%,
+                #a11612 100%
+              );
               padding: 15px 25px;
               border-radius: 16px;
               box-shadow: 0 8px 20px rgba(193, 27, 23, 0.25);
@@ -722,7 +733,7 @@
               Loading...
             </div>
           </div>
-          <div class="d-flex align-items-center" style="gap: 12px;">
+          <div class="d-flex align-items-center" style="gap: 12px">
             <div
               class="custom-control custom-switch"
               id="viewerModeWrapper"
@@ -1009,50 +1020,99 @@
               <form id="settingsForm">
                 <div class="row">
                   <div class="col-md-12">
-                    <h6 class="font-weight-bold small text-uppercase text-danger mb-3">
+                    <h6
+                      class="font-weight-bold small text-uppercase text-danger mb-3"
+                    >
                       <i class="fas fa-image mr-2"></i>Media & Branding
                     </h6>
                     <div class="row">
-                        <div class="col-md-4 mb-4">
-                            <label class="small font-weight-bold">Website Logo</label>
-                            <div class="bg-light p-3 rounded text-center" style="border: 2px dashed #ddd;">
-                                <img id="logoPreview" src="" style="max-height: 60px;" class="mb-2 d-none">
-                                <input type="file" id="logoInput" class="form-control-file">
-                            </div>
+                      <div class="col-md-4 mb-4">
+                        <label class="small font-weight-bold"
+                          >Website Logo</label
+                        >
+                        <div
+                          class="bg-light p-3 rounded text-center"
+                          style="border: 2px dashed #ddd"
+                        >
+                          <img
+                            id="logoPreview"
+                            src=""
+                            style="max-height: 60px"
+                            class="mb-2 d-none"
+                          />
+                          <input
+                            type="file"
+                            id="logoInput"
+                            class="form-control-file"
+                          />
                         </div>
-                        <div class="col-md-4 mb-4">
-                            <label class="small font-weight-bold">Hero Background (Main Home)</label>
-                            <div class="bg-light p-3 rounded text-center" style="border: 2px dashed #ddd;">
-                                <input type="file" id="heroBgInput" class="form-control-file mb-2">
-                                <small class="text-muted d-block">Current: <span id="currentHeroBg" class="font-weight-bold">default</span></small>
-                            </div>
+                      </div>
+                      <div class="col-md-4 mb-4">
+                        <label class="small font-weight-bold"
+                          >Hero Background (Main Home)</label
+                        >
+                        <div
+                          class="bg-light p-3 rounded text-center"
+                          style="border: 2px dashed #ddd"
+                        >
+                          <input
+                            type="file"
+                            id="heroBgInput"
+                            class="form-control-file mb-2"
+                          />
+                          <small class="text-muted d-block"
+                            >Current:
+                            <span id="currentHeroBg" class="font-weight-bold"
+                              >default</span
+                            ></small
+                          >
                         </div>
+                      </div>
                     </div>
                   </div>
-                  
+
                   <div class="col-md-12 mt-4">
-                    <h6 class="font-weight-bold small text-uppercase text-info mb-3">
-                      <i class="fas fa-headset mr-2"></i>Support & Contact Details (Footer/Contact Page)
+                    <h6
+                      class="font-weight-bold small text-uppercase text-info mb-3"
+                    >
+                      <i class="fas fa-headset mr-2"></i>Support & Contact
+                      Details (Footer/Contact Page)
                     </h6>
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold d-flex justify-content-between">
-                                    <span>Support Phone Numbers</span>
-                                    <button type="button" class="btn btn-xs btn-primary" onclick="addPhoneField()"><i class="fas fa-plus"></i></button>
-                                </label>
-                                <div id="phoneFields"></div>
-                            </div>
+                      <div class="col-md-6">
+                        <div class="form-group mb-3">
+                          <label
+                            class="small font-weight-bold d-flex justify-content-between"
+                          >
+                            <span>Support Phone Numbers</span>
+                            <button
+                              type="button"
+                              class="btn btn-xs btn-primary"
+                              onclick="addPhoneField()"
+                            >
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </label>
+                          <div id="phoneFields"></div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="small font-weight-bold d-flex justify-content-between">
-                                    <span>Support Email Addresses</span>
-                                    <button type="button" class="btn btn-xs btn-primary" onclick="addEmailField()"><i class="fas fa-plus"></i></button>
-                                </label>
-                                <div id="emailFields"></div>
-                            </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label
+                            class="small font-weight-bold d-flex justify-content-between"
+                          >
+                            <span>Support Email Addresses</span>
+                            <button
+                              type="button"
+                              class="btn btn-xs btn-primary"
+                              onclick="addEmailField()"
+                            >
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </label>
+                          <div id="emailFields"></div>
                         </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1076,7 +1136,12 @@
               <form id="homeAboutForm">
                 <div class="row">
                   <div class="col-md-12">
-                     <p class="text-muted small">The text content for this section (Title, Heading, Description) is now managed directly on the website via <b>Inline Editing</b>. Use the fields below only for media updates.</p>
+                    <p class="text-muted small">
+                      The text content for this section (Title, Heading,
+                      Description) is now managed directly on the website via
+                      <b>Inline Editing</b>. Use the fields below only for media
+                      updates.
+                    </p>
                   </div>
                   <div class="col-md-12">
                     <div class="form-group">
@@ -1235,46 +1300,80 @@
           <div class="col-lg-12 settings-tab-content d-none" id="tab-marketing">
             <div class="row mb-4">
               <div class="col-md-12 mb-4">
-                <div class="card order-card p-4 border-0 shadow-sm" style="border-radius: 20px">
-                  <h5 class="font-weight-bold mb-4">Wide Promo Banner (BOGO Section)</h5>
+                <div
+                  class="card order-card p-4 border-0 shadow-sm"
+                  style="border-radius: 20px"
+                >
+                  <h5 class="font-weight-bold mb-4">
+                    Wide Promo Banner (BOGO Section)
+                  </h5>
                   <form id="shopBannerForm">
                     <div class="row">
                       <div class="col-md-12 mb-3">
-                        <p class="text-muted small">Text for the Promo Banner is managed via **Inline Editing** on the website. Use this form to update the background image.</p>
+                        <p class="text-muted small">
+                          Text for the Promo Banner is managed via **Inline
+                          Editing** on the website. Use this form to update the
+                          background image.
+                        </p>
                       </div>
                       <div class="col-md-12">
                         <div class="form-group">
-                          <label class="small font-weight-bold">Banner Background Image</label>
-                          <input type="file" id="shopBannerBgInput" class="form-control-file">
-                          <small class="text-muted">Recommended: 1920x600px for high quality display.</small>
+                          <label class="small font-weight-bold"
+                            >Banner Background Image</label
+                          >
+                          <input
+                            type="file"
+                            id="shopBannerBgInput"
+                            class="form-control-file"
+                          />
+                          <small class="text-muted"
+                            >Recommended: 1920x600px for high quality
+                            display.</small
+                          >
                         </div>
                       </div>
                     </div>
                     <div class="text-right">
-                       <button type="submit" class="btn btn-dark px-4" style="border-radius: 10px">SAVE BANNER CHANGES</button>
+                      <button
+                        type="submit"
+                        class="btn btn-dark px-4"
+                        style="border-radius: 10px"
+                      >
+                        SAVE BANNER CHANGES
+                      </button>
                     </div>
                   </form>
                 </div>
-                
+
                 <hr class="my-5" />
-                <h6 class="font-weight-bold small text-uppercase text-primary mb-3">Website Content Features</h6>
+                <h6
+                  class="font-weight-bold small text-uppercase text-primary mb-3"
+                >
+                  Website Content Features
+                </h6>
                 <form id="featuresForm">
                   <div class="row">
                     <div class="col-md-6 border-right">
-                        <h6 class="font-weight-bold small text-muted mb-3">Homepage Service List (3 Items)</h6>
-                        <div id="homeFeaturesInputs">
-                            <!-- JS will inject 3 feature blocks here -->
-                        </div>
+                      <h6 class="font-weight-bold small text-muted mb-3">
+                        Homepage Service List (3 Items)
+                      </h6>
+                      <div id="homeFeaturesInputs">
+                        <!-- JS will inject 3 feature blocks here -->
+                      </div>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="font-weight-bold small text-muted mb-3">About Page Why Choose Us (4 Items)</h6>
-                        <div id="aboutFeaturesInputs">
-                            <!-- JS will inject 4 feature blocks here -->
-                        </div>
+                      <h6 class="font-weight-bold small text-muted mb-3">
+                        About Page Why Choose Us (4 Items)
+                      </h6>
+                      <div id="aboutFeaturesInputs">
+                        <!-- JS will inject 4 feature blocks here -->
+                      </div>
                     </div>
                   </div>
                   <div class="text-right mt-3 pb-4">
-                    <button type="submit" class="btn btn-primary px-4">Save All Features</button>
+                    <button type="submit" class="btn btn-primary px-4">
+                      Save All Features
+                    </button>
                   </div>
                 </form>
               </div>
@@ -1284,19 +1383,29 @@
                   class="card order-card p-4 h-100 border-0 shadow-sm"
                   style="border-radius: 20px"
                 >
-                  <h5 class="font-weight-bold mb-4">Deal of the Week (Side Box)</h5>
+                  <h5 class="font-weight-bold mb-4">
+                    Deal of the Week (Side Box)
+                  </h5>
                   <form id="dealForm">
                     <div class="form-group mb-4">
-                        <p class="text-muted small">Text content for the "Deal of the Week" is managed via **Inline Editing** on the website. Use this form to update the featured image.</p>
+                      <p class="text-muted small">
+                        Text content for the "Deal of the Week" is managed via
+                        **Inline Editing** on the website. Use this form to
+                        update the featured image.
+                      </p>
                     </div>
                     <div class="form-group">
-                      <label class="small font-weight-bold">Featured Deal Image</label>
+                      <label class="small font-weight-bold"
+                        >Featured Deal Image</label
+                      >
                       <input
                         type="file"
                         id="dealImageInput"
                         class="form-control-file mb-2"
                       />
-                      <small class="text-muted">Upload a clear photo of the weekly special.</small>
+                      <small class="text-muted"
+                        >Upload a clear photo of the weekly special.</small
+                      >
                     </div>
                     <button
                       type="submit"
@@ -2088,6 +2197,15 @@
                   placeholder="e.g. Bestseller"
                 />
               </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  class="form-control"
+                  rows="3"
+                  placeholder="Brief description of the item"
+                ></textarea>
+              </div>
               <button
                 type="submit"
                 class="btn btn-primary btn-block py-3 mt-4"
@@ -2454,6 +2572,15 @@
                 <label>Tag (Optional)</label
                 ><input type="text" name="tag" class="form-control" />
               </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  class="form-control"
+                  rows="3"
+                  placeholder="Brief description of the item"
+                ></textarea>
+              </div>
               <button
                 type="submit"
                 class="btn btn-primary btn-block py-3 mt-4"
@@ -2610,27 +2737,30 @@
     <script>
       // Display admin name and role-based UI
       let currentSession = SessionManager.getCurrentSession();
-      (function() {
-          if (currentSession && currentSession.staffName) {
-            // Show profile link for everyone
-            document.getElementById("profileNavLink").style.display = "flex";
+      (function () {
+        if (currentSession && currentSession.staffName) {
+          // Show profile link for everyone
+          document.getElementById("profileNavLink").style.display = "flex";
 
-            // ROLE-BASED UI
-            if (currentSession.role === "super-admin") {
-              // Super admins don't see their own name circle (per user request)
-              document.getElementById("adminNameDisplay").style.display = "none";
-              // But they see the restricted sections
-              document.getElementById("restrictedNav").style.display = "block";
-              document.getElementById("viewerModeWrapper").style.display = "block";
-            } else {
-              // Regular staff see their name and photo
-              document.getElementById("adminNameDisplay").style.display = "block";
-              document.getElementById("adminNameText").innerText = currentSession.staffName;
-              if (currentSession.profilePhoto) {
-                document.getElementById("adminProfilePhoto").src = currentSession.profilePhoto;
-              }
+          // ROLE-BASED UI
+          if (currentSession.role === "super-admin") {
+            // Super admins don't see their own name circle (per user request)
+            document.getElementById("adminNameDisplay").style.display = "none";
+            // But they see the restricted sections
+            document.getElementById("restrictedNav").style.display = "block";
+            document.getElementById("viewerModeWrapper").style.display =
+              "block";
+          } else {
+            // Regular staff see their name and photo
+            document.getElementById("adminNameDisplay").style.display = "block";
+            document.getElementById("adminNameText").innerText =
+              currentSession.staffName;
+            if (currentSession.profilePhoto) {
+              document.getElementById("adminProfilePhoto").src =
+                currentSession.profilePhoto;
             }
           }
+        }
       })();
 
       // Update Active Sessions Display (Strictly 2 Admins - Fetched from Server)
@@ -3698,7 +3828,8 @@
           msg = `Hi ${o.customerName}, your Kibby's order #${ref} is out for delivery! 🛵 Expect it soon.`;
         else if (o.status === "Completed")
           msg = `Hi ${o.customerName}, your order #${ref} has been delivered. Enjoy your meal! 🍕`;
-        else msg = `Hi ${o.customerName}, regarding your Kibby's order #${ref}...`;
+        else
+          msg = `Hi ${o.customerName}, regarding your Kibby's order #${ref}...`;
 
         const phone = o.phoneNumber.replace(/^0/, "254");
         const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -3857,6 +3988,7 @@
         form.price.value = item.price;
         form.category.value = item.category;
         form.tag.value = item.tag || "";
+        form.description.value = item.description || "";
 
         $("#editMenuModal").modal("show");
       }
@@ -3981,14 +4113,17 @@
 
               // Content management for these fields is now INLINE on the website.
               // We only manage support contacts and media here.
-              
-              if (data.heroBg) $("#currentHeroBg").text(data.heroBg.split('/').pop());
-              
+
+              if (data.heroBg)
+                $("#currentHeroBg").text(data.heroBg.split("/").pop());
+
               // Load Identity
               if (data.logo) {
-                  $("#logoPreview").attr("src", "/"+data.logo).removeClass("d-none");
+                $("#logoPreview")
+                  .attr("src", "/" + data.logo)
+                  .removeClass("d-none");
               }
-              
+
               $("#globalWhatsappInput").val(data.whatsappNumber || "");
             }
           }, "CoreInfo");
@@ -4031,32 +4166,48 @@
           // Load Features
           tryBlock(() => {
             if (data.homeFeatures) {
-                const container = $("#homeFeaturesInputs");
-                container.empty();
-                data.homeFeatures.forEach((f, i) => {
-                    container.append(`
+              const container = $("#homeFeaturesInputs");
+              container.empty();
+              data.homeFeatures.forEach((f, i) => {
+                container.append(`
                         <div class="feature-edit-block mb-3 p-2 border rounded">
-                            <label class="small font-weight-bold">Home Feature ${i+1}</label>
-                            <input type="text" name="hf_icon_${i}" class="form-control form-control-sm mb-1" value="${f.icon}" placeholder="Icon class">
-                            <input type="text" name="hf_title_${i}" class="form-control form-control-sm mb-1" value="${f.title}" placeholder="Title">
-                            <textarea name="hf_desc_${i}" class="form-control form-control-sm" rows="2" placeholder="Description">${f.desc}</textarea>
+                            <label class="small font-weight-bold">Home Feature ${
+                              i + 1
+                            }</label>
+                            <input type="text" name="hf_icon_${i}" class="form-control form-control-sm mb-1" value="${
+                  f.icon
+                }" placeholder="Icon class">
+                            <input type="text" name="hf_title_${i}" class="form-control form-control-sm mb-1" value="${
+                  f.title
+                }" placeholder="Title">
+                            <textarea name="hf_desc_${i}" class="form-control form-control-sm" rows="2" placeholder="Description">${
+                  f.desc
+                }</textarea>
                         </div>
                     `);
-                });
+              });
             }
             if (data.aboutPage && data.aboutPage.features) {
-                const container = $("#aboutFeaturesInputs");
-                container.empty();
-                data.aboutPage.features.forEach((f, i) => {
-                    container.append(`
+              const container = $("#aboutFeaturesInputs");
+              container.empty();
+              data.aboutPage.features.forEach((f, i) => {
+                container.append(`
                         <div class="feature-edit-block mb-3 p-2 border rounded">
-                            <label class="small font-weight-bold">About Feature ${i+1}</label>
-                            <input type="text" name="af_icon_${i}" class="form-control form-control-sm mb-1" value="${f.icon}" placeholder="Icon class">
-                            <input type="text" name="af_title_${i}" class="form-control form-control-sm mb-1" value="${f.title}" placeholder="Title">
-                            <textarea name="af_desc_${i}" class="form-control form-control-sm" rows="2" placeholder="Description">${f.desc}</textarea>
+                            <label class="small font-weight-bold">About Feature ${
+                              i + 1
+                            }</label>
+                            <input type="text" name="af_icon_${i}" class="form-control form-control-sm mb-1" value="${
+                  f.icon
+                }" placeholder="Icon class">
+                            <input type="text" name="af_title_${i}" class="form-control form-control-sm mb-1" value="${
+                  f.title
+                }" placeholder="Title">
+                            <textarea name="af_desc_${i}" class="form-control form-control-sm" rows="2" placeholder="Description">${
+                  f.desc
+                }</textarea>
                         </div>
                     `);
-                });
+              });
             }
           }, "Features");
 
@@ -4483,18 +4634,18 @@
           homeSubtext: formData.get("homeSubtext"),
           aboutText: formData.get("aboutText"),
           contact: {
-              address: formData.get("address"),
-              phone: formData.get("phone"),
-              email: formData.get("email"),
-              till: formData.get("till"),
-              hours: formData.get("hours")
+            address: formData.get("address"),
+            phone: formData.get("phone"),
+            email: formData.get("email"),
+            till: formData.get("till"),
+            hours: formData.get("hours"),
           },
           social: {
-              facebook: formData.get("facebook"),
-              tiktok: formData.get("tiktok"),
-              instagram: formData.get("instagram"),
-              twitter: formData.get("twitter")
-          }
+            facebook: formData.get("facebook"),
+            tiktok: formData.get("tiktok"),
+            instagram: formData.get("instagram"),
+            twitter: formData.get("twitter"),
+          },
         };
 
         // Handle Logo Upload
@@ -4502,7 +4653,10 @@
         if (logoInput) {
           const ud = new FormData();
           ud.append("mediaFile", logoInput);
-          const ur = await adminFetch("/api/admin/settings/upload", { method: "POST", body: ud });
+          const ur = await adminFetch("/api/admin/settings/upload", {
+            method: "POST",
+            body: ud,
+          });
           const resLog = await ur.json();
           if (resLog.success) data.logo = resLog.filePath;
         }
@@ -4610,32 +4764,33 @@
       });
 
       $("#featuresForm").submit(async (e) => {
-          e.preventDefault();
-          const fd = new FormData(e.target);
-          
-          const homeFeatures = [0,1,2].map(i => ({
-              icon: fd.get(`hf_icon_${i}`),
-              title: fd.get(`hf_title_${i}`),
-              desc: fd.get(`hf_desc_${i}`)
-          }));
+        e.preventDefault();
+        const fd = new FormData(e.target);
 
-          const aboutFeatures = [0,1,2,3].map(i => ({
-              icon: fd.get(`af_icon_${i}`),
-              title: fd.get(`af_title_${i}`),
-              desc: fd.get(`af_desc_${i}`)
-          }));
+        const homeFeatures = [0, 1, 2].map((i) => ({
+          icon: fd.get(`hf_icon_${i}`),
+          title: fd.get(`hf_title_${i}`),
+          desc: fd.get(`hf_desc_${i}`),
+        }));
 
-          const res = await adminFetch("/api/admin/settings/update", {
-              method: "POST",
-              body: JSON.stringify({
-                  homeFeatures,
-                  aboutPage: {
-                      features: aboutFeatures
-                  }
-              })
-          });
+        const aboutFeatures = [0, 1, 2, 3].map((i) => ({
+          icon: fd.get(`af_icon_${i}`),
+          title: fd.get(`af_title_${i}`),
+          desc: fd.get(`af_desc_${i}`),
+        }));
 
-          if (res.ok) showNotification("Updated", "All features saved", "success");
+        const res = await adminFetch("/api/admin/settings/update", {
+          method: "POST",
+          body: JSON.stringify({
+            homeFeatures,
+            aboutPage: {
+              features: aboutFeatures,
+            },
+          }),
+        });
+
+        if (res.ok)
+          showNotification("Updated", "All features saved", "success");
       });
 
       $("#videoUpload").change(async function () {

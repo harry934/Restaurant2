@@ -513,7 +513,7 @@ app.post(
   async (req, res) => {
     try {
       console.log(`[ADMIN ACTION] ${req.staffName} adding menu item`);
-      const { name, price, category, tag } = req.body;
+      const { name, price, category, tag, description } = req.body;
 
       // Find highest ID to increment
       const highestItem = await Menu.findOne().sort({ id: -1 });
@@ -531,6 +531,7 @@ app.post(
         category,
         image: imagePath,
         tag,
+        description,
       });
 
       await newItem.save();
@@ -550,13 +551,14 @@ app.post(
   async (req, res) => {
     try {
       console.log(`[ADMIN ACTION] ${req.staffName} updating menu item ${req.body.id}`);
-      const { id, name, price, category, tag } = req.body;
+      const { id, name, price, category, tag, description } = req.body;
 
       const updates = {
         name,
         price: parseFloat(price),
         category,
         tag: tag || "",
+        description: description || "",
       };
       if (req.file) updates.image = await saveImageToMongoDB(req.file, "menu");
 

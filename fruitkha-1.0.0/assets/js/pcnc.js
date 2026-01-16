@@ -1732,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartMetadata();
     if (document.getElementById('menu-container')) renderMenu();
     if (document.getElementById('homepage-menu-container')) renderHomepageMenu();
-    if (document.getElementById('cart-table-body')) renderCartPage();
+    if (document.getElementById('cart-table-body') || document.getElementById('cart-item-list')) renderCartPage();
     
     const checkoutForm = document.getElementById('checkout-form');
     if (checkoutForm) {
