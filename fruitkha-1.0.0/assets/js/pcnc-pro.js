@@ -1544,79 +1544,118 @@ async function submitOrder(e) {
     }
 }
 
-// LOCATION SEARCH LOGIC
+// LOCATION SEARCH LOGIC (Google Maps-style Autocomplete)
 let globalSearchTimeout;
 function initializeLocationSearch() {
     const addressInput = document.getElementById('address');
     const suggestionBox = document.getElementById('location-suggestions');
     if (!addressInput || !suggestionBox) return;
 
+    // Apply suggestion box styles
+    Object.assign(suggestionBox.style, {
+        position: 'absolute',
+        top: '100%',
+        left: '0',
+        right: '0',
+        background: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+        zIndex: '10000',
+        display: 'none',
+        overflow: 'hidden',
+        border: '1px solid #eee',
+        marginTop: '8px',
+        transition: 'all 0.2s ease'
+    });
+
     addressInput.addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase();
-        if (val.length < 1) {
+        const val = e.target.value;
+        if (val.length < 2) {
             suggestionBox.style.display = 'none';
             return;
         }
 
-        // Clear previous global timeout
         clearTimeout(globalSearchTimeout);
+        globalSearchTimeout = setTimeout(() => {
+            const restLat = (typeof usiuPos !== 'undefined') ? usiuPos[0] : -1.1766610736906116;
+            const restLng = (typeof usiuPos !== 'undefined') ? usiuPos[1] : 36.94006231794019;
 
-        // Trigger Global Search (Debounced) if length > 2
-        if (val.length > 2) {
-            globalSearchTimeout = setTimeout(() => {
-                const restLat = (typeof usiuPos !== 'undefined') ? usiuPos[0] : -1.1766610736906116;
-                const restLng = (typeof usiuPos !== 'undefined') ? usiuPos[1] : 36.94006231794019;
+            // Search near the restaurant for better relevance
+            fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(val)}&lat=${restLat}&lon=${restLng}&limit=6`)
+                .then(r => r.json())
+                .then(data => {
+                    let html = '';
+                    if (data.features && data.features.length > 0) {
+                        html = data.features.map(f => {
+                            const p = f.properties;
+                            const mainName = p.name || p.street || 'Unknown Place';
+                            const subName = [p.street, p.district, p.city].filter(s => s && s !== mainName).join(', ');
+                            
+                            // Determine icon based on type
+                            let icon = '<i class="fas fa-map-marker-alt"></i>';
+                            if (p.type === 'house' || p.osm_key === 'building') icon = '<i class="fas fa-house-user"></i>';
+                            if (p.osm_value === 'restaurant' || p.osm_value === 'cafe') icon = '<i class="fas fa-utensils"></i>';
+                            if (p.type === 'city' || p.type === 'town') icon = '<i class="fas fa-city"></i>';
 
-                fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(e.target.value)}&lat=${restLat}&lon=${restLng}&limit=5`)
-                    .then(r => r.json())
-                    .then(data => {
-                        let html = '';
-                        if (data.features && data.features.length > 0) {
-                            html = data.features.map(f => {
-                                const p = f.properties;
-                                const label = [p.name, p.street, p.city].filter(Boolean).join(', ');
-                                
-                                return `
-                                    <div class="suggestion-item" onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${label.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f5; background: #fff;">
-                                        <i class="fas fa-search-location" style="color: #666; margin-right: 10px;"></i>
-                                        <span style="font-size: 0.85rem; color: #555; font-weight: 500;">${label}</span>
+                            return `
+                                <div class="suggestion-item" 
+                                     onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${mainName.replace(/'/g, "\\'")} ${subName ? ', ' + subName.replace(/'/g, "\\'") : ''}')" 
+                                     style="padding: 12px 18px; cursor: pointer; border-bottom: 1px solid #f8f8f8; display: flex; align-items: flex-start; transition: background 0.2s;">
+                                    <div style="color: #e7252d; margin-right: 15px; margin-top: 3px; font-size: 1.1rem; width: 20px; text-align: center;">
+                                        ${icon}
                                     </div>
-                                `;
-                            }).join('');
-                        }
-                        
-                        // Fallback "Use Typed" option
-                        if (html === '') {
-                             html = `
-                                <div class="suggestion-item" onclick="selectLocation(${restLat}, ${restLng}, '${e.target.value.replace(/'/g, "\\'")}')" style="padding: 12px 20px; cursor: pointer; background: #fffcf5;">
-                                    <i class="fas fa-keyboard" style="color: #d4a017; margin-right: 10px;"></i>
-                                    <span style="color: #856404; font-weight: 600;">Use: "${e.target.value}"</span>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; color: #1a1a1a; font-size: 0.95rem; line-height: 1.2;">${mainName}</div>
+                                        <div style="font-size: 0.8rem; color: #777; margin-top: 2px;">${subName || 'Street Address'}</div>
+                                    </div>
                                 </div>
                             `;
-                        }
-                        
-                        suggestionBox.innerHTML = html;
-                        suggestionBox.style.display = 'block';
-                    });
-            }, 600);
-        }
-    });
+                        }).join('');
+
+                        // Attribution
+                        html += `
+                            <div style="padding: 8px 18px; background: #fafafa; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.65rem; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Results near you</span>
+                                <img src="https://photon.komoot.io/static/img/photon_logo.png" style="height: 12px; filter: grayscale(1); opacity: 0.5;">
+                            </div>
+                        `;
+                    }
+                    
+                    if (html === '') {
+                        html = `
+                            <div class="suggestion-item" onclick="selectLocation(${restLat}, ${restLng}, '${val.replace(/'/g, "\\'")}')" style="padding: 15px 20px; cursor: pointer;">
+                                <div style="display: flex; align-items: center; color: #856404; font-weight: 600;">
+                                    <i class="fas fa-keyboard" style="margin-right: 12px;"></i>
+                                    <span>Use: "${val}"</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    suggestionBox.innerHTML = html;
+                    suggestionBox.style.display = 'block';
+                });
+        }, 500);
     });
 
-    // Close suggestions when clicking outside
+    // Close on click outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.location-search-container')) {
+        if (!e.target.closest('.location-search-wrapper')) {
             suggestionBox.style.display = 'none';
         }
     });
 
-    // Add styles for hover
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .suggestion-item:hover { background: #f9f9f9 !important; }
-        .suggestion-item:last-child { border-bottom: none; }
-    `;
-    document.head.appendChild(style);
+    // Styles for hover effect
+    if (!document.getElementById('autocomplete-styles')) {
+        const style = document.createElement('style');
+        style.id = 'autocomplete-styles';
+        style.innerHTML = `
+            .suggestion-item:hover { background: #fdf2f2 !important; }
+            .suggestion-item:hover div { color: #e7252d !important; }
+            .suggestion-item:last-child { border-bottom: none; }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 function selectLocation(lat, lng, name) {

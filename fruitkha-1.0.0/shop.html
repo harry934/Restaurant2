@@ -134,31 +134,32 @@
 
 			</div>
 
-            <script>
-                async function loadMenuCategories() {
-                    try {
-                        const res = await fetch('/api/settings');
-                        const data = await res.json();
-                        const container = document.getElementById('categoryFilters');
-                        
-                        if (data.menuCategories && data.menuCategories.length > 0) {
-                            let html = `<li class="sidebar-category-item active" data-filter="all">
-                                ${CATEGORY_ICONS['all'] || ''} <span>All Flavors</span>
-                            </li>`;
-                            
-                            data.menuCategories.forEach(cat => {
-                                const icon = CATEGORY_ICONS[cat.name.toLowerCase()] || CATEGORY_ICONS[cat.id.toLowerCase()] || '<i class="fas fa-utensils"></i>';
-                                html += `<li class="sidebar-category-item" data-filter="${cat.id}">
-                                    ${icon} <span>${cat.name}</span>
-                                </li>`;
-                            });
-                            container.innerHTML = html;
-                            setupFilters(); // Re-bind events
-                        }
-                    } catch(e) { console.error(e); }
+    <script src="assets/js/pcnc-pro.js"></script>
+    <script>
+        async function loadMenuCategories() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                const container = document.getElementById('categoryFilters');
+                
+                if (data.menuCategories && data.menuCategories.length > 0) {
+                    let html = `<li class="sidebar-category-item active" data-filter="all">
+                        ${CATEGORY_ICONS['all'] || ''} <span>All Flavors</span>
+                    </li>`;
+                    
+                    data.menuCategories.forEach(cat => {
+                        const icon = CATEGORY_ICONS[cat.name.toLowerCase()] || CATEGORY_ICONS[cat.id.toLowerCase()] || '<i class="fas fa-utensils"></i>';
+                        html += `<li class="sidebar-category-item" data-filter="${cat.id}">
+                            ${icon} <span>${cat.name}</span>
+                        </li>`;
+                    });
+                    container.innerHTML = html;
+                    if (typeof setupFilters === 'function') setupFilters(); // Re-bind events
                 }
-                loadMenuCategories();
-            </script>
+            } catch(e) { console.error(e); }
+        }
+        document.addEventListener('DOMContentLoaded', loadMenuCategories);
+    </script>
 
             <style>
                 .menu-sticky-wrapper {
@@ -194,9 +195,6 @@
                 }
             </style>
 
-			<div class="row" id="menu-container">
-				<!-- Items rendered by JS with premium styling -->
-			</div>
 
 		</div>
 	</div>
@@ -288,7 +286,6 @@
 	<script src="assets/js/sticker.js"></script>
 	<!-- main js -->
 	<script src="assets/js/main.js?v=1.1"></script>
-    <script src="assets/js/pcnc-pro.js"></script>
     <!-- CMS Loader -->
     <script src="assets/js/admin-core.js"></script>
     <script src="assets/js/inline-editor.js"></script>
