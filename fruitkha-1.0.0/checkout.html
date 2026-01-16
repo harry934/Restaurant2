@@ -555,19 +555,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map, marker, searchTimeout;
-        let usiuPos = [-1.2200414264779664, 36.87814128003106]; // Default Restaurant Coordinates
-
-        // Fetch settings for dynamic restaurant location
-        async function loadRestaurantPos() {
-            try {
-                const res = await fetch('/api/settings');
-                const data = await res.json();
-                if (data.restaurantLat && data.restaurantLng) {
-                    usiuPos = [data.restaurantLat, data.restaurantLng];
-                }
-            } catch (e) { console.error("Could not load dynamic settings", e); }
-        }
-        loadRestaurantPos();
+        const usiuPos = [-1.1766610736906116, 36.94006231794019]; // Default Restaurant Coordinates
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // km
@@ -583,32 +571,20 @@
         function updateDeliveryFee(lat, lng) {
             const dist = calculateDistance(usiuPos[0], usiuPos[1], lat, lng);
             
-            // Logic: Within 1km = FREE. Beyond 1km = 100 per km.
-            let fee = 0;
-            if (dist > 1.0) {
-                fee = Math.round(dist * 100);
-                
-                // Reveal map and info ONLY for paid delivery
-                $('#distance-info').fadeIn();
-                $('#locationMap').fadeIn();
-                $('#drag-instructions').fadeIn();
-                initCheckoutMap();
-            } else {
-                // Hide if within free zone
-                $('#distance-info').fadeOut();
-                $('#locationMap').fadeOut();
-                $('#drag-instructions').fadeOut();
-            }
+            // Logic: 100 per km (always showing map for precise delivery)
+            const fee = Math.ceil(dist) * 100;
+            
+            $('#distance-info').fadeIn();
+            $('#locationMap').fadeIn();
+            $('#drag-instructions').fadeIn();
+            initCheckoutMap();
             
             $('#delivery_fee_hidden').val(fee);
-            if (fee > 0) {
-                $('#delivery-fee-display').text(`KES ${fee}`);
-                $('#delivery-row').css('display', 'flex');
-                if ($('#distance-note').length) {
-                    $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. Delivery fee <strong>KES ${fee}</strong> applied.`);
-                }
-            } else {
-                $('#delivery-row').hide();
+            $('#delivery-fee-display').text(`KES ${fee}`);
+            $('#delivery-row').css('display', 'flex');
+            
+            if ($('#distance-note').length) {
+                $('#distance-note').html(`Distance: <strong>${dist.toFixed(2)}km</strong>. Delivery fee <strong>KES ${fee}</strong> applies.`);
             }
             renderCartPage();
         }

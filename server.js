@@ -110,8 +110,8 @@ const SettingsSchema = new mongoose.Schema(
     homeAbout: Object,
     aboutPromo: Object,
     whatsappNumber: String,
-    restaurantLat: { type: Number, default: -1.2200414264779664 },
-    restaurantLng: { type: Number, default: 36.87814128003106 },
+    restaurantLat: { type: Number, default: -1.1766610736906116 },
+    restaurantLng: { type: Number, default: 36.94006231794019 },
   },
   { strict: false }
 );
