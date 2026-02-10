@@ -3,47 +3,47 @@ let APPLIED_DISCOUNT_PERCENT = 0;
 let APPLIED_PROMO_CODE = null;
 
 const CATEGORY_ICONS = {
-    'pizza': '<i class="fas fa-pizza-slice"></i>',
-    'sides': '<i class="fas fa-hamburger"></i>',
-    'drinks': '<i class="fas fa-wine-glass-alt"></i>',
-    'dessert': '<i class="fas fa-ice-cream"></i>',
-    'pasta': '<i class="fas fa-utensils"></i>',
-    'all': '<i class="fas fa-th-large"></i>'
+  pizza: '<i class="fas fa-pizza-slice"></i>',
+  sides: '<i class="fas fa-hamburger"></i>',
+  drinks: '<i class="fas fa-wine-glass-alt"></i>',
+  dessert: '<i class="fas fa-ice-cream"></i>',
+  pasta: '<i class="fas fa-utensils"></i>',
+  all: '<i class="fas fa-th-large"></i>',
 };
 
 async function loadMenuData() {
-    try {
-        const res = await fetch('/api/menu');
-        MENU_ITEMS = await res.json();
-        return MENU_ITEMS;
-    } catch (e) {
-        console.error("Failed to load menu", e);
-        return [];
-    }
+  try {
+    const res = await fetch("/api/menu");
+    MENU_ITEMS = await res.json();
+    return MENU_ITEMS;
+  } catch (e) {
+    console.error("Failed to load menu", e);
+    return [];
+  }
 }
 
-let currentFilter = 'all';
+let currentFilter = "all";
 
 // Notification System - Minimalist & Snappy
-function showNotification(title, message, type = 'success') {
-    injectNotificationStyles();
+function showNotification(title, message, type = "success") {
+  injectNotificationStyles();
 
-    let container = document.querySelector('.pcnc-toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.className = 'pcnc-toast-container';
-        document.body.appendChild(container);
-    }
+  let container = document.querySelector(".pcnc-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "pcnc-toast-container";
+    document.body.appendChild(container);
+  }
 
-    const toast = document.createElement('div');
-    toast.className = `pcnc-toast-compact ${type}`;
-    
-    let icon = 'fa-check-circle';
-    if (type === 'error') icon = 'fa-times-circle';
-    if (type === 'info') icon = 'fa-info-circle';
-    if (type === 'warning') icon = 'fa-exclamation-triangle';
-    
-    toast.innerHTML = `
+  const toast = document.createElement("div");
+  toast.className = `pcnc-toast-compact ${type}`;
+
+  let icon = "fa-check-circle";
+  if (type === "error") icon = "fa-times-circle";
+  if (type === "info") icon = "fa-info-circle";
+  if (type === "warning") icon = "fa-exclamation-triangle";
+
+  toast.innerHTML = `
         <div class="toast-icon">
             <i class="fas ${icon}"></i>
         </div>
@@ -56,22 +56,22 @@ function showNotification(title, message, type = 'success') {
         </button>
     `;
 
-    container.appendChild(toast);
+  container.appendChild(toast);
 
-    // Auto remove after 3 seconds
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.add("fade-out");
     setTimeout(() => {
-        toast.classList.add('fade-out');
-        setTimeout(() => {
-            if (toast.parentElement) toast.remove();
-        }, 200);
-    }, 3000); 
+      if (toast.parentElement) toast.remove();
+    }, 200);
+  }, 3000);
 }
 
 function injectNotificationStyles() {
-    if (document.getElementById('pcnc-compact-notify-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'pcnc-compact-notify-styles';
-    style.innerHTML = `
+  if (document.getElementById("pcnc-compact-notify-styles")) return;
+  const style = document.createElement("style");
+  style.id = "pcnc-compact-notify-styles";
+  style.innerHTML = `
         .pcnc-toast-container {
             position: fixed;
             top: 20px;
@@ -154,133 +154,151 @@ function injectNotificationStyles() {
             }
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 // CART LOGIC
 function getCart() {
-    return JSON.parse(localStorage.getItem('pcnc_cart')) || [];
+  return JSON.parse(localStorage.getItem("pcnc_cart")) || [];
 }
 
 function saveCart(cart) {
-    localStorage.setItem('pcnc_cart', JSON.stringify(cart));
-    updateCartMetadata();
+  localStorage.setItem("pcnc_cart", JSON.stringify(cart));
+  updateCartMetadata();
 }
 
 function addToCart(id) {
-    const cart = getCart();
-    const item = MENU_ITEMS.find(i => i.id === id);
-    if (!item) return;
+  const cart = getCart();
+  const item = MENU_ITEMS.find((i) => i.id === id);
+  if (!item) return;
 
-    const existing = cart.find(i => i.id === id);
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({ ...item, quantity: 1 });
+  const existing = cart.find((i) => i.id === id);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ ...item, quantity: 1 });
+  }
+  saveCart(cart);
+  showNotification(
+    "Added!",
+    item.name + " has been added to your cart.",
+    "success",
+  );
+
+  // Force immediate re-render to show quantity selector
+  setTimeout(() => {
+    if (window.location.pathname.includes("shop.html")) {
+      renderMenu(currentFilter);
     }
-    saveCart(cart);
-    showNotification('Added!', item.name + ' has been added to your cart.', 'success');
-    
-    // Force immediate re-render to show quantity selector
-    setTimeout(() => {
-        if (window.location.pathname.includes('shop.html')) {
-            renderMenu(currentFilter);
-        }
-    }, 100);
+  }, 100);
 }
 
 function updateCartMetadata() {
-    const cart = getCart();
-    const count = cart.reduce((sum, i) => sum + i.quantity, 0);
-    const total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  const cart = getCart();
+  const count = cart.reduce((sum, i) => sum + i.quantity, 0);
+  const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-    // Update top header badges
-    const badges = document.querySelectorAll('.pcnc-header-badge');
-    badges.forEach(b => {
-        b.innerText = count;
-        b.style.display = count > 0 ? 'flex' : 'none';
-    });
+  // Update top header badges
+  const badges = document.querySelectorAll(".pcnc-header-badge");
+  badges.forEach((b) => {
+    b.innerText = count;
+    b.style.display = count > 0 ? "flex" : "none";
+  });
 
-    // Update bottom nav cart count
-    const bottomNavCount = document.querySelector('.mobile-bottom-nav .cart-count');
-    if (bottomNavCount) {
-        bottomNavCount.innerText = count;
-        bottomNavCount.style.display = count > 0 ? 'block' : 'none';
-    }
+  // Update bottom nav cart count
+  const bottomNavCount = document.querySelector(
+    ".mobile-bottom-nav .cart-count",
+  );
+  if (bottomNavCount) {
+    bottomNavCount.innerText = count;
+    bottomNavCount.style.display = count > 0 ? "block" : "none";
+  }
 
-    // Update any other .cart-count elements
-    const genericCounts = document.querySelectorAll('.cart-count:not(.mobile-bottom-nav .cart-count)');
-    genericCounts.forEach(gc => gc.innerText = count);
+  // Update any other .cart-count elements
+  const genericCounts = document.querySelectorAll(
+    ".cart-count:not(.mobile-bottom-nav .cart-count)",
+  );
+  genericCounts.forEach((gc) => (gc.innerText = count));
 }
 
 function updateFloatingCartBar(count, total) {
-    // Disabled per user request to reduce distraction
-    let bar = document.querySelector('.floating-cart-bar');
-    if (bar) bar.classList.remove('show');
+  // Disabled per user request to reduce distraction
+  let bar = document.querySelector(".floating-cart-bar");
+  if (bar) bar.classList.remove("show");
 }
 
 function removeFromCart(id) {
-    let cart = getCart();
-    cart = cart.filter(i => i.id !== id);
-    saveCart(cart);
-    if (window.location.pathname.includes('cart.html') || window.location.pathname.includes('checkout.html')) {
-        renderCartPage();
-    } else if (window.location.pathname.includes('shop.html')) {
-        renderMenu(currentFilter);
-    }
+  let cart = getCart();
+  cart = cart.filter((i) => i.id !== id);
+  saveCart(cart);
+  if (
+    window.location.pathname.includes("cart.html") ||
+    window.location.pathname.includes("checkout.html")
+  ) {
+    renderCartPage();
+  } else if (window.location.pathname.includes("shop.html")) {
+    renderMenu(currentFilter);
+  }
 }
 
 function updateQuantity(id, delta) {
-    let cart = getCart();
-    const item = cart.find(i => i.id === id);
-    if (item) {
-        item.quantity += delta;
-        if (item.quantity <= 0) {
-            removeFromCart(id);
-            return;
-        }
-        saveCart(cart);
-        if (window.location.pathname.includes('cart.html') || window.location.pathname.includes('checkout.html')) {
-            renderCartPage();
-        }
+  let cart = getCart();
+  const item = cart.find((i) => i.id === id);
+  if (item) {
+    item.quantity += delta;
+    if (item.quantity <= 0) {
+      removeFromCart(id);
+      return;
     }
+    saveCart(cart);
+    if (
+      window.location.pathname.includes("cart.html") ||
+      window.location.pathname.includes("checkout.html")
+    ) {
+      renderCartPage();
+    }
+  }
 }
 
 // Helper to generate horizontal list-style product card HTML
 function generateProductCardHTML(item) {
-    const isSoldOut = item.isAvailable === false;
-    const opacity = isSoldOut ? '0.6' : '1';
-    
-    // Check if item is in cart
-    const cart = getCart();
-    const cartItem = cart.find(c => c.id === item.id);
-    const quantity = cartItem ? cartItem.quantity : 0;
-    
-    return `
+  const isSoldOut = item.isAvailable === false;
+  const opacity = isSoldOut ? "0.6" : "1";
+
+  // Check if item is in cart
+  const cart = getCart();
+  const cartItem = cart.find((c) => c.id === item.id);
+  const quantity = cartItem ? cartItem.quantity : 0;
+
+  return `
         <div class="col-12 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity}; margin-bottom: 15px;">
             <div class="horizontal-food-card">
                 <div class="food-image-container">
                     <img src="${item.image}" alt="${item.name}" class="food-image">
-                    ${isSoldOut ? `<span class="sold-out-badge">Sold Out</span>` : ''}
+                    ${isSoldOut ? `<span class="sold-out-badge">Sold Out</span>` : ""}
                 </div>
                 
                 <div class="food-details">
                     <div class="title-row">
                         <h3 class="food-title">${item.name}</h3>
-                        ${item.tag && !isSoldOut ? `<span class="discount-tag">${item.tag}</span>` : ''}
+                        ${item.tag && !isSoldOut ? `<span class="discount-tag">${item.tag}</span>` : ""}
                     </div>
-                    <p class="food-description">${item.description || 'Delicious and freshly prepared'}</p>
+                    <p class="food-description">${item.description || "Delicious and freshly prepared"}</p>
                 </div>
                 
                 <div class="food-pricing">
                     <div class="price-block">
                         <span class="current-price">KSh${item.price.toLocaleString()}</span>
                     </div>
-                    ${isSoldOut ? `
+                    ${
+                      isSoldOut
+                        ? `
                         <button class="add-item-btn disabled" disabled>
                             <i class="fas fa-plus"></i>
                         </button>
-                    ` : (quantity > 0 ? `
+                    `
+                        : quantity > 0
+                          ? `
                         <div class="horizontal-qty-control">
                             <button onclick="updateProductCardQty(${item.id}, -1); return false;" class="qty-btn">
                                 <i class="fas fa-minus"></i>
@@ -290,11 +308,13 @@ function generateProductCardHTML(item) {
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                    ` : `
+                    `
+                          : `
                         <button class="add-item-btn" onclick="addToCart(${item.id}); return false;">
                             <i class="fas fa-plus"></i>
                         </button>
-                    `)}
+                    `
+                    }
                 </div>
             </div>
         </div>
@@ -302,34 +322,37 @@ function generateProductCardHTML(item) {
 }
 
 function updateProductCardQty(id, change) {
-    if (change > 0) {
-        addToCart(id);
-    } else {
-        // Find existing cart item to decrease
-        let cart = getCart();
-        const existing = cart.find(i => i.id === id);
-        if (existing) {
-            if (existing.quantity > 1) {
-                existing.quantity--;
-                saveCart(cart);
-                updateCartMetadata();
-            } else {
-                removeFromCart(id);
-                return;
-            }
-        }
+  if (change > 0) {
+    addToCart(id);
+  } else {
+    // Find existing cart item to decrease
+    let cart = getCart();
+    const existing = cart.find((i) => i.id === id);
+    if (existing) {
+      if (existing.quantity > 1) {
+        existing.quantity--;
+        saveCart(cart);
+        updateCartMetadata();
+      } else {
+        removeFromCart(id);
+        return;
+      }
     }
-    
-    // Force re-render to show updated quantity
-    setTimeout(() => {
-        if (window.location.pathname.includes('shop.html')) {
-            renderMenu(currentFilter);
-        }
-    }, 100);
+  }
+
+  // Force re-render to show updated quantity
+  setTimeout(() => {
+    if (window.location.pathname.includes("shop.html")) {
+      renderMenu(currentFilter);
+    }
+  }, 100);
 }
 
 function renderSkeleton() {
-    return Array(8).fill(0).map(() => `
+  return Array(8)
+    .fill(0)
+    .map(
+      () => `
         <div class="col-lg-3 col-md-4 col-6 mb-4">
             <div class="glovo-card skeleton">
                 <div class="glovo-img-wrap skeleton-box" style="height: 140px;"></div>
@@ -342,90 +365,99 @@ function renderSkeleton() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `,
+    )
+    .join("");
 }
 
 // RENDER MENU (shop.html)
-async function renderMenu(filter = 'all') {
-    const container = document.getElementById('menu-container');
-    if (!container) return;
+async function renderMenu(filter = "all") {
+  const container = document.getElementById("menu-container");
+  if (!container) return;
 
-    injectPremiumStyles();
-    
-    // Show skeletons if no data yet
-    if (MENU_ITEMS.length === 0) {
-        container.innerHTML = renderSkeleton();
-        await loadMenuData();
-    }
-    
-    currentFilter = filter;
-    const searchEl = document.getElementById('shopSearch');
-    const searchTerm = (searchEl?.value || '').toLowerCase();
-    
-    let items = MENU_ITEMS;
-    if (filter !== 'all') {
-        items = items.filter(i => i.category === filter);
-    }
-    if (searchTerm) {
-        items = items.filter(i => i.name.toLowerCase().includes(searchTerm));
-    }
+  injectPremiumStyles();
 
-    container.innerHTML = '';
-    if (items.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center py-5"><h3 class="text-muted">No items found matching your search.</h3></div>';
-        return;
-    }
+  // Show skeletons if no data yet
+  if (MENU_ITEMS.length === 0) {
+    container.innerHTML = renderSkeleton();
+    await loadMenuData();
+  }
 
-    if (filter === 'all' && !searchTerm) {
-        const grouped = items.reduce((acc, item) => {
-            if (!acc[item.category]) acc[item.category] = [];
-            acc[item.category].push(item);
-            return acc;
-        }, {});
+  currentFilter = filter;
+  const searchEl = document.getElementById("shopSearch");
+  const searchTerm = (searchEl?.value || "").toLowerCase();
 
-        const settingsRes = await fetch('/api/settings');
-        const settings = await settingsRes.json();
-        const categoryMap = (settings.menuCategories || []).reduce((acc, cat) => {
-            acc[cat.id] = cat.name;
-            return acc;
-        }, {});
+  let items = MENU_ITEMS;
+  if (filter !== "all") {
+    items = items.filter((i) => i.category === filter);
+  }
+  if (searchTerm) {
+    items = items.filter((i) => i.name.toLowerCase().includes(searchTerm));
+  }
 
-        for (const catId in grouped) {
-            const catName = categoryMap[catId] || catId.toUpperCase();
-            container.innerHTML += `
+  container.innerHTML = "";
+  if (items.length === 0) {
+    container.innerHTML =
+      '<div class="col-12 text-center py-5"><h3 class="text-muted">No items found matching your search.</h3></div>';
+    return;
+  }
+
+  if (filter === "all" && !searchTerm) {
+    const grouped = items.reduce((acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push(item);
+      return acc;
+    }, {});
+
+    const settingsRes = await fetch("/api/settings");
+    const settings = await settingsRes.json();
+    const categoryMap = (settings.menuCategories || []).reduce((acc, cat) => {
+      acc[cat.id] = cat.name;
+      return acc;
+    }, {});
+
+    for (const catId in grouped) {
+      const catName = categoryMap[catId] || catId.toUpperCase();
+      container.innerHTML += `
                 <div class="col-12 category-header-glovo" id="section-${catId}">
                     <h2>${catName}</h2>
                 </div>
             `;
-            container.innerHTML += grouped[catId].map(item => generateProductCardHTML(item)).join('');
-        }
-    } else {
-        container.innerHTML = items.map(item => generateProductCardHTML(item)).join('');
+      container.innerHTML += grouped[catId]
+        .map((item) => generateProductCardHTML(item))
+        .join("");
     }
-    
-    setupFilters();
-    initScrollspy();
+  } else {
+    container.innerHTML = items
+      .map((item) => generateProductCardHTML(item))
+      .join("");
+  }
+
+  setupFilters();
+  initScrollspy();
 }
 
 // RENDER HOMEPAGE MENU (index.html)
 async function renderHomepageMenu() {
-    const container = document.getElementById('homepage-menu-container');
-    if (!container) return;
+  const container = document.getElementById("homepage-menu-container");
+  if (!container) return;
 
-    if (MENU_ITEMS.length === 0) await loadMenuData();
+  if (MENU_ITEMS.length === 0) await loadMenuData();
 
-    injectPremiumStyles();
+  injectPremiumStyles();
 
-    // Show top 3 featured/bestseller items
-    const sampleItems = MENU_ITEMS.slice(0, 3);
-    container.innerHTML = sampleItems.map(item => generateProductCardHTML(item)).join('');
+  // Show top 3 featured/bestseller items
+  const sampleItems = MENU_ITEMS.slice(0, 3);
+  container.innerHTML = sampleItems
+    .map((item) => generateProductCardHTML(item))
+    .join("");
 }
 
 function injectPremiumStyles() {
-    if (document.getElementById('glovo-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'glovo-styles';
-    style.innerHTML = `
+  if (document.getElementById("glovo-styles")) return;
+  const style = document.createElement("style");
+  style.id = "glovo-styles";
+  style.innerHTML = `
         :root {
             --glovo-red: #e7252d;
             --glovo-yellow: #ffc244;
@@ -683,6 +715,10 @@ function injectPremiumStyles() {
             color: #666;
             margin: 0;
             line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         .food-pricing {
@@ -690,6 +726,7 @@ function injectPremiumStyles() {
             flex-direction: column;
             align-items: flex-end;
             gap: 12px;
+            min-width: 100px; /* Ensure price area doesn't collapse */
         }
         .price-block {
             text-align: right;
@@ -778,67 +815,95 @@ function injectPremiumStyles() {
                 flex-direction: row;
                 padding: 12px;
                 gap: 12px;
-                align-items: stretch; /* Ensure equal height */
-                min-height: 110px;
+                align-items: center; 
+                min-height: 100px;
             }
             .food-image-container {
-                width: 90px;
-                height: 90px;
+                width: 85px;
+                height: 85px;
                 flex-shrink: 0;
-                align-self: center;
             }
             .food-details {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                flex: 1;
+                min-width: 0; /* Allows flex child to shrink */
+            }
+            .title-row {
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 2px;
             }
             .food-title {
-                font-size: 1rem;
-                margin-bottom: 4px;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
+                font-size: 0.95rem;
+                margin-bottom: 0;
+                display: block;
                 overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 100%;
+            }
+            .discount-tag {
+                padding: 2px 6px;
+                font-size: 0.65rem;
             }
             .food-description {
-                font-size: 0.8rem;
-                line-height: 1.3;
-                display: none; /* Hide description on mobile to save space */
+                font-size: 0.75rem;
+                line-height: 1.2;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
             .food-pricing {
                 flex-direction: column;
                 justify-content: center;
-                gap: 8px;
+                gap: 5px;
                 align-items: flex-end;
-                min-width: 80px; /* Prevent squashing */
+                min-width: 75px; 
+                flex-shrink: 0;
             }
             .current-price {
-                font-size: 1rem;
+                font-size: 0.95rem;
+                white-space: nowrap;
             }
             .add-item-btn {
                 width: 32px;
                 height: 32px;
                 font-size: 14px;
             }
+            .horizontal-qty-control {
+                padding: 4px 8px;
+                gap: 5px;
+            }
+            .qty-btn {
+                width: 24px;
+                height: 24px;
+            }
+            .qty-display {
+                font-size: 0.9rem;
+                min-width: 15px;
+            }
             /* Sidebar Optimization */
             .glovo-sidebar {
                 padding: 10px 15px;
                 position: sticky;
-                top: 0;
+                top: 70px; /* Adjusted to fit below main sticky header */
                 z-index: 100;
                 background: #fff;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             }
-            .sidebar-search { display: none; } /* Hide search on mobile, save header space */
+            .sidebar-search { display: none; } 
             .sidebar-category-list {
                 display: flex;
                 overflow-x: auto;
                 white-space: nowrap;
                 padding-bottom: 5px;
-                -webkit-overflow-scrolling: touch; /* smooth scroll iOS */
-                scrollbar-width: none; /* Firefox */
+                -webkit-overflow-scrolling: touch; 
+                scrollbar-width: none; 
             }
-            .sidebar-category-list::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+            .sidebar-category-list::-webkit-scrollbar { display: none; } 
             
             .sidebar-category-item {
                 flex-shrink: 0;
@@ -1278,97 +1343,106 @@ function injectPremiumStyles() {
             gap: 10px;
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 function setupFilters() {
-    const filterBtns = document.querySelectorAll('.sidebar-category-item');
-    if (!filterBtns.length) return;
+  const filterBtns = document.querySelectorAll(".sidebar-category-item");
+  if (!filterBtns.length) return;
 
-    filterBtns.forEach(btn => {
-        const filterVal = btn.getAttribute('data-filter');
-        
-        // Initial state sync
-        if (filterVal === currentFilter) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+  filterBtns.forEach((btn) => {
+    const filterVal = btn.getAttribute("data-filter");
 
-        btn.onclick = (e) => {
-            // Remove active from all
-            filterBtns.forEach(b => b.classList.remove('active'));
-            // Add active to clicked
-            btn.classList.add('active');
-            
-            // Re-render menu
-            renderMenu(filterVal);
-        };
-    });
+    // Initial state sync
+    if (filterVal === currentFilter) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+
+    btn.onclick = (e) => {
+      // Remove active from all
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      // Add active to clicked
+      btn.classList.add("active");
+
+      // Re-render menu
+      renderMenu(filterVal);
+    };
+  });
 }
 
 function initScrollspy() {
-    if (currentFilter !== 'all' || document.getElementById('shopSearch')?.value) return;
+  if (currentFilter !== "all" || document.getElementById("shopSearch")?.value)
+    return;
 
-    const sections = document.querySelectorAll('.category-header-glovo');
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    
-    window.onscroll = () => {
-        let currentSectionId = '';
-        sections.forEach(sec => {
-            const top = sec.offsetTop - 200;
-            if (window.pageYOffset >= top) {
-                currentSectionId = sec.id.replace('section-', '');
-            }
-        });
+  const sections = document.querySelectorAll(".category-header-glovo");
+  const filterBtns = document.querySelectorAll(".filter-btn");
 
-        if (currentSectionId) {
-            filterBtns.forEach(btn => {
-                const bVal = btn.getAttribute('data-filter');
-                if (bVal === currentSectionId) {
-                    btn.classList.add('active-filter');
-                    // Scroll nav into view
-                    btn.parentNode.scrollTo({
-                        left: btn.offsetLeft - (btn.parentNode.offsetWidth / 2) + (btn.offsetWidth / 2),
-                        behavior: 'smooth'
-                    });
-                } else {
-                    btn.classList.remove('active-filter');
-                }
-            });
+  window.onscroll = () => {
+    let currentSectionId = "";
+    sections.forEach((sec) => {
+      const top = sec.offsetTop - 200;
+      if (window.pageYOffset >= top) {
+        currentSectionId = sec.id.replace("section-", "");
+      }
+    });
+
+    if (currentSectionId) {
+      filterBtns.forEach((btn) => {
+        const bVal = btn.getAttribute("data-filter");
+        if (bVal === currentSectionId) {
+          btn.classList.add("active-filter");
+          // Scroll nav into view
+          btn.parentNode.scrollTo({
+            left:
+              btn.offsetLeft -
+              btn.parentNode.offsetWidth / 2 +
+              btn.offsetWidth / 2,
+            behavior: "smooth",
+          });
+        } else {
+          btn.classList.remove("active-filter");
         }
-    };
+      });
+    }
+  };
 }
 
 // RENDER CART (cart.html) & CHECKOUT (checkout.html)
 function renderCartPage() {
-    const listContainer = document.getElementById('cart-item-list');
-    const tbody = document.getElementById('cart-table-body');
-    const totalEl = document.getElementById('cart-total');
-    const subtotalEl = document.getElementById('subtotal');
-    
-    if (!listContainer && !tbody) return;
+  const listContainer = document.getElementById("cart-item-list");
+  const tbody = document.getElementById("cart-table-body");
+  const totalEl = document.getElementById("cart-total");
+  const subtotalEl = document.getElementById("subtotal");
 
-    injectPremiumStyles();
+  if (!listContainer && !tbody) return;
 
-    const cart = getCart();
-    if (cart.length === 0) {
-        if (listContainer) listContainer.innerHTML = '<div class="text-center py-5"><h3 class="text-muted">Your cart is empty</h3><a href="shop.html" class="boxed-btn mt-3">Go to Menu</a></div>';
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Your cart is empty</td></tr>';
-        if (totalEl) totalEl.innerText = 'KES 0';
-        if (subtotalEl) subtotalEl.innerText = 'KES 0';
-        return;
-    }
+  injectPremiumStyles();
 
-    const isCheckout = window.location.pathname.includes('checkout.html');
-    let total = 0;
+  const cart = getCart();
+  if (cart.length === 0) {
+    if (listContainer)
+      listContainer.innerHTML =
+        '<div class="text-center py-5"><h3 class="text-muted">Your cart is empty</h3><a href="shop.html" class="boxed-btn mt-3">Go to Menu</a></div>';
+    if (tbody)
+      tbody.innerHTML =
+        '<tr><td colspan="6" class="text-center">Your cart is empty</td></tr>';
+    if (totalEl) totalEl.innerText = "KES 0";
+    if (subtotalEl) subtotalEl.innerText = "KES 0";
+    return;
+  }
 
-    if (isCheckout) {
-        // ... (Checkout logic as is, it's already reasonably clean)
-        tbody.innerHTML = cart.map(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            return `
+  const isCheckout = window.location.pathname.includes("checkout.html");
+  let total = 0;
+
+  if (isCheckout) {
+    // ... (Checkout logic as is, it's already reasonably clean)
+    tbody.innerHTML = cart
+      .map((item) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        return `
             <tr class="summary-item-row">
                 <td>
                     <div style="font-weight: 700; color: #1a1a1a; margin-bottom: 8px; font-size: 0.95rem;">${item.name}</div>
@@ -1389,13 +1463,15 @@ function renderCartPage() {
                 </td>
             </tr>
             `;
-        }).join('');
-    } else if (listContainer) {
-        // PREMIUM CART (cart.html)
-        listContainer.innerHTML = cart.map(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            return `
+      })
+      .join("");
+  } else if (listContainer) {
+    // PREMIUM CART (cart.html)
+    listContainer.innerHTML = cart
+      .map((item) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        return `
             <div class="premium-cart-card">
                 <div class="cart-img-wrap">
                     <img src="${item.image}" alt="${item.name}">
@@ -1415,214 +1491,257 @@ function renderCartPage() {
                 </div>
             </div>
             `;
-        }).join('');
-    }
+      })
+      .join("");
+  }
 
-    // Handle Summary Section
-    if (subtotalEl) subtotalEl.innerText = 'KES ' + total.toLocaleString();
+  // Handle Summary Section
+  if (subtotalEl) subtotalEl.innerText = "KES " + total.toLocaleString();
 
-    // Handle Discount
-    if (APPLIED_DISCOUNT_PERCENT > 0) {
-        const discountAmount = Math.round(total * (APPLIED_DISCOUNT_PERCENT / 100));
-        const discRow = document.getElementById('discount-row');
-        const discAmtEl = document.getElementById('discount-amount');
-        if (discRow) discRow.style.display = 'flex';
-        if (discAmtEl) discAmtEl.innerText = `-KES ${discountAmount.toLocaleString()}`;
-        total -= discountAmount;
-    } else {
-        const discRow = document.getElementById('discount-row');
-        if (discRow) discRow.style.display = 'none';
-    }
+  // Handle Discount
+  if (APPLIED_DISCOUNT_PERCENT > 0) {
+    const discountAmount = Math.round(total * (APPLIED_DISCOUNT_PERCENT / 100));
+    const discRow = document.getElementById("discount-row");
+    const discAmtEl = document.getElementById("discount-amount");
+    if (discRow) discRow.style.display = "flex";
+    if (discAmtEl)
+      discAmtEl.innerText = `-KES ${discountAmount.toLocaleString()}`;
+    total -= discountAmount;
+  } else {
+    const discRow = document.getElementById("discount-row");
+    if (discRow) discRow.style.display = "none";
+  }
 
-    if (totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
-    
-    // Add Delivery Fee if present
-    const deliveryFeeEl = document.getElementById('delivery_fee_hidden');
-    if (deliveryFeeEl && parseInt(deliveryFeeEl.value) > 0) {
-        const fee = parseInt(deliveryFeeEl.value);
-        total += fee;
-        if (totalEl) totalEl.innerText = 'KES ' + total.toLocaleString();
-    }
+  if (totalEl) totalEl.innerText = "KES " + total.toLocaleString();
+
+  // Add Delivery Fee if present
+  const deliveryFeeEl = document.getElementById("delivery_fee_hidden");
+  if (deliveryFeeEl && parseInt(deliveryFeeEl.value) > 0) {
+    const fee = parseInt(deliveryFeeEl.value);
+    total += fee;
+    if (totalEl) totalEl.innerText = "KES " + total.toLocaleString();
+  }
 }
 
 // CHECKOUT (checkout.html)
 async function submitOrder(e) {
-    if(e) e.preventDefault();
-    
-    const cart = getCart();
-    if (cart.length === 0) {
-        showNotification('Cart Empty', 'Please add some items to your cart before proceeding.', 'error');
-        return;
+  if (e) e.preventDefault();
+
+  const cart = getCart();
+  if (cart.length === 0) {
+    showNotification(
+      "Cart Empty",
+      "Please add some items to your cart before proceeding.",
+      "error",
+    );
+    return;
+  }
+
+  const customerName = document.getElementById("name").value.trim();
+  const phoneNumber = document.getElementById("phone").value.trim();
+  const location = document.getElementById("address").value.trim();
+  const notes = document.getElementById("order-notes").value.trim();
+
+  // VALIDATION
+  if (!customerName || !phoneNumber || !location) {
+    showNotification(
+      "Missing Details",
+      "Please fill in your name, phone, and delivery address.",
+      "error",
+    );
+    return;
+  }
+
+  // Phone Validation: 10 digits starting with 07 or 01
+  const phoneRegex = /^(07|01)\d{8}$/;
+  if (!phoneRegex.test(phoneNumber)) {
+    showNotification(
+      "Invalid Phone",
+      "Please enter a valid 10-digit Kenyan phone number starting with 07 or 01.",
+      "error",
+    );
+    return;
+  }
+
+  const paymentMethod = document.querySelector(
+    'input[name="payment_method"]:checked',
+  ).value;
+  const totalAmountRaw = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const discountAmount = Math.round(
+    totalAmountRaw * (APPLIED_DISCOUNT_PERCENT / 100),
+  );
+
+  const deliveryFee = document.getElementById("delivery_fee_hidden")
+    ? parseInt(document.getElementById("delivery_fee_hidden").value)
+    : 0;
+  const totalAmount = totalAmountRaw - discountAmount + deliveryFee;
+
+  // M-Pesa Credentials
+  const mpesa_credentials = {
+    consumerKey: "RB7RwzrKvbNHTPAic7xvndo3ChzkwSk67uIj0wMw4T2A0rTY",
+    consumerSecret:
+      "DlUU4Bsp7SK8EPiTeJgXAirYPwBNaY19E75LA7PBWBthAvLk8iQIaJoG7tpMcAhU",
+    shortCode: "6994591",
+  };
+
+  const btn = document.getElementById("placeOrderBtn");
+  if (btn) {
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+  }
+
+  const lat = document.getElementById("lat")
+    ? document.getElementById("lat").value
+    : null;
+  const lng = document.getElementById("lng")
+    ? document.getElementById("lng").value
+    : null;
+
+  try {
+    const res = await fetch("/api/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerName,
+        phoneNumber,
+        location,
+        lat,
+        lng,
+        notes,
+        paymentMethod,
+        items: cart,
+        totalAmount,
+        discountAmount,
+        deliveryFee,
+        promoCode: APPLIED_PROMO_CODE,
+        credentials: mpesa_credentials,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification(
+        "Order Placed",
+        "Your order has been received! Redirecting to tracking...",
+        "success",
+      );
+      localStorage.removeItem("pcnc_cart");
+
+      // Store multiple order IDs
+      let orders = JSON.parse(localStorage.getItem("pcnc_order_ids") || "[]");
+      orders.unshift(data.orderId);
+      localStorage.setItem("pcnc_order_ids", JSON.stringify(orders));
+      localStorage.setItem("pcnc_last_order_id", data.orderId);
+
+      setTimeout(() => {
+        window.location.href = `track-order.html?id=${data.orderId}`;
+      }, 2000);
+    } else {
+      showNotification("Order Failed", data.message, "error");
+      btn.innerText = "Confirm Order";
+      btn.disabled = false;
     }
-
-    const customerName = document.getElementById('name').value.trim();
-    const phoneNumber = document.getElementById('phone').value.trim();
-    const location = document.getElementById('address').value.trim();
-    const notes = document.getElementById('order-notes').value.trim();
-
-    // VALIDATION
-    if (!customerName || !phoneNumber || !location) {
-        showNotification('Missing Details', 'Please fill in your name, phone, and delivery address.', 'error');
-        return;
-    }
-
-    // Phone Validation: 10 digits starting with 07 or 01
-    const phoneRegex = /^(07|01)\d{8}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-        showNotification('Invalid Phone', 'Please enter a valid 10-digit Kenyan phone number starting with 07 or 01.', 'error');
-        return;
-    }
-
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    const totalAmountRaw = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    const discountAmount = Math.round(totalAmountRaw * (APPLIED_DISCOUNT_PERCENT / 100));
-    
-    const deliveryFee = document.getElementById('delivery_fee_hidden') ? parseInt(document.getElementById('delivery_fee_hidden').value) : 0;
-    const totalAmount = totalAmountRaw - discountAmount + deliveryFee;
-
-    // M-Pesa Credentials
-    const mpesa_credentials = {
-        consumerKey: "RB7RwzrKvbNHTPAic7xvndo3ChzkwSk67uIj0wMw4T2A0rTY",
-        consumerSecret: "DlUU4Bsp7SK8EPiTeJgXAirYPwBNaY19E75LA7PBWBthAvLk8iQIaJoG7tpMcAhU",
-        shortCode: "6994591"
-    };
-
-    const btn = document.getElementById('placeOrderBtn');
-    if (btn) {
-        btn.innerText = 'Processing...';
-        btn.disabled = true;
-    }
-
-    const lat = document.getElementById('lat') ? document.getElementById('lat').value : null;
-    const lng = document.getElementById('lng') ? document.getElementById('lng').value : null;
-
-    try {
-        const res = await fetch('/api/order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                customerName,
-                phoneNumber,
-                location,
-                lat,
-                lng,
-                notes,
-                paymentMethod,
-                items: cart,
-                totalAmount,
-                discountAmount,
-                deliveryFee,
-                promoCode: APPLIED_PROMO_CODE,
-                credentials: mpesa_credentials
-            })
-        });
-        const data = await res.json();
-        if (data.success) {
-            showNotification('Order Placed', 'Your order has been received! Redirecting to tracking...', 'success');
-            localStorage.removeItem('pcnc_cart');
-            
-            // Store multiple order IDs
-            let orders = JSON.parse(localStorage.getItem('pcnc_order_ids') || '[]');
-            orders.unshift(data.orderId);
-            localStorage.setItem('pcnc_order_ids', JSON.stringify(orders));
-            localStorage.setItem('pcnc_last_order_id', data.orderId);
-
-            setTimeout(() => {
-                window.location.href = `track-order.html?id=${data.orderId}`;
-            }, 2000);
-
-        } else {
-            showNotification('Order Failed', data.message, 'error');
-            btn.innerText = 'Confirm Order';
-            btn.disabled = false;
-        }
-    } catch (err) {
-        console.error("Checkout Error:", err);
-        showNotification('Connection Error', 'Payment Request Failed. Please check your network.', 'error');
-        btn.innerText = 'Confirm Order';
-        btn.disabled = false;
-    }
+  } catch (err) {
+    console.error("Checkout Error:", err);
+    showNotification(
+      "Connection Error",
+      "Payment Request Failed. Please check your network.",
+      "error",
+    );
+    btn.innerText = "Confirm Order";
+    btn.disabled = false;
+  }
 }
 
 // LOCATION SEARCH LOGIC (Google Maps-style Autocomplete)
 let globalSearchTimeout;
 function initializeLocationSearch() {
-    const addressInput = document.getElementById('address');
-    const suggestionBox = document.getElementById('location-suggestions');
-    if (!addressInput || !suggestionBox) return;
+  const addressInput = document.getElementById("address");
+  const suggestionBox = document.getElementById("location-suggestions");
+  if (!addressInput || !suggestionBox) return;
 
-    // Apply suggestion box styles
-    Object.assign(suggestionBox.style, {
-        position: 'absolute',
-        top: '100%',
-        left: '0',
-        right: '0',
-        background: '#fff',
-        borderRadius: '12px',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-        zIndex: '10000',
-        display: 'none',
-        overflow: 'hidden',
-        border: '1px solid #eee',
-        marginTop: '8px',
-        transition: 'all 0.2s ease'
-    });
+  // Apply suggestion box styles
+  Object.assign(suggestionBox.style, {
+    position: "absolute",
+    top: "100%",
+    left: "0",
+    right: "0",
+    background: "#fff",
+    borderRadius: "12px",
+    boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+    zIndex: "10000",
+    display: "none",
+    overflow: "hidden",
+    border: "1px solid #eee",
+    marginTop: "8px",
+    transition: "all 0.2s ease",
+  });
 
-    addressInput.addEventListener('input', (e) => {
-        const val = e.target.value;
-        if (val.length < 2) {
-            suggestionBox.style.display = 'none';
-            return;
-        }
+  addressInput.addEventListener("input", (e) => {
+    const val = e.target.value;
+    if (val.length < 2) {
+      suggestionBox.style.display = "none";
+      return;
+    }
 
-        clearTimeout(globalSearchTimeout);
-        globalSearchTimeout = setTimeout(() => {
-            const restLat = (typeof usiuPos !== 'undefined') ? usiuPos[0] : -1.1766610736906116;
-            const restLng = (typeof usiuPos !== 'undefined') ? usiuPos[1] : 36.94006231794019;
+    clearTimeout(globalSearchTimeout);
+    globalSearchTimeout = setTimeout(() => {
+      const restLat =
+        typeof usiuPos !== "undefined" ? usiuPos[0] : -1.1766610736906116;
+      const restLng =
+        typeof usiuPos !== "undefined" ? usiuPos[1] : 36.94006231794019;
 
-            // Search near the restaurant for better relevance
-            fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(val)}&lat=${restLat}&lon=${restLng}&limit=6`)
-                .then(r => r.json())
-                .then(data => {
-                    let html = '';
-                    if (data.features && data.features.length > 0) {
-                        html = data.features.map(f => {
-                            const p = f.properties;
-                            const mainName = p.name || p.street || 'Unknown Place';
-                            const subName = [p.street, p.district, p.city].filter(s => s && s !== mainName).join(', ');
-                            
-                            // Determine icon based on type
-                            let icon = '<i class="fas fa-map-marker-alt"></i>';
-                            if (p.type === 'house' || p.osm_key === 'building') icon = '<i class="fas fa-house-user"></i>';
-                            if (p.osm_value === 'restaurant' || p.osm_value === 'cafe') icon = '<i class="fas fa-utensils"></i>';
-                            if (p.type === 'city' || p.type === 'town') icon = '<i class="fas fa-city"></i>';
+      // Search near the restaurant for better relevance
+      fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(val)}&lat=${restLat}&lon=${restLng}&limit=6`,
+      )
+        .then((r) => r.json())
+        .then((data) => {
+          let html = "";
+          if (data.features && data.features.length > 0) {
+            html = data.features
+              .map((f) => {
+                const p = f.properties;
+                const mainName = p.name || p.street || "Unknown Place";
+                const subName = [p.street, p.district, p.city]
+                  .filter((s) => s && s !== mainName)
+                  .join(", ");
 
-                            return `
+                // Determine icon based on type
+                let icon = '<i class="fas fa-map-marker-alt"></i>';
+                if (p.type === "house" || p.osm_key === "building")
+                  icon = '<i class="fas fa-house-user"></i>';
+                if (p.osm_value === "restaurant" || p.osm_value === "cafe")
+                  icon = '<i class="fas fa-utensils"></i>';
+                if (p.type === "city" || p.type === "town")
+                  icon = '<i class="fas fa-city"></i>';
+
+                return `
                                 <div class="suggestion-item" 
-                                     onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${mainName.replace(/'/g, "\\'")} ${subName ? ', ' + subName.replace(/'/g, "\\'") : ''}')" 
+                                     onclick="selectLocation(${f.geometry.coordinates[1]}, ${f.geometry.coordinates[0]}, '${mainName.replace(/'/g, "\\'")} ${subName ? ", " + subName.replace(/'/g, "\\'") : ""}')" 
                                      style="padding: 12px 18px; cursor: pointer; border-bottom: 1px solid #f8f8f8; display: flex; align-items: flex-start; transition: background 0.2s;">
                                     <div style="color: #e7252d; margin-right: 15px; margin-top: 3px; font-size: 1.1rem; width: 20px; text-align: center;">
                                         ${icon}
                                     </div>
                                     <div style="flex: 1;">
                                         <div style="font-weight: 700; color: #1a1a1a; font-size: 0.95rem; line-height: 1.2;">${mainName}</div>
-                                        <div style="font-size: 0.8rem; color: #777; margin-top: 2px;">${subName || 'Street Address'}</div>
+                                        <div style="font-size: 0.8rem; color: #777; margin-top: 2px;">${subName || "Street Address"}</div>
                                     </div>
                                 </div>
                             `;
-                        }).join('');
+              })
+              .join("");
 
-                        // Attribution
-                        html += `
+            // Attribution
+            html += `
                             <div style="padding: 8px 18px; background: #fafafa; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 0.65rem; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Results near you</span>
                                 <img src="https://photon.komoot.io/static/img/photon_logo.png" style="height: 12px; filter: grayscale(1); opacity: 0.5;">
                             </div>
                         `;
-                    }
-                    
-                    if (html === '') {
-                        html = `
+          }
+
+          if (html === "") {
+            html = `
                             <div class="suggestion-item" onclick="selectLocation(${restLat}, ${restLng}, '${val.replace(/'/g, "\\'")}')" style="padding: 15px 20px; cursor: pointer;">
                                 <div style="display: flex; align-items: center; color: #856404; font-weight: 600;">
                                     <i class="fas fa-keyboard" style="margin-right: 12px;"></i>
@@ -1630,140 +1749,154 @@ function initializeLocationSearch() {
                                 </div>
                             </div>
                         `;
-                    }
-                    
-                    suggestionBox.innerHTML = html;
-                    suggestionBox.style.display = 'block';
-                });
-        }, 500);
-    });
+          }
 
-    // Close on click outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.location-search-wrapper')) {
-            suggestionBox.style.display = 'none';
-        }
-    });
+          suggestionBox.innerHTML = html;
+          suggestionBox.style.display = "block";
+        });
+    }, 500);
+  });
 
-    // Styles for hover effect
-    if (!document.getElementById('autocomplete-styles')) {
-        const style = document.createElement('style');
-        style.id = 'autocomplete-styles';
-        style.innerHTML = `
+  // Close on click outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".location-search-wrapper")) {
+      suggestionBox.style.display = "none";
+    }
+  });
+
+  // Styles for hover effect
+  if (!document.getElementById("autocomplete-styles")) {
+    const style = document.createElement("style");
+    style.id = "autocomplete-styles";
+    style.innerHTML = `
             .suggestion-item:hover { background: #fdf2f2 !important; }
             .suggestion-item:hover div { color: #e7252d !important; }
             .suggestion-item:last-child { border-bottom: none; }
         `;
-        document.head.appendChild(style);
-    }
+    document.head.appendChild(style);
+  }
 }
 
 function selectLocation(lat, lng, name) {
-    const addressInput = document.getElementById('address');
-    const suggestionBox = document.getElementById('location-suggestions');
-    if (addressInput) addressInput.value = name;
-    if (suggestionBox) suggestionBox.style.display = 'none';
+  const addressInput = document.getElementById("address");
+  const suggestionBox = document.getElementById("location-suggestions");
+  if (addressInput) addressInput.value = name;
+  if (suggestionBox) suggestionBox.style.display = "none";
 
-    // Update global lat/lng if inputs exist
-    const latInp = document.getElementById('lat');
-    const lngInp = document.getElementById('lng');
-    if (latInp) latInp.value = lat;
-    if (lngInp) lngInp.value = lng;
+  // Update global lat/lng if inputs exist
+  const latInp = document.getElementById("lat");
+  const lngInp = document.getElementById("lng");
+  if (latInp) latInp.value = lat;
+  if (lngInp) lngInp.value = lng;
 
-    // Trigger fee update if defined (in checkout.html)
-    if (typeof updateDeliveryFee === 'function') {
-        updateDeliveryFee(lat, lng);
-    }
+  // Trigger fee update if defined (in checkout.html)
+  if (typeof updateDeliveryFee === "function") {
+    updateDeliveryFee(lat, lng);
+  }
 }
 
 async function applyPromoCode() {
-    const input = document.getElementById('promoCodeInput');
-    const msg = document.getElementById('promo-msg');
-    const phone = document.getElementById('phone')?.value;
-    const code = input.value.trim();
-    
-    if (!code && !phone) return;
+  const input = document.getElementById("promoCodeInput");
+  const msg = document.getElementById("promo-msg");
+  const phone = document.getElementById("phone")?.value;
+  const code = input.value.trim();
 
-    try {
-        const res = await fetch('/api/validate-promo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, phone })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            APPLIED_DISCOUNT_PERCENT = data.discountPercent;
-            APPLIED_PROMO_CODE = code ? code.toUpperCase() : 'LOYALTY';
-            msg.innerText = data.message || `Success! ${data.discountPercent}% discount applied.`;
-            msg.style.color = '#116940';
-            msg.style.display = 'block';
-            if (code) input.disabled = true;
-            renderCartPage();
-            showNotification('Reward Applied!', data.message || `You saved ${data.discountPercent}% on your order.`, 'success');
-        } else if (code) {
-            msg.innerText = data.message;
-            msg.style.color = '#e7252d';
-            msg.style.display = 'block';
-            showNotification('Invalid Code', data.message, 'error');
-        }
-    } catch (e) {
-        console.error(e);
+  if (!code && !phone) return;
+
+  try {
+    const res = await fetch("/api/validate-promo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, phone }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      APPLIED_DISCOUNT_PERCENT = data.discountPercent;
+      APPLIED_PROMO_CODE = code ? code.toUpperCase() : "LOYALTY";
+      msg.innerText =
+        data.message || `Success! ${data.discountPercent}% discount applied.`;
+      msg.style.color = "#116940";
+      msg.style.display = "block";
+      if (code) input.disabled = true;
+      renderCartPage();
+      showNotification(
+        "Reward Applied!",
+        data.message || `You saved ${data.discountPercent}% on your order.`,
+        "success",
+      );
+    } else if (code) {
+      msg.innerText = data.message;
+      msg.style.color = "#e7252d";
+      msg.style.display = "block";
+      showNotification("Invalid Code", data.message, "error");
     }
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-
-
 // Init
-document.addEventListener('DOMContentLoaded', () => {
-    updateCartMetadata();
-    if (document.getElementById('menu-container')) renderMenu();
-    if (document.getElementById('homepage-menu-container')) renderHomepageMenu();
-    if (document.getElementById('cart-table-body') || document.getElementById('cart-item-list')) renderCartPage();
-    
-    const checkoutForm = document.getElementById('checkout-form');
-    if (checkoutForm) {
-        // Prevent Enter key from submitting the form (Desktop)
-        checkoutForm.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-                e.preventDefault();
-                return false;
-            }
-        });
+document.addEventListener("DOMContentLoaded", () => {
+  updateCartMetadata();
+  if (document.getElementById("menu-container")) renderMenu();
+  if (document.getElementById("homepage-menu-container")) renderHomepageMenu();
+  if (
+    document.getElementById("cart-table-body") ||
+    document.getElementById("cart-item-list")
+  )
+    renderCartPage();
 
-        checkoutForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            submitOrder(e);
-        });
+  const checkoutForm = document.getElementById("checkout-form");
+  if (checkoutForm) {
+    // Prevent Enter key from submitting the form (Desktop)
+    checkoutForm.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target.tagName === "INPUT") {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    checkoutForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitOrder(e);
+    });
+  }
+
+  // Initialize Location Search
+  initializeLocationSearch();
+
+  // Bottom Nav Active State
+  const currentPath = window.location.pathname;
+  const bottomNavItems = document.querySelectorAll(
+    ".mobile-bottom-nav .nav-item",
+  );
+  bottomNavItems.forEach((item) => {
+    const href = item.getAttribute("href");
+    if (
+      currentPath.includes(href) ||
+      (currentPath === "/" && href === "index.html")
+    ) {
+      bottomNavItems.forEach((i) => i.classList.remove("active"));
+      item.classList.add("active");
     }
+  });
 
-    // Initialize Location Search
-    initializeLocationSearch();
-
-    // Bottom Nav Active State
-    const currentPath = window.location.pathname;
-    const bottomNavItems = document.querySelectorAll('.mobile-bottom-nav .nav-item');
-    bottomNavItems.forEach(item => {
-        const href = item.getAttribute('href');
-        if (currentPath.includes(href) || (currentPath === '/' && href === 'index.html')) {
-            bottomNavItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-        }
+  // Payment method switch logic
+  const paymentRadios = document.querySelectorAll(
+    'input[name="payment_method"]',
+  );
+  paymentRadios.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      const stkNotice = document.getElementById("stk-notice");
+      const tillNotice = document.getElementById("till-instructions");
+      if (e.target.value === "stk") {
+        if (stkNotice) stkNotice.style.display = "block";
+        if (tillNotice) tillNotice.style.display = "none";
+      } else {
+        if (stkNotice) stkNotice.style.display = "none";
+        if (tillNotice) tillNotice.style.display = "block";
+      }
     });
-
-    // Payment method switch logic
-    const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
-    paymentRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const stkNotice = document.getElementById('stk-notice');
-            const tillNotice = document.getElementById('till-instructions');
-            if (e.target.value === 'stk') {
-                if(stkNotice) stkNotice.style.display = 'block';
-                if(tillNotice) tillNotice.style.display = 'none';
-            } else {
-                if(stkNotice) stkNotice.style.display = 'none';
-                if(tillNotice) tillNotice.style.display = 'block';
-            }
-        });
-    });
+  });
 });
