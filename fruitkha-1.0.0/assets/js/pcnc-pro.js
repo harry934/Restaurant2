@@ -960,6 +960,22 @@ function injectPremiumStyles() {
                 white-space: nowrap;
                 max-width: 100%;
             }
+            
+            /* Mobile: Badge below text in collapsed state */
+            .discount-tag {
+                position: static;
+                display: inline-block;
+                margin-top: 6px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            /* Mobile: Badge to top-right in expanded state */
+            .horizontal-food-card.expanded .discount-tag {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                margin-top: 0;
+            }
             .discount-tag {
                 padding: 2px 6px;
                 font-size: 0.65rem;
