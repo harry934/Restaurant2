@@ -5,9 +5,15 @@ let APPLIED_PROMO_CODE = null;
 const CATEGORY_ICONS = {
   pizza: '<i class="fas fa-pizza-slice"></i>',
   sides: '<i class="fas fa-hamburger"></i>',
-  drinks: '<i class="fas fa-wine-glass-alt"></i>',
+  drinks: '<i class="fas fa-glass-whiskey"></i>',
   dessert: '<i class="fas fa-ice-cream"></i>',
   pasta: '<i class="fas fa-utensils"></i>',
+  meals: '<i class="fas fa-drumstick-bite"></i>',
+  chicken: '<i class="fas fa-drumstick-bite"></i>',
+  'rice/ugali': '<i class="fas fa-bowl-rice"></i>',
+  rice: '<i class="fas fa-bowl-rice"></i>',
+  ugali: '<i class="fas fa-bowl-rice"></i>',
+  burgers: '<i class="fas fa-burger"></i>',
   all: '<i class="fas fa-th-large"></i>',
 };
 
@@ -271,8 +277,8 @@ function generateProductCardHTML(item) {
   const quantity = cartItem ? cartItem.quantity : 0;
 
   return `
-        <div class="col-12 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity}; margin-bottom: 15px;">
-            <div class="horizontal-food-card">
+        <div class="col-12 menu-item-card" data-category="${item.category}" data-item-id="${item.id}" style="opacity: ${opacity}; margin-bottom: 12px; padding: 0;">
+            <div class="horizontal-food-card" onclick="toggleCardExpansion(${item.id}, event)">
                 <div class="food-image-container">
                     <img src="${item.image}" alt="${item.name}" class="food-image">
                     ${isSoldOut ? `<span class="sold-out-badge">Sold Out</span>` : ""}
@@ -286,7 +292,7 @@ function generateProductCardHTML(item) {
                     <p class="food-description">${item.description || "Delicious and freshly prepared"}</p>
                 </div>
                 
-                <div class="food-pricing">
+                <div class="food-pricing" onclick="event.stopPropagation()">
                     <div class="price-block">
                         <span class="current-price">KSh${item.price.toLocaleString()}</span>
                     </div>
@@ -300,11 +306,11 @@ function generateProductCardHTML(item) {
                         : quantity > 0
                           ? `
                         <div class="horizontal-qty-control">
-                            <button onclick="updateProductCardQty(${item.id}, -1); return false;" class="qty-btn">
+                            <button onclick="updateProductCardQty(${item.id}, -1, event); return false;" class="qty-btn">
                                 <i class="fas fa-minus"></i>
                             </button>
                             <span class="qty-display">${quantity}</span>
-                            <button onclick="updateProductCardQty(${item.id}, 1); return false;" class="qty-btn">
+                            <button onclick="updateProductCardQty(${item.id}, 1, event); return false;" class="qty-btn">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -321,7 +327,13 @@ function generateProductCardHTML(item) {
     `;
 }
 
-function updateProductCardQty(id, change) {
+function updateProductCardQty(id, change, event) {
+  // Prevent page scroll/jump
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
   if (change > 0) {
     addToCart(id);
   } else {
@@ -346,6 +358,29 @@ function updateProductCardQty(id, change) {
       renderMenu(currentFilter);
     }
   }, 100);
+}
+
+// Toggle card expansion to show full text
+function toggleCardExpansion(id, event) {
+  // Don't expand if clicking on buttons
+  if (event && (event.target.closest('.food-pricing') || event.target.closest('button'))) {
+    return;
+  }
+  
+  const card = document.querySelector(`[data-item-id="${id}"] .horizontal-food-card`);
+  if (!card) return;
+  
+  const isExpanded = card.classList.contains('expanded');
+  
+  // Remove expanded class from all cards
+  document.querySelectorAll('.horizontal-food-card.expanded').forEach(c => {
+    c.classList.remove('expanded');
+  });
+  
+  // Toggle current card
+  if (!isExpanded) {
+    card.classList.add('expanded');
+  }
 }
 
 function renderSkeleton() {
@@ -648,12 +683,31 @@ function injectPremiumStyles() {
             align-items: center;
             gap: 12px;
             border: 1px solid #e8e8e8;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            cursor: pointer;
         }
         .horizontal-food-card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             transform: translateY(-1px);
+        }
+        
+        /* Expanded card state - smooth transitions */
+        .horizontal-food-card.expanded {
+            background: #f9f9f9;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border-color: #e7252d;
+        }
+        .horizontal-food-card.expanded .food-title {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: none !important;
+        }
+        .horizontal-food-card.expanded .food-description {
+            display: block !important;
+            -webkit-line-clamp: unset !important;
+            overflow: visible !important;
         }
         
         .food-image-container {
