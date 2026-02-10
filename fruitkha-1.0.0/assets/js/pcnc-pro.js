@@ -368,6 +368,11 @@ function updateProductCardQty(id, change, event) {
 
 // Toggle card expansion to show full text
 function toggleCardExpansion(id, event) {
+  // Only allow expansion on mobile devices
+  if (window.innerWidth > 768) {
+    return; // Disable on desktop
+  }
+  
   // Don't expand if clicking on buttons
   if (event && (event.target.closest('.food-pricing') || event.target.closest('button'))) {
     return;
@@ -692,7 +697,6 @@ function injectPremiumStyles() {
             border: 1px solid #e8e8e8;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            cursor: pointer;
             min-height: 120px;
         }
         .horizontal-food-card:hover {
@@ -933,6 +937,7 @@ function injectPremiumStyles() {
                 gap: 12px;
                 align-items: center; 
                 min-height: 100px;
+                cursor: pointer; /* Enable pointer on mobile for expansion */
             }
             .food-image-container {
                 width: 85px;
