@@ -642,26 +642,26 @@ function injectPremiumStyles() {
         /* HORIZONTAL FOOD CARD DESIGN */
         .horizontal-food-card {
             background: #fff;
-            border-radius: 16px;
-            padding: 16px;
+            border-radius: 12px;
+            padding: 12px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
             border: 1px solid #e8e8e8;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .horizontal-food-card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         
         .food-image-container {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             flex-shrink: 0;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             background: #f9f9f9;
         }
@@ -936,6 +936,22 @@ function injectPremiumStyles() {
                 left: 5%;
                 right: auto;
                 min-width: auto;
+            }
+        }
+
+        /* Force single column on all mobile devices */
+        @media (max-width: 991px) {
+            #menu-container {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            #menu-container .menu-item-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: 0 0 100% !important;
+            }
+            .glovo-main-content .container {
+                padding: 0 15px;
             }
         }
 
