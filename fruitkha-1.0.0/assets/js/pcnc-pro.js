@@ -703,17 +703,44 @@ function injectPremiumStyles() {
             background: #f9f9f9;
             box-shadow: 0 6px 20px rgba(0,0,0,0.12);
             border-color: #e7252d;
+            min-height: auto;
+            padding: 16px;
+            flex-wrap: wrap;
+        }
+        .horizontal-food-card.expanded .food-details {
+            flex: 1 1 100%;
+            max-width: 100%;
+            padding-right: 0;
+            margin-bottom: 12px;
         }
         .horizontal-food-card.expanded .food-title {
             white-space: normal !important;
             overflow: visible !important;
             text-overflow: clip !important;
             max-width: none !important;
+            display: block !important;
+            -webkit-line-clamp: unset !important;
+            -webkit-box-orient: initial !important;
+            font-size: 1.1rem;
+            line-height: 1.4;
         }
         .horizontal-food-card.expanded .food-description {
             display: block !important;
             -webkit-line-clamp: unset !important;
+            -webkit-box-orient: initial !important;
             overflow: visible !important;
+            white-space: normal !important;
+            margin-top: 8px;
+        }
+        .horizontal-food-card.expanded .food-pricing {
+            flex: 1 1 100%;
+            max-width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e8e8e8;
         }
         
         .food-image-container {
