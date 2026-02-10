@@ -686,12 +686,13 @@ function injectPremiumStyles() {
             border-radius: 12px;
             padding: 12px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
             border: 1px solid #e8e8e8;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             cursor: pointer;
+            min-height: 120px;
         }
         .horizontal-food-card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
@@ -795,7 +796,7 @@ function injectPremiumStyles() {
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             word-break: break-word;
             flex: 1;
@@ -813,7 +814,7 @@ function injectPremiumStyles() {
             flex-shrink: 0;
         }
         .food-description {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #666;
             margin: 0;
             line-height: 1.4;
