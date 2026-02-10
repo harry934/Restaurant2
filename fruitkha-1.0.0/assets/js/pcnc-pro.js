@@ -173,7 +173,13 @@ function saveCart(cart) {
   updateCartMetadata();
 }
 
-function addToCart(id) {
+function addToCart(id, event) {
+  // Prevent page scroll/jump
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
   const cart = getCart();
   const item = MENU_ITEMS.find((i) => i.id === id);
   if (!item) return;
@@ -316,7 +322,7 @@ function generateProductCardHTML(item) {
                         </div>
                     `
                           : `
-                        <button class="add-item-btn" onclick="addToCart(${item.id}); return false;">
+                        <button class="add-item-btn" onclick="addToCart(${item.id}, event); return false;">
                             <i class="fas fa-plus"></i>
                         </button>
                     `
@@ -740,19 +746,33 @@ function injectPremiumStyles() {
         .food-details {
             flex: 1;
             min-width: 0;
+            padding-right: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .title-row {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-wrap: nowrap;
         }
         .food-title {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 900;
             color: #000;
             margin: 0;
             line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+            flex: 1;
+            min-width: 0;
         }
         .discount-tag {
             display: inline-block;
@@ -763,6 +783,7 @@ function injectPremiumStyles() {
             font-size: 0.75rem;
             font-weight: 900;
             box-shadow: 0 2px 6px rgba(231, 37, 45, 0.25);
+            flex-shrink: 0;
         }
         .food-description {
             font-size: 0.9rem;
