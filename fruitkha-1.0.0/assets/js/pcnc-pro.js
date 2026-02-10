@@ -291,9 +291,9 @@ function generateProductCardHTML(item) {
                 </div>
                 
                 <div class="food-details">
+                    ${item.tag && !isSoldOut ? `<span class="discount-tag">${item.tag}</span>` : ""}
                     <div class="title-row">
                         <h3 class="food-title">${item.name}</h3>
-                        ${item.tag && !isSoldOut ? `<span class="discount-tag">${item.tag}</span>` : ""}
                     </div>
                     <p class="food-description">${item.description || "Delicious and freshly prepared"}</p>
                 </div>
@@ -682,6 +682,7 @@ function injectPremiumStyles() {
 
         /* HORIZONTAL FOOD CARD DESIGN */
         .horizontal-food-card {
+            position: relative;
             background: #fff;
             border-radius: 12px;
             padding: 12px;
@@ -699,7 +700,7 @@ function injectPremiumStyles() {
             transform: translateY(-1px);
         }
         
-        /* Expanded card state - smooth transitions */
+        /* Expanded card state - GPU-accelerated smooth animations */
         .horizontal-food-card.expanded {
             background: #f9f9f9;
             box-shadow: 0 6px 20px rgba(0,0,0,0.12);
@@ -707,6 +708,10 @@ function injectPremiumStyles() {
             min-height: auto;
             padding: 16px;
             flex-wrap: wrap;
+            transform: scale(1.02);
+            will-change: transform;
+            backface-visibility: hidden;
+            contain: layout;
         }
         .horizontal-food-card.expanded .food-details {
             flex: 1 1 100%;
@@ -772,6 +777,7 @@ function injectPremiumStyles() {
         }
         
         .food-details {
+            position: relative;
             flex: 1;
             min-width: 0;
             padding-right: 10px;
@@ -799,19 +805,26 @@ function injectPremiumStyles() {
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
             flex: 1;
             min-width: 0;
+            max-width: 100%;
         }
         .discount-tag {
-            display: inline-block;
+            position: absolute;
+            top: 8px;
+            right: 8px;
             background: linear-gradient(135deg, #e7252d 0%, #c11b17 100%);
             color: #fff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
             font-weight: 900;
-            box-shadow: 0 2px 6px rgba(231, 37, 45, 0.25);
-            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(231, 37, 45, 0.3);
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .food-description {
             font-size: 0.85rem;
